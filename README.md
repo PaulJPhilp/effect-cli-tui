@@ -1,6 +1,6 @@
 # effect-cli-tui
 
-Effect-native CLI wrapper with interactive prompts for building powerful terminal user interfaces.
+Effect-native CLI wrapper with interactive prompts and display utilities for building powerful terminal user interfaces.
 
 [![npm version](https://img.shields.io/npm/v/effect-cli-tui)](https://www.npmjs.com/package/effect-cli-tui)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,8 +9,10 @@ Effect-native CLI wrapper with interactive prompts for building powerful termina
 
 - 🎯 **Effect-Native** — Built on Effect-TS for type-safe, composable effects
 - 🖥️ **Interactive Prompts** — Powered by @inquirer/prompts with full customization
+- 📢 **Display API** — Simple, powerful console output utilities
 - ⚙️ **CLI Wrapper** — Run commands via Effect with error handling
 - 🔄 **Composable** — Chain operations seamlessly with Effect's `yield*` syntax
+- 📦 **Dual Module Support** — Works in both ESM and CommonJS environments
 - ✅ **Fully Tested** — Comprehensive test suite with integration tests
 - 📝 **Well-Documented** — Clear API docs and practical examples
 
@@ -26,11 +28,16 @@ yarn add effect-cli-tui
 
 ## Quick Start
 
+### ESM (Recommended)
 ```typescript
 import * as Effect from 'effect/Effect'
-import { TUIHandler, EffectCLI } from 'effect-cli-tui'
+import { display, displaySuccess, TUIHandler, EffectCLI } from 'effect-cli-tui'
 
 const program = Effect.gen(function* (_) {
+  // Display utilities
+  yield* _(display('Welcome to my CLI app!'))
+  yield* _(displaySuccess('Initialization complete'))
+
   const tui = new TUIHandler()
   const cli = new EffectCLI()
 
@@ -39,24 +46,60 @@ const program = Effect.gen(function* (_) {
     tui.prompt('What is your name?')
   )
 
-  // Select from options
-  const choice = yield* _(
-    tui.selectOption('Choose an option:', [
-      { label: 'Option A', value: 'a' },
-      { label: 'Option B', value: 'b' }
-    ])
-  )
-
   // Display results
-  yield* _(
-    tui.display(`Hello, ${name}! You chose: ${choice}`, 'success')
-  )
+  yield* _(displaySuccess(`Hello, ${name}!`))
 })
 
 await Effect.runPromise(program)
 ```
 
+### CommonJS
+```javascript
+const { Effect } = require('effect')
+const { display, displaySuccess, TUIHandler, EffectCLI } = require('effect-cli-tui')
+
+const program = Effect.gen(function* (_) {
+  yield* _(display('Welcome to my CLI app!'))
+  yield* _(displaySuccess('Initialization complete'))
+
+  // ... rest of your program
+})
+
+Effect.runPromise(program)
+```
+
 ## Core Concepts
+
+### Display API
+
+Simple, powerful console output utilities for CLI applications.
+
+**Functions:**
+- `display(message, options?)` - Display single-line messages with styling
+- `displayLines(lines, options?)` - Display multiple lines with consistent formatting
+- `displayJson(data, options?)` - Pretty-print JSON data
+- `displaySuccess(message)` - Convenience for success messages
+- `displayError(message)` - Convenience for error messages
+
+**Example:**
+```typescript
+import { display, displayLines, displayJson } from 'effect-cli-tui'
+
+// Simple messages
+yield* _(display('Processing files...'))
+yield* _(displaySuccess('All files processed!'))
+
+// Multi-line output
+yield* _(displayLines([
+  'Configuration Summary',
+  '─────────────────────',
+  'Mode: Production',
+  'Files: 42 processed'
+]))
+
+// JSON output
+yield* _(displayJson({ status: 'ok', count: 42 }))
+```
 
 ### TUIHandler
 
@@ -212,6 +255,66 @@ const safePrompt = Effect.gen(function* (_) {
 
 ## API Reference
 
+### Display API
+
+#### `display(message: string, options?: DisplayOptions): Effect<void>`
+
+Display a single-line message with optional styling.
+
+```typescript
+yield* _(display('This is an info message'))
+yield* _(display('Success!', { type: 'success' }))
+yield* _(display('Custom prefix>>>', { prefix: '>>>' }))
+yield* _(display('No newline', { newline: false }))
+```
+
+**Options:**
+- `type?: 'info' | 'success' | 'error'` - Message type (default: 'info')
+- `prefix?: string` - Custom prefix (overrides default)
+- `newline?: boolean` - Add newline before message (default: true)
+
+#### `displayLines(lines: string[], options?: DisplayOptions): Effect<void>`
+
+Display multiple lines with consistent formatting.
+
+```typescript
+yield* _(displayLines([
+  'Project Status',
+  '──────────────',
+  '✅ Database: Connected',
+  '✅ Cache: Ready'
+], { type: 'success' }))
+```
+
+#### `displayJson(data: unknown, options?: JsonDisplayOptions): Effect<void>`
+
+Pretty-print JSON data with optional prefix.
+
+```typescript
+yield* _(displayJson({ name: 'project', version: '1.0.0' }))
+yield* _(displayJson(data, { spaces: 4, prefix: false }))
+```
+
+**JsonDisplayOptions extends DisplayOptions:**
+- `spaces?: number` - Indentation spaces (default: 2)
+- `prefix?: boolean` - Show type prefix (default: true)
+
+#### `displaySuccess(message: string): Effect<void>`
+
+Convenience function for success messages.
+
+```typescript
+yield* _(displaySuccess('Operation completed!'))
+```
+
+#### `displayError(message: string): Effect<void>`
+
+Convenience function for error messages.
+
+```typescript
+yield* _(displayError('Failed to connect'))
+```
+
 ### TUIHandler
 
 #### `prompt(message: string, options?: PromptOptions): Effect<string, TUIError>`
@@ -336,6 +439,22 @@ interface CLIRunOptions {
 interface PromptOptions {
   default?: string                     // Default value
   validate?: (input: string) => boolean | string  // Validation function
+}
+```
+
+### Display Types
+```typescript
+type DisplayType = 'info' | 'success' | 'error'
+
+interface DisplayOptions {
+  type?: DisplayType          // Message type (default: 'info')
+  prefix?: string             // Custom prefix
+  newline?: boolean           // Add newline before message (default: true)
+}
+
+interface JsonDisplayOptions extends DisplayOptions {
+  spaces?: number             // JSON indentation spaces (default: 2)
+  prefix?: boolean            // Show type prefix (default: true)
 }
 ```
 

@@ -41,3 +41,28 @@ export class TUIError extends Data.TaggedError('TUIError') {
         super()
     }
 }
+
+// Display API types
+export type DisplayType = 'info' | 'success' | 'error'
+
+export interface ChalkStyleOptions {
+    bold?: boolean
+    dim?: boolean
+    italic?: boolean
+    underline?: boolean
+    inverse?: boolean
+    strikethrough?: boolean
+    color?: 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white' | 'gray'
+    bgColor?: 'bgBlack' | 'bgRed' | 'bgGreen' | 'bgYellow' | 'bgBlue' | 'bgMagenta' | 'bgCyan' | 'bgWhite'
+}
+
+export interface DisplayOptions {
+    type?: DisplayType
+    prefix?: string
+    newline?: boolean
+    style?: ChalkStyleOptions
+}
+
+export interface JsonDisplayOptions extends DisplayOptions {
+    spaces?: number
+}
