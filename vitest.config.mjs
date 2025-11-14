@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['__tests__/**/*.test.ts'],
+    include: ['__tests__/**/*.test.{ts,tsx}'],
     // coverage: {
     //   provider: 'v8',
     //   reporter: ['text', 'json', 'html'],
@@ -11,7 +11,9 @@ export default defineConfig({
     // }
   },
   esbuild: {
-    target: 'node20'
+    target: 'node20',
+    jsx: 'automatic',
+    jsxImportSource: 'react'
   },
   resolve: {
     alias: {
@@ -24,6 +26,6 @@ export default defineConfig({
   },
   // Configure for ESM
   optimizeDeps: {
-    include: ['effect', 'cli-table3', 'chalk', 'cli-spinners', '@inquirer/prompts']
+    include: ['effect', 'react', 'ink', 'ink-spinner', 'ink-text-input', 'ink-select-input', 'pastel', 'ink-testing-library']
   }
 })

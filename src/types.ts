@@ -42,6 +42,20 @@ export class TUIError extends Data.TaggedError('TUIError') {
     }
 }
 
+/**
+ * Ink rendering error type
+ *
+ * Thrown when Ink component rendering fails.
+ */
+export class InkError extends Data.TaggedError('InkError') {
+    constructor(
+        readonly reason: 'RenderError' | 'ComponentError' | 'TerminalError',
+        readonly message: string
+    ) {
+        super()
+    }
+}
+
 // Display API types
 export type DisplayType = 'info' | 'success' | 'error'
 

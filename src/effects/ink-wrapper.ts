@@ -5,57 +5,39 @@
  * functional composition model.
  */
 
-import * as Data from 'effect/Data'
 import * as Effect from 'effect/Effect'
 import { Instance, render } from 'ink'
 import type React from 'react'
+import { InkError } from '../types'
 
 /**
- * Error type for Ink rendering failures
- */
-export class InkError extends Data.TaggedError('InkError') {
-    constructor(
-        readonly reason: string,
-        readonly message: string
-    ) {
-        super()
-    }
-}
-
-/**
- * Wrap Ink component rendering in Effect
+ * Wrap Ink component rendering in Effect with proper resource management
+ *
+ * Guarantees cleanup of Ink instance even if the effect fails or is interrupted.
  *
  * @param component React component to render
  * @returns Effect that resolves when component unmounts
  *
  * @example
- * const myApp = <MyComponent />
- * const effect = renderInkComponent(myApp)
- * Effect.runPromise(effect).then(() => console.log('Done'))
+ * ```ts
+ * yield* Effect.gen(function* (_) {
+ *   yield* renderInkComponent(<MyComponent />)
+ *   console.log('Component unmounted')
+ * })
+ * ```
  */
 export function renderInkComponent(
     component: React.ReactElement
 ): Effect.Effect<void, InkError> {
     return Effect.tryPromise({
-        try: () =>
-            new Promise<void>((resolve, reject) => {
-                try {
-                    const instance: Instance = render(component)
-
-                    instance
-                        .waitUntilExit()
-                        .then(() => {
-                            instance.unmount()
-                            resolve()
-                        })
-                        .catch((err: unknown) => {
-                            instance.unmount()
-                            reject(err)
-                        })
-                } catch (err) {
-                    reject(err)
-                }
-            }),
+        try: async () => {
+            const instance = render(component)
+            try {
+                await instance.waitUntilExit()
+            } finally {
+                instance.unmount()
+            }
+        },
         catch: (err: unknown) =>
             new InkError(
                 'RenderError',
@@ -65,21 +47,25 @@ export function renderInkComponent(
 }
 
 /**
- * Wrap Ink component that returns a value
+ * Wrap Ink component that returns a value with proper resource management
  *
- * Component receives onComplete callback to pass result and unmount
+ * Component receives onComplete callback to pass result and unmount.
+ * Guarantees cleanup of Ink instance.
  *
  * @param component Function that returns a component receiving onComplete
  * @returns Effect that resolves with the component's return value
  *
  * @example
- * const result = yield* Effect.gen(function* (_) {
- *   return yield* _(
+ * ```ts
+ * yield* Effect.gen(function* (_) {
+ *   const selected = yield* (
  *     renderInkWithResult<string>((onComplete) =>
- *       <MySelectComponent onComplete={onComplete} />
+ *       <SelectComponent choices={items} onSubmit={onComplete} />
  *     )
  *   )
+ *   console.log(`You selected: ${selected}`)
  * })
+ * ```
  */
 export function renderInkWithResult<T>(
     component: (onComplete: (value: T) => void) => React.ReactElement
@@ -87,9 +73,9 @@ export function renderInkWithResult<T>(
     return Effect.tryPromise({
         try: () =>
             new Promise<T>((resolve, reject) => {
-                try {
-                    let instance: Instance | null = null
+                let instance: Instance | null = null
 
+                try {
                     const handleComplete = (value: T) => {
                         if (instance) {
                             instance.unmount()
@@ -99,13 +85,20 @@ export function renderInkWithResult<T>(
 
                     instance = render(component(handleComplete))
                 } catch (err) {
-                    reject(err)
+                    reject(
+                        new InkError(
+                            'RenderError',
+                            `Failed to render component: ${err instanceof Error ? err.message : String(err)}`
+                        )
+                    )
                 }
             }),
         catch: (err: unknown) =>
-            new InkError(
-                'RenderError',
-                `Failed to render component: ${err instanceof Error ? err.message : String(err)}`
-            )
+            err instanceof InkError
+                ? err
+                : new InkError(
+                      'RenderError',
+                      `Failed to render component: ${err instanceof Error ? err.message : String(err)}`
+                  )
     })
 }
