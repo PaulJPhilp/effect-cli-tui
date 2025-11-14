@@ -24,11 +24,11 @@
   },
   "main": "dist/index.js",
   "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/index.d.mts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.js"
     }
   },
   "files": [
@@ -45,29 +45,36 @@
     "lint": "eslint src __tests__",
     "format": "prettier --write src __tests__ docs",
     "type-check": "tsc --noEmit",
-    "prepublishOnly": "pnpm build && pnpm test"
+    "prepublishOnly": "bun run build && bun run test"
   },
+  "type": "module",
   "dependencies": {
-    "chalk": "^5.3.0",
-    "cli-spinners": "^3.0.0",
-    "cli-table3": "^0.6.3",
-    "effect": "^3.18.0",
-    "highlight.js": "^11.9.0"
+    "@effect/schema": "^0.75.5",
+    "@inquirer/prompts": "^5.5.0",
+    "chalk": "^5.6.2",
+    "cli-spinners": "^3.3.0",
+    "cli-table3": "^0.6.5",
+    "effect-cli": "^1.0.0",
+    "highlight.js": "^11.11.1"
   },
   "peerDependencies": {
-    "ink": "^4.0.0",
-    "react": "^18.0.0"
+    "effect": "^3.0.0",
+    "ink": "^4.4.1",
+    "react": "^18.3.1"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/react": "^18.0.0",
-    "@vitest/coverage-v8": "^4.0.6",
-    "@vitest/ui": "^4.0.6",
-    "eslint": "^8.0.0",
-    "prettier": "^3.0.0",
-    "tsup": "^8.5.0",
-    "typescript": "^5.9.0",
-    "vitest": "^4.0.6"
+    "@types/node": "^20.19.25",
+    "@types/react": "^18.3.26",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@vitest/coverage-v8": "^4.0.8",
+    "@vitest/ui": "^4.0.8",
+    "effect": "^3.19.3",
+    "eslint": "^8.57.1",
+    "prettier": "^3.6.2",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8"
   },
   "engines": {
     "node": ">=20"
