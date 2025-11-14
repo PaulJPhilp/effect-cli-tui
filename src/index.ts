@@ -1,5 +1,5 @@
 // Existing exports
-export { EffectCLI } from './cli'
+export { EffectCLI, EffectCLILive } from './cli'
 export { TUIHandler } from './tui'
 export * from './types'
 

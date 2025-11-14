@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect'
+import { Scope } from 'effect/Scope'
 import { Instance, render } from 'ink'
 import type React from 'react'
 import { InkError } from '../types'
@@ -28,7 +29,7 @@ import { InkError } from '../types'
  */
 export function renderInkComponent(
     component: React.ReactElement
-): Effect.Effect<void, InkError> {
+): Effect.Effect<void, InkError, Scope> {
     return Effect.tryPromise({
         try: async () => {
             const instance = render(component)
@@ -69,7 +70,7 @@ export function renderInkComponent(
  */
 export function renderInkWithResult<T>(
     component: (onComplete: (value: T) => void) => React.ReactElement
-): Effect.Effect<T, InkError> {
+): Effect.Effect<T, InkError, Scope> {
     return Effect.tryPromise({
         try: () =>
             new Promise<T>((resolve, reject) => {

@@ -16,22 +16,19 @@ import { CLIResult, CLIError, TUIError } from '../../src/types'
  * }).pipe(Effect.provide(MockCLI))
  * ```
  */
-export const MockCLI = Layer.succeed(EffectCLI, {
-  /**
-   * Mock run: Returns successful exit code 0 with dummy output
-   */
-  run: (): Effect.Effect<CLIResult, CLIError> =>
-    Effect.succeed({
-      exitCode: 0,
-      stdout: 'Mock command executed successfully',
-      stderr: ''
-    }),
+export const MockCLI = Layer.succeed(
+  EffectCLI,
+  EffectCLI.of({
+    run: (): Effect.Effect<CLIResult, CLIError> =>
+      Effect.succeed({
+        exitCode: 0,
+        stdout: 'Mock command executed successfully',
+        stderr: ''
+      }),
 
-  /**
-   * Mock stream: Returns success immediately
-   */
-  stream: (): Effect.Effect<void, CLIError> => Effect.void
-})
+    stream: (): Effect.Effect<void, CLIError> => Effect.void
+  })
+)
 
 /**
  * Mock layer for EffectCLI that simulates command failures
@@ -46,26 +43,23 @@ export const MockCLI = Layer.succeed(EffectCLI, {
  * }).pipe(Effect.provide(MockCLIFailure))
  * ```
  */
-export const MockCLIFailure = Layer.succeed(EffectCLI, {
-  /**
-   * Mock run: Always fails with exit code 1
-   */
-  run: (): Effect.Effect<CLIResult, CLIError> =>
-    Effect.fail(
-      new CLIError(
-        'CommandFailed',
-        'Mock command failed with exit code 1.\nError output'
-      )
-    ),
+export const MockCLIFailure = Layer.succeed(
+  EffectCLI,
+  EffectCLI.of({
+    run: (): Effect.Effect<CLIResult, CLIError> =>
+      Effect.fail(
+        new CLIError(
+          'CommandFailed',
+          'Mock command failed with exit code 1.\nError output'
+        )
+      ),
 
-  /**
-   * Mock stream: Always fails
-   */
-  stream: (): Effect.Effect<void, CLIError> =>
-    Effect.fail(
-      new CLIError('CommandFailed', 'Mock stream command failed')
-    )
-})
+    stream: (): Effect.Effect<void, CLIError> =>
+      Effect.fail(
+        new CLIError('CommandFailed', 'Mock stream command failed')
+      )
+  })
+)
 
 /**
  * Mock layer for EffectCLI that simulates timeout

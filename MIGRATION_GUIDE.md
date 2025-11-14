@@ -1,31 +1,342 @@
-# Migration Guide: Effect.Service Refactoring
+# Migration Guide: v1.x → v2.0.0
 
-This guide helps you migrate code from the old class-based pattern to the new `Effect.Service` pattern (Effect 3.9+).
+Comprehensive guide for migrating from **effect-cli-tui v1.x** to **v2.0.0** (Ink-based interactive terminals).
 
 ## Overview
 
-The `EffectCLI` and `TUIHandler` services have been refactored to use the modern `Effect.Service` API. This provides better dependency injection, testability, and composability.
+**v2.0.0 is a major breaking release** with two significant changes:
 
-## Before (Old Pattern) ❌
+1. **Architecture**: Refactored to `Effect.Service` pattern for better dependency injection and testability
+2. **UI Framework**: Migrated from console-based + `@inquirer/prompts` to **Ink (React for terminal)** for modern interactive components
 
+## What's New in v2.0.0 ✨
+
+- 🎨 **React-based interactive components** via Ink
+- 🔧 **Effect.Service pattern** for modern dependency injection
+- ⌨️ **Rich input components**: Input, Select, MultiSelect, Confirm, Password
+- 📊 **Progress indicators**: Spinner, ProgressBar
+- 💪 **Better composability** with Effect runtime
+- ✅ **Type-safe error handling** with tagged errors
+- 🧪 **Better testability** with mock layers and ink-testing-library
+
+---
+
+## Quick Reference: What Changed
+
+### Interactive Prompts
+
+**v1.x** - Used `@inquirer/prompts`:
+```typescript
+import { promptInput, promptChoice } from 'effect-cli-tui'
+
+const name = await Effect.runPromise(
+  promptInput('Name:')  // One import per function
+)
+```
+
+**v2.0.0** - Uses Ink + Effect.Service:
+```typescript
+import { renderInkWithResult, Input } from 'effect-cli-tui'
+
+const name = yield* renderInkWithResult((onComplete) =>
+  <Input message="Name:" onSubmit={onComplete} />
+)
+```
+
+### Service Instantiation
+
+**v1.x**:
+```typescript
+const tui = new TUIHandler()
+const cli = new EffectCLI()
+```
+
+**v2.0.0**:
+```typescript
+const program = Effect.gen(function* () {
+  const tui = yield* TUIHandler
+  const cli = yield* EffectCLI
+  // ... use services
+}).pipe(
+  Effect.provide(TUIHandler.Default),
+  Effect.provide(EffectCLI.Default)
+)
+```
+
+---
+
+## Detailed Migration Steps
+
+### Step 1: Update Service Instantiation
+
+**Before (v1.x):**
 ```typescript
 import { EffectCLI, TUIHandler } from 'effect-cli-tui'
 
-const program = async () => {
+const cli = new EffectCLI()
+const tui = new TUIHandler()
+
+const result = await Effect.runPromise(cli.run('build'))
+```
+
+**After (v2.0.0):**
+```typescript
+import { EffectCLI, TUIHandler } from 'effect-cli-tui'
+
+const program = Effect.gen(function* () {
+  const cli = yield* EffectCLI
+  const tui = yield* TUIHandler
+
+  const result = yield* cli.run('build')
+  return result
+}).pipe(
+  Effect.provide(EffectCLI.Default),
+  Effect.provide(TUIHandler.Default)
+)
+
+await Effect.runPromise(program)
+```
+
+### Step 2: Migrate Interactive Prompts to Ink Components
+
+The biggest change in v2.0 is the migration from `@inquirer/prompts` to **Ink-based React components**.
+
+#### Text Input
+
+**v1.x**:
+```typescript
+import { promptInput } from 'effect-cli-tui'
+
+const name = yield* promptInput('Name:', {
+  validate: (v) => v.length > 0 || 'Required'
+})
+```
+
+**v2.0.0**:
+```typescript
+import { renderInkWithResult, Input } from 'effect-cli-tui'
+
+const name = yield* renderInkWithResult<string>((onComplete) =>
+  <Input
+    message="Name:"
+    validate={(v) => v.length > 0 || 'Required'}
+    onSubmit={onComplete}
+  />
+)
+```
+
+#### Single Selection
+
+**v1.x**:
+```typescript
+import { promptChoice } from 'effect-cli-tui'
+
+const choice = yield* promptChoice('Choose:', ['A', 'B', 'C'])
+```
+
+**v2.0.0**:
+```typescript
+import { renderInkWithResult, Select } from 'effect-cli-tui'
+
+const choice = yield* renderInkWithResult<string>((onComplete) =>
+  <Select
+    message="Choose:"
+    choices={['A', 'B', 'C']}
+    onSubmit={onComplete}
+  />
+)
+```
+
+#### Multiple Selection
+
+**v1.x**:
+```typescript
+import { promptMultiSelect } from 'effect-cli-tui'
+
+const selected = yield* promptMultiSelect('Pick:', ['A', 'B', 'C'])
+```
+
+**v2.0.0**:
+```typescript
+import { renderInkWithResult, MultiSelect } from 'effect-cli-tui'
+
+const selected = yield* renderInkWithResult<string[]>((onComplete) =>
+  <MultiSelect
+    message="Pick:"
+    choices={['A', 'B', 'C']}
+    onSubmit={onComplete}
+  />
+)
+```
+
+#### Confirmation
+
+**v1.x**:
+```typescript
+import { promptConfirm } from 'effect-cli-tui'
+
+const confirmed = yield* promptConfirm('Continue?')
+```
+
+**v2.0.0**:
+```typescript
+import { renderInkWithResult, Confirm } from 'effect-cli-tui'
+
+const confirmed = yield* renderInkWithResult<boolean>((onComplete) =>
+  <Confirm
+    message="Continue?"
+    default={true}
+    onSubmit={onComplete}
+  />
+)
+```
+
+#### Password Input
+
+**v1.x**:
+```typescript
+import { promptPassword } from 'effect-cli-tui'
+
+const password = yield* promptPassword('Password:')
+```
+
+**v2.0.0**:
+```typescript
+import { renderInkWithResult, Password } from 'effect-cli-tui'
+
+const password = yield* renderInkWithResult<string>((onComplete) =>
+  <Password
+    message="Password:"
+    onSubmit={onComplete}
+  />
+)
+```
+
+### Step 3: Update Progress Indicators
+
+**v1.x**:
+```typescript
+import { startSpinner, stopSpinner } from 'effect-cli-tui'
+
+startSpinner('Loading...')
+await doWork()
+stopSpinner()
+```
+
+**v2.0.0**:
+```typescript
+import { renderInkComponent, SpinnerComponent } from 'effect-cli-tui'
+
+// Show spinner while work completes
+yield* renderInkComponent(
+  <SpinnerComponent message="Loading..." />
+)
+```
+
+### Step 4: Update TUIHandler.display() Calls
+
+**v1.x**:
+```typescript
+const tui = new TUIHandler()
+yield* tui.display('Success!', 'success')
+```
+
+**v2.0.0**:
+```typescript
+const tui = yield* TUIHandler
+yield* tui.display('Success!', 'success')
+```
+
+The API is identical, only the instantiation changed.
+
+---
+
+## Complete Migration Example
+
+### Before (v1.x)
+
+```typescript
+import { EffectCLI, TUIHandler, promptInput, promptChoice, promptConfirm } from 'effect-cli-tui'
+import * as Effect from 'effect/Effect'
+
+async function setupProject() {
   const cli = new EffectCLI()
   const tui = new TUIHandler()
 
-  const result = await Effect.runPromise(cli.run('build'))
+  const projectName = await Effect.runPromise(
+    promptInput('Project name:')
+  )
 
-  const name = await Effect.runPromise(tui.prompt('Your name:'))
+  const type = await Effect.runPromise(
+    promptChoice('Type:', ['Web', 'CLI', 'Library'])
+  )
+
+  const confirmed = await Effect.runPromise(
+    promptConfirm(`Create ${projectName}?`)
+  )
+
+  if (!confirmed) return
+
+  await Effect.runPromise(cli.run('init', [projectName, type]))
+
+  console.log('✓ Project created!')
 }
+
+setupProject().catch(console.error)
 ```
 
-**Issues with this pattern:**
-- Manual instantiation with `new` keyword
-- Cannot inject different implementations
-- Difficult to test (hard to mock)
-- Not composable with Effect runtime
+### After (v2.0.0)
+
+```typescript
+import { EffectCLI, TUIHandler, renderInkWithResult, Input, Select, Confirm } from 'effect-cli-tui'
+import * as Effect from 'effect/Effect'
+
+const setupProject = Effect.gen(function* () {
+  const cli = yield* EffectCLI
+  const tui = yield* TUIHandler
+
+  const projectName = yield* renderInkWithResult<string>((onComplete) =>
+    <Input
+      message="Project name:"
+      onSubmit={onComplete}
+    />
+  )
+
+  const type = yield* renderInkWithResult<string>((onComplete) =>
+    <Select
+      message="Type:"
+      choices={['Web', 'CLI', 'Library']}
+      onSubmit={onComplete}
+    />
+  )
+
+  const confirmed = yield* renderInkWithResult<boolean>((onComplete) =>
+    <Confirm
+      message={`Create ${projectName}?`}
+      onSubmit={onComplete}
+    />
+  )
+
+  if (!confirmed) {
+    yield* tui.display('Cancelled', 'error')
+    return
+  }
+
+  yield* cli.run('init', [projectName, type])
+  yield* tui.display('Project created!', 'success')
+}).pipe(
+  Effect.provide(EffectCLI.Default),
+  Effect.provide(TUIHandler.Default),
+  Effect.catchTag('CLIError', (err) => {
+    console.error('Error:', err.message)
+    return Effect.fail(err)
+  })
+)
+
+Effect.runPromise(setupProject).catch(console.error)
+```
+
+---
 
 ## After (Effect.Service Pattern) ✅
 

@@ -6,7 +6,20 @@
 
 import React, { useState } from 'react'
 import { Box, Text } from 'ink'
-import SelectInput from 'ink-select-input'
+import SelectInput, { Item } from 'ink-select-input'
+
+type SelectInputProps = React.ComponentProps<typeof SelectInput>;
+type SelectItemType = SelectInputProps['items'] extends ReadonlyArray<infer U> ? U : never;
+
+interface ItemComponentProps {
+    isSelected: boolean
+    item: SelectItemType
+}
+
+interface IndicatorComponentProps {
+    isSelected: boolean
+    item: SelectItemType
+}
 
 export interface MultiSelectProps {
     message: string
@@ -64,16 +77,16 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({ message, choices, onSu
                 onHighlight={() => {
                     // Handle highlight if needed
                 }}
-                indicatorComponent={(props) => (
-                    <Text color={props.isSelected ? 'cyan' : 'gray'} bold={props.isSelected}>
-                        {selected.has(props.item?.value ?? '')
+                indicatorComponent={({ isSelected, item }: any) => ( // TODO: Properly type this
+                    <Text color={isSelected ? 'cyan' : 'gray'} bold={isSelected}>
+                        {selected.has(item.value)
                             ? '☑ '
                             : '☐ '}
                     </Text>
                 )}
-                itemComponent={({ isSelected, label }) => (
+                itemComponent={({ isSelected, item }: any) => ( // TODO: Properly type this
                     <Text color={isSelected ? 'cyan' : 'white'} bold={isSelected}>
-                        {label}
+                        {item.label}
                     </Text>
                 )}
             />

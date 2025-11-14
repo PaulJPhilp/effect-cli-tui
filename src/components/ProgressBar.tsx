@@ -52,9 +52,9 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
                 <Text>{bar}</Text>
                 <Text color="cyan">]</Text>
                 {showPercentage && (
-                    <Text marginLeft={1}>
-                        {percentage}%
-                    </Text>
+                    <Box marginLeft={1}>
+                        <Text>{percentage}%</Text>
+                    </Box>
                 )}
             </Box>
         </Box>
