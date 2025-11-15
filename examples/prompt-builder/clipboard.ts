@@ -5,60 +5,48 @@
  * - macOS: pbcopy
  * - Linux: xclip or xsel
  * - Windows: clip
- *
- * Uses the EffectCLI pattern for command execution
  */
 
 import { Effect } from 'effect'
-import { EffectCLI } from '../../src/index.js'
+import { execSync } from 'child_process'
 
 /**
  * Detect which clipboard command is available on this platform
  */
-const detectClipboardCommand = (): Effect.Effect<
-  'pbcopy' | 'xclip' | 'xsel' | 'clip',
-  Error
-> =>
-  Effect.gen(function* () {
-    const cli = yield* EffectCLI
+const detectClipboardCommand = (): 'pbcopy' | 'xclip' | 'xsel' | 'clip' | null => {
+  // Try macOS pbcopy first
+  try {
+    execSync('which pbcopy', { stdio: 'ignore' })
+    return 'pbcopy'
+  } catch {
+    // Continue
+  }
 
-    // Try macOS pbcopy first
-    try {
-      yield* cli.run('which', ['pbcopy'])
-      return 'pbcopy' as const
-    } catch {
-      // Continue
-    }
+  // Try Linux xclip
+  try {
+    execSync('which xclip', { stdio: 'ignore' })
+    return 'xclip'
+  } catch {
+    // Continue
+  }
 
-    // Try Linux xclip
-    try {
-      yield* cli.run('which', ['xclip'])
-      return 'xclip' as const
-    } catch {
-      // Continue
-    }
+  // Try Linux xsel
+  try {
+    execSync('which xsel', { stdio: 'ignore' })
+    return 'xsel'
+  } catch {
+    // Continue
+  }
 
-    // Try Linux xsel
-    try {
-      yield* cli.run('which', ['xsel'])
-      return 'xsel' as const
-    } catch {
-      // Continue
-    }
-
-    // Try Windows clip
-    try {
-      yield* cli.run('where', ['clip'])
-      return 'clip' as const
-    } catch {
-      // All failed
-      return yield* Effect.fail(
-        new Error(
-          'No clipboard command found. Tried: pbcopy, xclip, xsel, clip'
-        )
-      )
-    }
-  })
+  // Try Windows clip
+  try {
+    execSync('where clip', { stdio: 'ignore', shell: process.platform === 'win32' ? 'cmd.exe' : undefined })
+    return 'clip'
+  } catch {
+    // All failed
+    return null
+  }
+}
 
 /**
  * Copy text to clipboard using platform-native command
@@ -73,88 +61,40 @@ const detectClipboardCommand = (): Effect.Effect<
  */
 export const copyToClipboard = (text: string): Effect.Effect<void, Error> =>
   Effect.gen(function* () {
-    const command = yield* detectClipboardCommand()
-    const cli = yield* EffectCLI
+    const command = detectClipboardCommand()
 
-    if (command === 'pbcopy') {
-      // macOS: pipe text to pbcopy
-      yield* Effect.tryPromise(() =>
-        new Promise<void>((resolve, reject) => {
-          const { spawn } = require('child_process')
-          const proc = spawn('pbcopy')
-
-          proc.stdin.write(text)
-          proc.stdin.end()
-
-          proc.on('error', reject)
-          proc.on('close', (code: number) => {
-            if (code === 0) {
-              resolve()
-            } else {
-              reject(new Error(`pbcopy failed with code ${code}`))
-            }
-          })
-        })
-      )
-    } else if (command === 'xclip') {
-      // Linux xclip
-      yield* Effect.tryPromise(() =>
-        new Promise<void>((resolve, reject) => {
-          const { spawn } = require('child_process')
-          const proc = spawn('xclip', ['-selection', 'clipboard'])
-
-          proc.stdin.write(text)
-          proc.stdin.end()
-
-          proc.on('error', reject)
-          proc.on('close', (code: number) => {
-            if (code === 0) {
-              resolve()
-            } else {
-              reject(new Error(`xclip failed with code ${code}`))
-            }
-          })
-        })
-      )
-    } else if (command === 'xsel') {
-      // Linux xsel
-      yield* Effect.tryPromise(() =>
-        new Promise<void>((resolve, reject) => {
-          const { spawn } = require('child_process')
-          const proc = spawn('xsel', ['--clipboard', '--input'])
-
-          proc.stdin.write(text)
-          proc.stdin.end()
-
-          proc.on('error', reject)
-          proc.on('close', (code: number) => {
-            if (code === 0) {
-              resolve()
-            } else {
-              reject(new Error(`xsel failed with code ${code}`))
-            }
-          })
-        })
-      )
-    } else {
-      // Windows clip
-      yield* Effect.tryPromise(() =>
-        new Promise<void>((resolve, reject) => {
-          const { spawn } = require('child_process')
-          const proc = spawn('clip')
-
-          proc.stdin.write(text)
-          proc.stdin.end()
-
-          proc.on('error', reject)
-          proc.on('close', (code: number) => {
-            if (code === 0) {
-              resolve()
-            } else {
-              reject(new Error(`clip failed with code ${code}`))
-            }
-          })
-        })
+    if (!command) {
+      return yield* Effect.fail(
+        new Error(
+          'No clipboard command found. Tried: pbcopy, xclip, xsel, clip'
+        )
       )
     }
+
+    yield* Effect.tryPromise(() =>
+      new Promise<void>((resolve, reject) => {
+        const { spawn } = require('child_process')
+
+        let args: string[] = []
+        if (command === 'xclip') {
+          args = ['-selection', 'clipboard']
+        } else if (command === 'xsel') {
+          args = ['--clipboard', '--input']
+        }
+
+        const proc = spawn(command, args)
+
+        proc.stdin.write(text)
+        proc.stdin.end()
+
+        proc.on('error', reject)
+        proc.on('close', (code: number) => {
+          if (code === 0) {
+            resolve()
+          } else {
+            reject(new Error(`${command} failed with code ${code}`))
+          }
+        })
+      })
+    )
   })
