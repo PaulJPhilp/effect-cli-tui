@@ -4,7 +4,7 @@
  * Provides a simple text input with optional validation and default value.
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Box, Text } from 'ink'
 import TextInput from 'ink-text-input'
 

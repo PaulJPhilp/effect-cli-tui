@@ -6,20 +6,10 @@
 
 import React, { useState } from 'react'
 import { Box, Text } from 'ink'
-import SelectInput, { Item } from 'ink-select-input'
+import SelectInput from 'ink-select-input'
 
 type SelectInputProps = React.ComponentProps<typeof SelectInput>;
 type SelectItemType = SelectInputProps['items'] extends ReadonlyArray<infer U> ? U : never;
-
-interface ItemComponentProps {
-    isSelected: boolean
-    item: SelectItemType
-}
-
-interface IndicatorComponentProps {
-    isSelected: boolean
-    item: SelectItemType
-}
 
 export interface MultiSelectProps {
     message: string
@@ -60,10 +50,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({ message, choices, onSu
             newSelected.add(item.value)
         }
         setSelected(newSelected)
-    }
-
-    const handleSubmit = () => {
-        onSubmit(Array.from(selected))
+        onSubmit(Array.from(newSelected))
     }
 
     return (
@@ -77,18 +64,26 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({ message, choices, onSu
                 onHighlight={() => {
                     // Handle highlight if needed
                 }}
-                indicatorComponent={({ isSelected, item }: any) => ( // TODO: Properly type this
-                    <Text color={isSelected ? 'cyan' : 'gray'} bold={isSelected}>
-                        {selected.has(item.value)
-                            ? '☑ '
-                            : '☐ '}
-                    </Text>
-                )}
-                itemComponent={({ isSelected, item }: any) => ( // TODO: Properly type this
-                    <Text color={isSelected ? 'cyan' : 'white'} bold={isSelected}>
-                        {item.label}
-                    </Text>
-                )}
+                indicatorComponent={(props: Record<string, unknown>) => {
+                    const isSelected = (props.isSelected as boolean) ?? false
+                    const item = props.item as SelectItemType
+                    return (
+                        <Text color={isSelected ? 'cyan' : 'gray'} bold={isSelected}>
+                            {selected.has((item as Record<string, unknown>).value as string)
+                                ? '☑ '
+                                : '☐ '}
+                        </Text>
+                    )
+                }}
+                itemComponent={(props: Record<string, unknown>) => {
+                    const isSelected = (props.isSelected as boolean) ?? false
+                    const item = props.item as SelectItemType
+                    return (
+                        <Text color={isSelected ? 'cyan' : 'white'} bold={isSelected}>
+                            {(item as Record<string, unknown>).label as string}
+                        </Text>
+                    )
+                }}
             />
             <Box marginTop={1}>
                 <Text color="gray">

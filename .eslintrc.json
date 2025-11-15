@@ -34,7 +34,7 @@
     "no-console": [
       "warn",
       {
-        "allow": ["error", "warn"]
+        "allow": ["error", "warn", "log"]
       }
     ],
     "no-restricted-imports": [
@@ -57,12 +57,19 @@
   },
   "overrides": [
     {
-      "files": ["**/*.test.{ts,tsx}"],
+      "files": ["__tests__/colors.test.ts"],
+      "parserOptions": {
+        "sourceType": "module",
+        "ecmaVersion": 2020,
+        "ecmaFeatures": {
+          "jsx": true
+        }
+      }
+    },
+    {
+      "files": ["__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
       "env": {
         "jest": true
-      },
-      "parserOptions": {
-        "project": "./tsconfig.test.json"
       },
       "rules": {
         "@typescript-eslint/no-explicit-any": "off",

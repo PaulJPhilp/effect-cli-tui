@@ -1,7 +1,10 @@
 // Existing exports
-export { EffectCLI, EffectCLILive } from './cli'
+export { EffectCLI } from './cli'
 export { TUIHandler } from './tui'
 export * from './types'
+
+// Output service export
+export { Output, OutputTest, createCustomOutput } from './core/output'
 
 // Effects exports
 export { renderInkComponent, renderInkWithResult } from './effects/ink-wrapper'

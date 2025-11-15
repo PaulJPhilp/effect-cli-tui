@@ -47,7 +47,7 @@ export const Select: React.FC<SelectProps> = ({ message, choices, onSubmit }) =>
                 onSelect={(item) => {
                     onSubmit(item.value)
                 }}
-                indicatorComponent={(props) => (
+                indicatorComponent={(props: { isSelected?: boolean }) => (
                     <Text
                         color={props.isSelected ? 'cyan' : 'gray'}
                         bold={props.isSelected}
@@ -55,8 +55,8 @@ export const Select: React.FC<SelectProps> = ({ message, choices, onSubmit }) =>
                         {props.isSelected ? '> ' : '  '}
                     </Text>
                 )}
-                itemComponent={({ isSelected, label }) => (
-                    <Text color={isSelected ? 'cyan' : 'white'} bold={isSelected}>
+                itemComponent={({ label }) => (
+                    <Text color="white">
                         {label}
                     </Text>
                 )}

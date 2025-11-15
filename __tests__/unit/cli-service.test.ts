@@ -20,7 +20,7 @@ describe('EffectCLI Service', () => {
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI
         return cli
-      }).pipe(Effect.provide(EffectCLI.Default))
+      }).pipe(Effect.provide(EffectCLILive))
 
       expect(effect).toBeDefined()
     })
@@ -34,7 +34,7 @@ describe('EffectCLI Service', () => {
         const cli1 = yield* EffectCLI
         const cli2 = yield* EffectCLI
         return cli1 === cli2
-      }).pipe(Effect.provide(EffectCLI.Default))
+      }).pipe(Effect.provide(EffectCLILive))
 
       expect(effect).toBeDefined()
     })
@@ -236,7 +236,7 @@ describe('EffectCLI Service', () => {
         return yield* cli.run('nonexistent-command-xyz').pipe(
           Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
         )
-      }).pipe(Effect.provide(EffectCLI.Default))
+      }).pipe(Effect.provide(EffectCLILive))
 
       const reason = await Effect.runPromise(effect)
       expect(['NotFound', 'ExecutionError']).toContain(reason)

@@ -1,4 +1,4 @@
-import * as Data from 'effect/Data'
+import { Data } from 'effect'
 
 export interface SelectOption {
     label: string

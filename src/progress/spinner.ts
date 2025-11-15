@@ -52,11 +52,12 @@ export function startSpinner(
       process.stdout.write('\x1B[?25l');
     }
 
+    const interval: number = ((spinner as unknown) as Record<string, unknown>).interval as number || 100;
     currentSpinner = setInterval(() => {
       const frame = spinnerFrames[currentFrame % spinnerFrames.length];
       process.stdout.write(`\r${frame} ${spinnerMessage}`);
       currentFrame++;
-    }, (spinner as any).interval || 100);
+    }, interval);
   });
 }
 

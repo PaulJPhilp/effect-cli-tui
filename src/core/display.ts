@@ -1,4 +1,4 @@
-import * as Effect from 'effect/Effect'
+import { Effect } from 'effect'
 import type { DisplayOptions, DisplayType, JsonDisplayOptions } from '../types'
 import { applyChalkStyle } from './colors'
 
@@ -56,7 +56,7 @@ export function displayJson(
     data: unknown,
     options: JsonDisplayOptions = {}
 ): Effect.Effect<void> {
-    const { type = 'info', spaces = 2, prefix: showPrefix = true, ...restOptions } = options
+    const { type = 'info', spaces = 2, prefix: showPrefix = true } = options
 
     return Effect.sync(() => {
         const jsonString = JSON.stringify(data, null, spaces)
@@ -72,7 +72,7 @@ export function displayJson(
 
         const prefixedJson = jsonString
             .split('\n')
-            .map((line, index) => index === 0 ? `${styledPrefix} ${line}` : `${' '.repeat((styledPrefix as string).length + 1)}${line}`)
+            .map((line, index) => index === 0 ? `${styledPrefix} ${line}` : `${' '.repeat(String(styledPrefix).length + 1)}${line}`)
             .join('\n')
 
         const output = options.newline !== false ? `\n${prefixedJson}` : prefixedJson

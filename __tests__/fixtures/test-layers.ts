@@ -74,23 +74,20 @@ export const MockCLIFailure = Layer.succeed(
  * }).pipe(Effect.provide(MockCLITimeout))
  * ```
  */
-export const MockCLITimeout = Layer.succeed(EffectCLI, {
-  /**
-   * Mock run: Always times out
-   */
-  run: (): Effect.Effect<CLIResult, CLIError> =>
-    Effect.fail(
-      new CLIError('Timeout', 'Command timed out after 5000ms')
-    ),
+export const MockCLITimeout = Layer.succeed(
+  EffectCLI,
+  EffectCLI.of({
+    run: (): Effect.Effect<CLIResult, CLIError> =>
+      Effect.fail(
+        new CLIError('Timeout', 'Command timed out after 5000ms')
+      ),
 
-  /**
-   * Mock stream: Always times out
-   */
-  stream: (): Effect.Effect<void, CLIError> =>
-    Effect.fail(
-      new CLIError('Timeout', 'Stream command timed out after 5000ms')
-    )
-})
+    stream: (): Effect.Effect<void, CLIError> =>
+      Effect.fail(
+        new CLIError('Timeout', 'Stream command timed out after 5000ms')
+      )
+  })
+)
 
 /**
  * Mock layer for TUIHandler service.
@@ -109,7 +106,7 @@ export const MockTUI = Layer.succeed(TUIHandler, {
   /**
    * Mock display: No-op, logs to memory instead of console
    */
-  display: (message: string): Effect.Effect<void> =>
+  display: (_message: string): Effect.Effect<void> =>
     Effect.sync(() => {
       // In-memory log instead of console.log
       // This allows tests to verify display calls
@@ -229,22 +226,25 @@ export const MockTUIValidationFailed = Layer.succeed(TUIHandler, {
  * ```
  */
 export function createMockCLI(response: CLIResult) {
-  return Layer.succeed(EffectCLI, {
-    run: (): Effect.Effect<CLIResult, CLIError> => {
-      // Mimic the real EffectCLI behavior: fail on non-zero exit code
-      if (response.exitCode === 0) {
-        return Effect.succeed(response)
-      } else {
-        return Effect.fail(
-          new CLIError(
-            'CommandFailed',
-            `Command failed with exit code ${response.exitCode}.\n${response.stderr}`
+  return Layer.succeed(
+    EffectCLI,
+    EffectCLI.of({
+      run: (): Effect.Effect<CLIResult, CLIError> => {
+        // Mimic the real EffectCLI behavior: fail on non-zero exit code
+        if (response.exitCode === 0) {
+          return Effect.succeed(response)
+        } else {
+          return Effect.fail(
+            new CLIError(
+              'CommandFailed',
+              `Command failed with exit code ${response.exitCode}.\n${response.stderr}`
+            )
           )
-        )
-      }
-    },
-    stream: (): Effect.Effect<void, CLIError> => Effect.void
-  })
+        }
+      },
+      stream: (): Effect.Effect<void, CLIError> => Effect.void
+    })
+  )
 }
 
 /**

@@ -90,42 +90,47 @@ export class Output extends Effect.Service<Output>()('app/Output', {
  * // No actual console output, can verify output in tests
  * ```
  */
-export const OutputTest: Layer.Layer<Output> = Layer.succeed(Output, {
-  stdout: (text: string): Effect.Effect<void> =>
-    Effect.sync(() => {
-      // Captured in tests via console spy
-    }),
+export const OutputTest: Layer.Layer<Output> = Layer.effect(
+  Output,
+  Effect.sync(() =>
+    new Output({
+      stdout: (_text: string): Effect.Effect<void> =>
+        Effect.sync(() => {
+          // Captured in tests via console spy
+        }),
 
-  stderr: (text: string): Effect.Effect<void> =>
-    Effect.sync(() => {
-      // Captured in tests via console spy
-    }),
+      stderr: (_text: string): Effect.Effect<void> =>
+        Effect.sync(() => {
+          // Captured in tests via console spy
+        }),
 
-  line: (text: string): Effect.Effect<void> =>
-    Effect.sync(() => {
-      console.log(text)
-    }),
+      line: (text: string): Effect.Effect<void> =>
+        Effect.sync(() => {
+          console.log(text)
+        }),
 
-  clearLine: (): Effect.Effect<void> =>
-    Effect.sync(() => {
-      // No-op for tests
-    }),
+      clearLine: (): Effect.Effect<void> =>
+        Effect.sync(() => {
+          // No-op for tests
+        }),
 
-  carriageReturn: (): Effect.Effect<void> =>
-    Effect.sync(() => {
-      // No-op for tests
-    }),
+      carriageReturn: (): Effect.Effect<void> =>
+        Effect.sync(() => {
+          // No-op for tests
+        }),
 
-  hideCursor: (): Effect.Effect<void> =>
-    Effect.sync(() => {
-      // No-op for tests
-    }),
+      hideCursor: (): Effect.Effect<void> =>
+        Effect.sync(() => {
+          // No-op for tests
+        }),
 
-  showCursor: (): Effect.Effect<void> =>
-    Effect.sync(() => {
-      // No-op for tests
+      showCursor: (): Effect.Effect<void> =>
+        Effect.sync(() => {
+          // No-op for tests
+        })
     })
-})
+  )
+)
 
 /**
  * Create a custom output service that writes to a provided stream
@@ -156,52 +161,57 @@ export function createCustomOutput(
   stdoutFn: (text: string) => void,
   stderrFn?: (text: string) => void
 ): Layer.Layer<Output> {
-  return Layer.succeed(Output, {
-    stdout: (text: string): Effect.Effect<void> =>
-      Effect.sync(() => {
-        stdoutFn(text)
-      }),
+  return Layer.effect(
+    Output,
+    Effect.sync(() =>
+      new Output({
+        stdout: (text: string): Effect.Effect<void> =>
+          Effect.sync(() => {
+            stdoutFn(text)
+          }),
 
-    stderr: (text: string): Effect.Effect<void> =>
-      Effect.sync(() => {
-        if (stderrFn) {
-          stderrFn(text)
-        } else {
-          stdoutFn(text)
-        }
-      }),
+        stderr: (text: string): Effect.Effect<void> =>
+          Effect.sync(() => {
+            if (stderrFn) {
+              stderrFn(text)
+            } else {
+              stdoutFn(text)
+            }
+          }),
 
-    line: (text: string): Effect.Effect<void> =>
-      Effect.sync(() => {
-        stdoutFn(`${text}\n`)
-      }),
+        line: (text: string): Effect.Effect<void> =>
+          Effect.sync(() => {
+            stdoutFn(`${text}\n`)
+          }),
 
-    clearLine: (): Effect.Effect<void> =>
-      Effect.sync(() => {
-        stdoutFn('\x1B[K')
-      }),
+        clearLine: (): Effect.Effect<void> =>
+          Effect.sync(() => {
+            stdoutFn('\x1B[K')
+          }),
 
-    carriageReturn: (): Effect.Effect<void> =>
-      Effect.sync(() => {
-        stdoutFn('\r')
-      }),
+        carriageReturn: (): Effect.Effect<void> =>
+          Effect.sync(() => {
+            stdoutFn('\r')
+          }),
 
-    hideCursor: (): Effect.Effect<void> =>
-      Effect.sync(() => {
-        stdoutFn('\x1B[?25l')
-      }),
+        hideCursor: (): Effect.Effect<void> =>
+          Effect.sync(() => {
+            stdoutFn('\x1B[?25l')
+          }),
 
-    showCursor: (): Effect.Effect<void> =>
-      Effect.sync(() => {
-        stdoutFn('\x1B[?25h')
+        showCursor: (): Effect.Effect<void> =>
+          Effect.sync(() => {
+            stdoutFn('\x1B[?25h')
+          })
       })
-  })
+    )
+  )
 }
 
 /**
  * Helper to extract captured logs from OutputTest layer
  *
- * @param effect Effect that uses OutputTest
+ * @param _effect Effect that uses OutputTest
  * @returns Promise<string[]> of all stdout lines
  *
  * @example
@@ -212,13 +222,13 @@ export function createCustomOutput(
  *   yield* output.line('Line 2')
  * })
  *
- * const logs = await getCapturedOutput(program)
+ * const logs = getCapturedOutput(program)
  * console.log(logs) // ['Line 1\n', 'Line 2\n']
  * ```
  */
-export async function getCapturedOutput(
+export function getCapturedOutput(
   _effect: Effect.Effect<void, never, Output>
-): Promise<string[]> {
+): string[] {
   // This would require access to the test service's internal logs
   // Implementation would depend on how the effect is structured
   // For now, return empty array (this is a convenience helper)
