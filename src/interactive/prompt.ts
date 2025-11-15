@@ -127,13 +127,14 @@ export function prompt(
     let value: string;
 
     switch (options.type) {
-      case 'confirm':
+      case 'confirm': {
         const confirmed = yield* promptConfirm(
           options.message,
           options.default === 'true'
         );
         value = String(confirmed);
         break;
+      }
 
       case 'choice':
         if (!options.choices) {

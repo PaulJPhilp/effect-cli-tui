@@ -3,8 +3,15 @@ export { EffectCLI } from './cli'
 export { TUIHandler } from './tui'
 export * from './types'
 
+// Output service export
+export { Output, OutputTest, createCustomOutput } from './core/output'
+
 // Effects exports
-export { renderInkComponent, renderInkWithResult, InkError } from './effects/ink-wrapper'
+export { renderInkComponent, renderInkWithResult } from './effects/ink-wrapper'
+
+// Ink components exports
+export { Input, Select, MultiSelect, Confirm, Password, SpinnerComponent, ProgressBar, Message } from './components'
+export type { InputProps, SelectProps, MultiSelectProps, ConfirmProps, PasswordProps, SpinnerComponentProps, ProgressBarProps, MessageProps } from './components'
 
 // Display API exports (enhanced with styling support)
 export {

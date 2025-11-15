@@ -3,13 +3,13 @@ import Table from 'cli-table3';
 import chalk from 'chalk';
 import { applyChalkStyle } from '../core/colors';
 
-export interface TableColumn<T = any> {
+export interface TableColumn<T = Record<string, unknown>> {
   key: keyof T | string;
   header: string;
   width?: number;
   align?: 'left' | 'center' | 'right';
   truncate?: boolean;
-  formatter?: (value: any) => string;
+  formatter?: (value: unknown) => string;
 }
 
 export interface TableOptions<T> {
@@ -59,9 +59,9 @@ export function displayTable<T>(
     });
 
     // Add rows
-    data.forEach((row: any) => {
+    for (const row of data) {
       const rowData = options.columns.map((col) => {
-        let value = row[col.key as string];
+        let value = (row as Record<string, unknown>)[col.key as string];
 
         // Apply formatter if provided
         if (col.formatter) {
@@ -76,7 +76,7 @@ export function displayTable<T>(
       });
 
       table.push(rowData);
-    });
+    }
 
     console.log('\n' + table.toString() + '\n');
   });

@@ -5,6 +5,134 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-11-14
+
+### 🎉 Major Release: Ink-Based Interactive Terminal UI
+
+This is a **major breaking release** with significant architectural and UI framework changes. See [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) for detailed upgrade instructions.
+
+### ✨ Added
+
+#### Ink Components (React for Terminal)
+- **Input.tsx** - Text input with validation and error feedback
+- **Select.tsx** - Single-select list with keyboard navigation
+- **MultiSelect.tsx** - Multi-select with checkbox interface
+- **Confirm.tsx** - Yes/No confirmation dialog with smart defaults
+- **Password.tsx** - Masked password input field
+- **Spinner.tsx** - Animated loading indicator using ink-spinner
+- **ProgressBar.tsx** - Visual progress indicator with percentage
+- **Message.tsx** - Styled message display with type-based icons
+
+#### Effect Integration
+- `renderInkComponent()` - Wrap Ink components in Effect for composition
+- `renderInkWithResult<T>()` - Component with callback-based result handling
+- `InkError` - Tagged error type for Ink rendering failures
+- Proper resource management with try-finally cleanup
+
+#### Architecture
+- **Effect.Service Pattern** - Modern dependency injection for TUIHandler and EffectCLI
+- `TUIHandler.Default` layer for service provisioning
+- Full Effect.gen() composition support
+- Type-safe error handling with catchTag
+
+#### Testing
+- **ink-testing-library** integration for component testing
+- 43+ test cases across 5 component test files
+- Updated test fixtures with proper TUIError types
+- Mock layers for TUIHandler and EffectCLI
+
+#### Documentation & Examples
+- **MIGRATION_GUIDE.md** - Comprehensive v1.x → v2.0.0 upgrade guide
+- **examples/basic-prompts.ts** - User registration workflow
+- **examples/progress-demo.ts** - Spinner and progress indicators
+- **examples/multi-step-wizard.ts** - Complex multi-step form example
+- Full JSDoc documentation for all components
+
+#### Build Configuration
+- JSX/TSX support in TypeScript (react-jsx mode)
+- esbuild JSX transformation in tsup
+- Vitest JSX configuration
+- ESLint with React and JSX rules
+
+### 🔄 Changed
+
+#### Breaking Changes
+
+**Service Instantiation**
+- ❌ `const tui = new TUIHandler()` → ✅ `const tui = yield* TUIHandler`
+- ❌ Direct instantiation → ✅ Dependency injection via Effect.provide()
+
+**Interactive Prompts**
+- ❌ `promptInput()`, `promptChoice()`, etc. (standalone functions)
+- ✅ Ink components via `renderInkWithResult<T>()`
+- ✅ Components integrated into TUIHandler methods
+
+**Progress Indicators**
+- ❌ `startSpinner()` / `stopSpinner()` (global state)
+- ✅ `renderInkComponent(<Spinner />)` (composable)
+
+**Dependencies Removed**
+- Removed `@inquirer/prompts` - replaced with Ink components
+- Removed `cli-spinners` - replaced with ink-spinner
+- Removed global spinner state management
+
+#### API Changes
+- `TUIHandler.prompt()` - Now returns Ink-based component effect
+- `TUIHandler.selectOption()` - Uses Select component
+- `TUIHandler.multiSelect()` - Uses MultiSelect component
+- `TUIHandler.confirm()` - Uses Confirm component
+- `TUIHandler.password()` - Uses Password component
+
+#### Version Update
+- Package version bumped to 2.0.0
+- Effect 3.9+ pattern adoption
+
+### 🐛 Fixed
+- Global spinner state management eliminated
+- Resource cleanup guaranteed with try-finally
+- Proper async handling in Ink wrappers
+
+### 📦 Dependencies
+
+**Added:**
+- `ink` ^4.4.1 - React renderer for terminal
+- `react` ^18.3.1 - React library
+- `ink-spinner` ^5.0.0 - Spinner component
+- `ink-text-input` ^5.0.0 - Text input component
+- `ink-select-input` ^6.0.0 - Select component
+- `pastel` ^3.0.0 - Color support
+- `ink-testing-library` ^4.0.0 (dev) - Component testing
+
+**Removed:**
+- `@inquirer/prompts` - Replaced with Ink components
+- `cli-spinners` - Replaced with ink-spinner
+
+### 📚 Documentation
+- New comprehensive MIGRATION_GUIDE.md with before/after examples
+- Full JSDoc on all exported functions and components
+- 3 complete example workflows
+
+### 🧪 Testing
+- Added 43+ test cases with ink-testing-library
+- Component tests for: Input, Select, MultiSelect, Confirm, Password, Spinner, ProgressBar, Message
+- Updated mock fixtures with proper error handling
+- All tests use Effect service pattern
+
+### ⚠️ Deprecation Notes
+- Standalone `promptInput`, `promptChoice` functions deprecated (use TUIHandler methods instead)
+- Manual spinner management deprecated (use Spinner component)
+- Old test patterns with `new` instantiation deprecated
+
+### 🎯 Migration Path
+Users upgrading from v1.x should:
+1. Review MIGRATION_GUIDE.md for detailed steps
+2. Update service instantiation to use Effect.provide()
+3. Replace prompt function calls with Ink components
+4. Update tests to use mock layers
+5. Review examples for workflow patterns
+
+---
+
 ## [0.6.0] - 2025-11-03
 
 ### Added

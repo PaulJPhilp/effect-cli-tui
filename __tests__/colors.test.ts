@@ -1,4 +1,4 @@
-import * as Effect from 'effect/Effect'
+import { Effect } from 'effect'
 import { describe, expect, it, vi } from 'vitest'
 import {
   applyChalkStyle,
@@ -8,7 +8,8 @@ import {
   displayInfo,
   displayListItem
 } from 'effect-cli-tui'
-  describe('applyChalkStyle', () => {
+
+describe('applyChalkStyle', () => {
     it('should return text unchanged when no options provided', () => {
       const result = applyChalkStyle('test')
       expect(result).toBe('test')

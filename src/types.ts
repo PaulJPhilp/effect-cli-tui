@@ -1,4 +1,4 @@
-import * as Data from 'effect/Data'
+import { Data } from 'effect'
 
 export interface SelectOption {
     label: string
@@ -36,6 +36,20 @@ export class CLIError extends Data.TaggedError('CLIError') {
 export class TUIError extends Data.TaggedError('TUIError') {
     constructor(
         readonly reason: 'Cancelled' | 'ValidationFailed' | 'RenderError',
+        readonly message: string
+    ) {
+        super()
+    }
+}
+
+/**
+ * Ink rendering error type
+ *
+ * Thrown when Ink component rendering fails.
+ */
+export class InkError extends Data.TaggedError('InkError') {
+    constructor(
+        readonly reason: 'RenderError' | 'ComponentError' | 'TerminalError',
         readonly message: string
     ) {
         super()

@@ -1,5 +1,5 @@
-import * as Effect from 'effect/Effect'
-import type { DisplayOptions, DisplayType, JsonDisplayOptions } from './types'
+import { Effect } from 'effect'
+import type { DisplayOptions, JsonDisplayOptions } from './types'
 
 /**
  * Core display function for single-line messages

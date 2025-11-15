@@ -10,5 +10,9 @@ export default defineConfig({
     js: '.js',
     dts: '.d.ts',
   }),
-  external: ['effect', 'react', 'ink'],
+  external: ['effect', 'react', 'ink', 'ink-spinner', 'ink-text-input', 'ink-select-input', 'pastel'],
+  esbuild: {
+    jsx: 'automatic',
+    jsxImportSource: 'react',
+  },
 });

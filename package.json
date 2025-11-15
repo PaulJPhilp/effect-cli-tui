@@ -1,6 +1,6 @@
 {
   "name": "effect-cli-tui",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Effect-native CLI wrapper with interactive prompts and Ink components for terminal UIs",
   "keywords": [
     "effect",
@@ -50,19 +50,22 @@
   "type": "module",
   "dependencies": {
     "@effect/schema": "^0.75.5",
-    "@inquirer/prompts": "^5.5.0",
     "chalk": "^5.6.2",
-    "cli-spinners": "^3.3.0",
     "cli-table3": "^0.6.5",
     "effect-cli": "^1.0.0",
-    "highlight.js": "^11.11.1"
-  },
-  "peerDependencies": {
-    "effect": "^3.0.0",
+    "highlight.js": "^11.11.1",
     "ink": "^4.4.1",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^5.0.0",
+    "ink-select-input": "^6.0.0",
+    "pastel": "^3.0.0",
     "react": "^18.3.1"
   },
+  "peerDependencies": {
+    "effect": "^3.0.0"
+  },
   "devDependencies": {
+    "@types/ink-select-input": "^3.0.5",
     "@types/node": "^20.19.25",
     "@types/react": "^18.3.26",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -71,6 +74,8 @@
     "@vitest/ui": "^4.0.8",
     "effect": "^3.19.3",
     "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.35.0",
+    "ink-testing-library": "^4.0.0",
     "prettier": "^3.6.2",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
