@@ -36,10 +36,15 @@ import {
   EffectCLI
 } from '../src/index.js'
 import {
+  promptInput,
+  promptChoice,
+  promptConfirm
+} from '../src/interactive/prompt.js'
+import {
   templates,
   getTemplate
 } from './prompt-builder/templates.js'
-import { PromptTemplate, UserResponses, BuiltPrompt, AppState } from './prompt-builder/types.js'
+import { PromptTemplate, UserResponses, BuiltPrompt } from './prompt-builder/types.js'
 import { copyToClipboard } from './prompt-builder/clipboard.js'
 import {
   validateField,
@@ -74,37 +79,34 @@ const showWelcome = (): Effect.Effect<void> =>
   })
 
 /**
- * Template selection screen with brief descriptions
- * Lists all available templates for user selection
+ * Interactive template selection screen
  */
 const selectTemplate = (): Effect.Effect<PromptTemplate> =>
   Effect.gen(function* () {
     yield* display('')
-    yield* display('Available Prompt Engineering Strategies:', { type: 'info' })
-    yield* display('')
+    yield* display('Prompt Engineering Strategies:', { type: 'info' })
 
-    for (let i = 0; i < templates.length; i++) {
-      const t = templates[i]
-      yield* display(`${i + 1}. ${t.name}`)
-      yield* display(`   ${t.description}`)
-      yield* display('')
+    const templateNames = templates.map((t) => t.name)
+    const selectedName = yield* promptChoice(
+      'Choose a template:',
+      templateNames,
+      0
+    )
+
+    const selectedTemplate = templates.find((t) => t.name === selectedName)
+    if (!selectedTemplate) {
+      yield* displayError('Template not found')
+      return yield* Effect.fail(new Error('Invalid template'))
     }
 
-    // For demo purposes, select the first template (zero-shot)
-    const selectedTemplate = templates[0]
-
-    yield* displaySuccess(`Using Template: ${selectedTemplate.name}`)
+    yield* displaySuccess(`Selected: ${selectedTemplate.name}`)
     yield* display(selectedTemplate.description)
     return selectedTemplate
   })
 
 /**
- * Collect user responses for template fields with default values
- * Demonstrates validation with Effect Schema
- *
- * Note: Currently uses demo/default responses because interactive prompts
- * (prompt, selectOption, multiSelect, confirm) are not yet implemented in TUIHandler.
- * Once Ink integration is complete, this will be replaced with actual interactive prompts.
+ * Interactively collect user responses for template fields
+ * Supports text, choice, and boolean field types with validation
  */
 const collectResponses = (
   template: PromptTemplate
@@ -113,39 +115,40 @@ const collectResponses = (
     const responses: UserResponses = {}
 
     yield* display('')
-    yield* display(`Collecting responses for ${template.name} prompt:`, {
+    yield* display(`Answer questions for your ${template.name} prompt:`, {
       type: 'info'
     })
-    yield* display('')
-
-    // Demo responses - in a real implementation, these would be collected interactively
-    const demoResponses: Record<string, string> = {
-      task: 'Summarize the key points of a technical article in 3-5 bullet points',
-      format: 'Bullet points',
-      style: 'Professional',
-      exampleInput: 'Artificial intelligence is transforming how we work...',
-      exampleOutput: 'AI improves productivity',
-      goal: 'Translate English to Spanish accurately',
-      constraints: 'Preserve cultural context and idioms',
-      description: 'Extract named entities from text',
-      inputSpec: 'Plain text strings containing entities',
-      outputSpec: 'JSON with entities array [{type, value}]',
-      problem: 'Design a data validation system',
-      steps: '1. Analyze requirements 2. Design schema 3. Implement'
-    }
 
     for (const field of template.fields) {
-      const value = demoResponses[field.name] || field.placeholder || ''
+      const prefix = field.required ? '[Required]' : '[Optional]'
 
-      yield* display(`• ${field.label}`)
-      yield* display(`  → ${value}`)
+      let value: string | boolean
+
+      if (field.type === 'choice' && field.choices) {
+        // Choice field
+        value = yield* promptChoice(
+          `${prefix} ${field.label}`,
+          field.choices,
+          0
+        )
+      } else if (field.type === 'boolean') {
+        // Boolean field
+        value = yield* promptConfirm(`${prefix} ${field.label}?`, true)
+      } else {
+        // Text or multiline field
+        value = yield* promptInput(
+          `${prefix} ${field.label}`,
+          field.placeholder || '',
+          createInputValidator(field)
+        )
+      }
 
       // Validate the field
       yield* validateField(field, value).pipe(
         Effect.flatMap(() => Effect.succeed(undefined)),
         Effect.catchAll((err) =>
           Effect.gen(function* () {
-            yield* displayError(`Validation error on ${field.label}: ${err}`)
+            yield* displayError(`Validation error: ${err}`)
             return yield* Effect.fail(new Error(err))
           })
         )
@@ -153,8 +156,6 @@ const collectResponses = (
 
       responses[field.name] = value
     }
-
-    yield* display('')
 
     // Validate all responses together
     yield* validateResponses(template.fields, responses).pipe(
@@ -167,7 +168,7 @@ const collectResponses = (
       )
     )
 
-    yield* displaySuccess('All responses validated successfully!')
+    yield* displaySuccess('All responses validated!')
     return responses
   })
 
@@ -234,19 +235,17 @@ const copyPromptToClipboard = (promptText: string): Effect.Effect<void> =>
  * Main application workflow orchestrating the complete prompt-builder experience
  *
  * Flow:
- * 1. Show welcome screen
- * 2. Select template from available options
- * 3. Collect user responses from template fields
- * 4. Generate prompt using template
- * 5. Validate generated prompt
- * 6. Display prompt in formatted panel
- * 7. Show review table of responses
- * 8. Attempt to copy to clipboard
+ * 1. Show welcome screen with feature overview
+ * 2. Interactively select template from 5 strategies
+ * 3. Answer guided questions to fill template parameters
+ * 4. Validate all responses with Effect Schema
+ * 5. Generate prompt using selected template
+ * 6. Validate generated prompt
+ * 7. Display prompt in formatted panel
+ * 8. Show responses in formatted table
+ * 9. Attempt to copy to system clipboard
  *
- * Note: This demo version uses pre-filled responses because interactive
- * prompts (prompt, selectOption, multiSelect, confirm) are not yet implemented
- * in TUIHandler. Once Ink integration is complete, full interactivity will
- * be restored.
+ * Uses @inquirer/prompts for interactive CLI input
  */
 const promptBuilderApp = (): Effect.Effect<void> =>
   Effect.gen(function* () {
