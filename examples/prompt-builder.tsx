@@ -180,13 +180,15 @@ const collectResponses = (
 const displayGeneratedPrompt = (builtPrompt: BuiltPrompt): Effect.Effect<void> =>
   Effect.gen(function* () {
     yield* display('')
-    yield* displayPanel(
-      builtPrompt.promptText,
-      `Generated ${builtPrompt.template.name} Prompt`,
-      { type: 'success' }
-    )
+    yield* displaySuccess(`✨ Generated ${builtPrompt.template.name} Prompt:`)
     yield* display('')
-    yield* displaySuccess('✨ Your Prompt is Ready!')
+    yield* displayLines(
+      [
+        '─'.repeat(80),
+        builtPrompt.promptText,
+        '─'.repeat(80)
+      ]
+    )
     yield* display('')
   })
 
