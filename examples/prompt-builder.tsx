@@ -32,6 +32,7 @@ import {
   display,
   displaySuccess,
   displayError,
+  displayLines,
   displayPanel,
   displayTable,
   EffectCLI,
@@ -60,7 +61,6 @@ const showWelcome = (): Effect.Effect<void> =>
   Effect.gen(function* () {
     yield* display('')
     yield* displayPanel(
-      'Welcome to Prompt Builder',
       [
         'Interactive CLI tool for crafting effective LLM prompts',
         '',
@@ -72,8 +72,9 @@ const showWelcome = (): Effect.Effect<void> =>
         '  • Chain-of-thought: Step-by-step reasoning',
         '',
         'Build, review, and copy your prompts to clipboard!'
-      ],
-      'info'
+      ].join('\n'),
+      'Welcome to Prompt Builder',
+      { type: 'info' }
     )
     yield* display('')
   })
@@ -192,9 +193,9 @@ const displayGeneratedPrompt = (builtPrompt: BuiltPrompt): Effect.Effect<void> =
   Effect.gen(function* () {
     yield* display('')
     yield* displayPanel(
+      builtPrompt.promptText,
       `Generated ${builtPrompt.template.name} Prompt`,
-      [builtPrompt.promptText],
-      'success'
+      { type: 'success' }
     )
     yield* display('')
   })
