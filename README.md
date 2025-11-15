@@ -12,7 +12,7 @@ Effect-native CLI wrapper with interactive prompts and display utilities for bui
 - 📢 **Display API** — Simple, powerful console output utilities
 - ⚙️ **CLI Wrapper** — Run commands via Effect with error handling
 - 🔄 **Composable** — Chain operations seamlessly with Effect's `yield*` syntax
-- 📦 **Dual Module Support** — Works in both ESM and CommonJS environments
+- 📦 **ESM-Native** — Modern JavaScript modules for tree-shaking and optimal bundling
 - ✅ **Fully Tested** — Comprehensive test suite with integration tests
 - 📝 **Well-Documented** — Clear API docs and practical examples
 
@@ -28,9 +28,8 @@ yarn add effect-cli-tui
 
 ## Quick Start
 
-### ESM (Recommended)
 ```typescript
-import * as Effect from 'effect/Effect'
+import { Effect } from 'effect'
 import { display, displaySuccess, TUIHandler, EffectCLI } from 'effect-cli-tui'
 
 const program = Effect.gen(function* (_) {
@@ -51,21 +50,6 @@ const program = Effect.gen(function* (_) {
 })
 
 await Effect.runPromise(program)
-```
-
-### CommonJS
-```javascript
-const { Effect } = require('effect')
-const { display, displaySuccess, TUIHandler, EffectCLI } = require('effect-cli-tui')
-
-const program = Effect.gen(function* (_) {
-  yield* _(display('Welcome to my CLI app!'))
-  yield* _(displaySuccess('Initialization complete'))
-
-  // ... rest of your program
-})
-
-Effect.runPromise(program)
 ```
 
 ## Core Concepts

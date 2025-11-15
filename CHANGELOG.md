@@ -137,13 +137,13 @@ Users upgrading from v1.x should:
 
 ### Added
 - **Display API**: New functions for console output (`display`, `displayLines`, `displayJson`, `displaySuccess`, `displayError`)
-- **Dual Module Support**: Package now exports both ESM and CommonJS versions
+- **ESM-Native**: Pure ES modules for tree-shaking and optimal bundling
 - **TypeScript Strict Mode**: Full support for `noImplicitAny` and strict type checking
 - **Comprehensive Tests**: Added tests for all display functions and module imports
 
 ### Changed
-- **Build System**: Migrated from manual TypeScript compilation to `tsup` for better dual module support
-- **Package Exports**: Updated `package.json` with conditional exports for ESM/CommonJS compatibility
+- **Build System**: Migrated from manual TypeScript compilation to `tsup` for ESM-only output
+- **Package Exports**: Updated `package.json` for ESM-native configuration
 
 ### Technical Improvements
 - Added `tsup.config.ts` for unified build process
