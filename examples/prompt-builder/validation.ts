@@ -117,18 +117,11 @@ export const createInputValidator = (
 }
 
 /**
- * Schema for validating the entire prompt generation result
- * Ensures the generated prompt is non-empty and reasonable length
- */
-export const GeneratedPromptSchema = Schema.String.pipe(
-  Schema.minLength(1, { message: 'Generated prompt cannot be empty' }),
-  Schema.maxLength(10000, {
-    message: 'Generated prompt too long (max 10000 characters)'
-  })
-)
-
-/**
  * Validate a generated prompt text
+ *
+ * Checks:
+ * - Non-empty string
+ * - Reasonable length (max 10000 characters)
  *
  * @param promptText - The text to validate
  * @returns Effect with validated text or error
@@ -136,6 +129,16 @@ export const GeneratedPromptSchema = Schema.String.pipe(
 export const validateGeneratedPrompt = (
   promptText: string
 ): Effect.Effect<string, Error> =>
-  Schema.parse(GeneratedPromptSchema)(promptText).pipe(
-    Effect.mapError((err) => new Error(`Invalid prompt: ${err.message}`))
-  )
+  Effect.gen(function* () {
+    if (!promptText || promptText.length === 0) {
+      return yield* Effect.fail(new Error('Generated prompt cannot be empty'))
+    }
+
+    if (promptText.length > 10000) {
+      return yield* Effect.fail(
+        new Error('Generated prompt too long (max 10000 characters)')
+      )
+    }
+
+    return promptText
+  })

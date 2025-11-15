@@ -26,15 +26,13 @@
  * ```
  */
 
-import { Effect, Ref } from 'effect'
+import { Effect } from 'effect'
 import {
   display,
   displaySuccess,
   displayError,
   displayPanel,
-  displayBox,
   displayTable,
-  TUIHandler,
   EffectCLI
 } from '../src/index.js'
 import {
@@ -77,98 +75,99 @@ const showWelcome = (): Effect.Effect<void> =>
 
 /**
  * Template selection screen with brief descriptions
+ * Lists all available templates for user selection
  */
-const selectTemplate = (tui: TUIHandler): Effect.Effect<PromptTemplate> =>
+const selectTemplate = (): Effect.Effect<PromptTemplate> =>
   Effect.gen(function* () {
-    yield* display('Select a prompt engineering strategy:', { type: 'info' })
+    yield* display('')
+    yield* display('Available Prompt Engineering Strategies:', { type: 'info' })
+    yield* display('')
 
-    const templateChoices = templates.map((t) => ({
-      label: `${t.name}`,
-      value: t.id,
-      description: t.description
-    }))
-
-    const selectedId = yield* tui.selectOption('Choose template:', templateChoices)
-    const template = getTemplate(selectedId)
-
-    if (!template) {
-      yield* displayError('Template not found')
-      return yield* Effect.fail(new Error('Invalid template selection'))
+    for (let i = 0; i < templates.length; i++) {
+      const t = templates[i]
+      yield* display(`${i + 1}. ${t.name}`)
+      yield* display(`   ${t.description}`)
+      yield* display('')
     }
 
-    yield* displaySuccess(`Selected: ${template.name}`)
-    return template
+    // For demo purposes, select the first template (zero-shot)
+    const selectedTemplate = templates[0]
+
+    yield* displaySuccess(`Using Template: ${selectedTemplate.name}`)
+    yield* display(selectedTemplate.description)
+    return selectedTemplate
   })
 
 /**
- * Collect user responses for template fields through interactive prompts
- * Supports text, multiline, choice, and boolean field types with validation
+ * Collect user responses for template fields with default values
+ * Demonstrates validation with Effect Schema
+ *
+ * Note: Currently uses demo/default responses because interactive prompts
+ * (prompt, selectOption, multiSelect, confirm) are not yet implemented in TUIHandler.
+ * Once Ink integration is complete, this will be replaced with actual interactive prompts.
  */
 const collectResponses = (
-  tui: TUIHandler,
   template: PromptTemplate
 ): Effect.Effect<UserResponses> =>
   Effect.gen(function* () {
     const responses: UserResponses = {}
 
     yield* display('')
-    yield* display(`Answer questions to generate your ${template.name} prompt:`, {
+    yield* display(`Collecting responses for ${template.name} prompt:`, {
       type: 'info'
     })
     yield* display('')
 
-    for (const field of template.fields) {
-      const prefix = field.required ? '[Required]' : '[Optional]'
-
-      if (field.type === 'choice' && field.choices) {
-        const choice = yield* tui.selectOption(
-          `${prefix} ${field.label}`,
-          field.choices.map((c) => ({
-            label: c,
-            value: c,
-            description: ''
-          }))
-        )
-
-        // Validate choice
-        yield* validateField(field, choice).pipe(
-          Effect.catchAll((err) => {
-            yield* displayError(`Validation error: ${err}`)
-            return Effect.fail(new Error(err))
-          })
-        )
-
-        responses[field.name] = choice
-      } else if (field.type === 'boolean') {
-        const confirmed = yield* tui.confirm(`${prefix} ${field.label}?`)
-        responses[field.name] = confirmed
-      } else {
-        // text and multiline types
-        const input = yield* tui.prompt(`${prefix} ${field.label}:`, {
-          default: field.placeholder || '',
-          validate: createInputValidator(field)
-        })
-
-        // Additional validation
-        yield* validateField(field, input).pipe(
-          Effect.catchAll((err) => {
-            yield* displayError(`Validation error: ${err}`)
-            return Effect.fail(new Error(err))
-          })
-        )
-
-        responses[field.name] = input
-      }
+    // Demo responses - in a real implementation, these would be collected interactively
+    const demoResponses: Record<string, string> = {
+      task: 'Summarize the key points of a technical article in 3-5 bullet points',
+      format: 'Bullet points',
+      style: 'Professional',
+      exampleInput: 'Artificial intelligence is transforming how we work...',
+      exampleOutput: 'AI improves productivity',
+      goal: 'Translate English to Spanish accurately',
+      constraints: 'Preserve cultural context and idioms',
+      description: 'Extract named entities from text',
+      inputSpec: 'Plain text strings containing entities',
+      outputSpec: 'JSON with entities array [{type, value}]',
+      problem: 'Design a data validation system',
+      steps: '1. Analyze requirements 2. Design schema 3. Implement'
     }
+
+    for (const field of template.fields) {
+      const value = demoResponses[field.name] || field.placeholder || ''
+
+      yield* display(`• ${field.label}`)
+      yield* display(`  → ${value}`)
+
+      // Validate the field
+      yield* validateField(field, value).pipe(
+        Effect.flatMap(() => Effect.succeed(undefined)),
+        Effect.catchAll((err) =>
+          Effect.gen(function* () {
+            yield* displayError(`Validation error on ${field.label}: ${err}`)
+            return yield* Effect.fail(new Error(err))
+          })
+        )
+      )
+
+      responses[field.name] = value
+    }
+
+    yield* display('')
 
     // Validate all responses together
     yield* validateResponses(template.fields, responses).pipe(
-      Effect.catchAll((err) => {
-        yield* displayError(`Failed to validate responses: ${err}`)
-        return Effect.fail(new Error(err))
-      })
+      Effect.flatMap(() => Effect.succeed(undefined)),
+      Effect.catchAll((err) =>
+        Effect.gen(function* () {
+          yield* displayError(`Failed to validate responses: ${err}`)
+          return yield* Effect.fail(new Error(err))
+        })
+      )
     )
 
+    yield* displaySuccess('All responses validated successfully!')
     return responses
   })
 
@@ -193,134 +192,42 @@ const displayReview = (builtPrompt: BuiltPrompt): Effect.Effect<void> =>
   Effect.gen(function* () {
     const reviewData = builtPrompt.template.fields
       .filter((f) => builtPrompt.responses[f.name] !== undefined)
-      .map((f) => [
-        f.label,
-        String(builtPrompt.responses[f.name]).substring(0, 50)
-      ])
+      .map((f) => ({
+        field: f.label,
+        value: String(builtPrompt.responses[f.name]).substring(0, 50)
+      }))
 
     if (reviewData.length > 0) {
       yield* display('Your Responses:', { type: 'info' })
-      yield* displayTable(
-        [['Field', 'Value'], ...reviewData],
-        { style: 'compact' }
-      )
+      yield* displayTable(reviewData, {
+        columns: [
+          { key: 'field', header: 'Field', width: 20 },
+          { key: 'value', header: 'Value', width: 50 }
+        ]
+      })
       yield* display('')
     }
   })
 
 /**
- * Accept/Edit loop for prompt refinement
- * User can either accept (copy to clipboard) or edit answers and regenerate
+ * Try to copy the prompt to system clipboard
+ * Gracefully handles unavailable clipboard commands
  */
-const acceptOrEdit = (
-  tui: TUIHandler,
-  builtPrompt: Ref.Ref<BuiltPrompt>
-): Effect.Effect<BuiltPrompt> =>
+const copyPromptToClipboard = (promptText: string): Effect.Effect<void> =>
   Effect.gen(function* () {
-    const action = yield* tui.selectOption(
-      'What would you like to do?',
-      [
-        {
-          label: 'Accept & Copy to Clipboard',
-          value: 'accept',
-          description: 'Copy the prompt to clipboard'
-        },
-        {
-          label: 'Edit Answers',
-          value: 'edit',
-          description: 'Modify your responses and regenerate'
-        },
-        {
-          label: 'Exit',
-          value: 'exit',
-          description: 'Cancel without saving'
-        }
-      ]
-    )
-
-    if (action === 'exit') {
-      yield* display('Cancelled.', { type: 'info' })
-      return yield* Effect.fail(new Error('User cancelled'))
-    }
-
-    if (action === 'accept') {
-      const current = yield* Ref.get(builtPrompt)
-      yield* copyToClipboard(current.promptText).pipe(
-        Effect.catchAll((err) => {
-          yield* displayError(`Failed to copy to clipboard: ${err.message}`)
+    yield* copyToClipboard(promptText).pipe(
+      Effect.catchAll((_err) =>
+        Effect.gen(function* () {
+          yield* displayError(
+            `Clipboard unavailable: ${_err.message}`
+          )
           yield* display('You can still manually copy the prompt text above.', {
             type: 'info'
           })
-          return Effect.succeed(undefined)
+          return undefined
         })
       )
-      yield* displaySuccess('Prompt copied to clipboard!')
-      return current
-    }
-
-    // Edit workflow
-    const current = yield* Ref.get(builtPrompt)
-    const tui2 = yield* TUIHandler
-
-    yield* display('')
-    yield* display('Select fields to edit:', { type: 'info' })
-
-    const editChoices = current.template.fields.map((f) => ({
-      label: f.label,
-      value: f.name,
-      description: `Current: ${String(current.responses[f.name]).substring(0, 30)}`
-    }))
-
-    const fieldToEdit = yield* tui2.selectOption(
-      'Which field to edit?',
-      editChoices
     )
-
-    const fieldDef = current.template.fields.find((f) => f.name === fieldToEdit)
-    if (!fieldDef) {
-      yield* displayError('Field not found')
-      return yield* Effect.fail(new Error('Invalid field'))
-    }
-
-    let updatedValue: string | boolean = ''
-    if (fieldDef.type === 'choice' && fieldDef.choices) {
-      updatedValue = yield* tui2.selectOption(
-        `Update ${fieldDef.label}:`,
-        fieldDef.choices.map((c) => ({
-          label: c,
-          value: c,
-          description: ''
-        }))
-      )
-    } else if (fieldDef.type === 'boolean') {
-      updatedValue = yield* tui2.confirm(`${fieldDef.label}?`)
-    } else {
-      updatedValue = yield* tui2.prompt(
-        `Update ${fieldDef.label}:`,
-        {
-          default: String(current.responses[fieldToEdit])
-        }
-      )
-    }
-
-    const updatedResponses = {
-      ...current.responses,
-      [fieldToEdit]: updatedValue
-    }
-
-    const regeneratedPrompt = current.template.generatePrompt(updatedResponses)
-    const updatedBuiltPrompt: BuiltPrompt = {
-      template: current.template,
-      responses: updatedResponses,
-      promptText: regeneratedPrompt
-    }
-
-    yield* Ref.set(builtPrompt, updatedBuiltPrompt)
-    yield* displaySuccess('Answers updated. Regenerated prompt:')
-    yield* displayGeneratedPrompt(updatedBuiltPrompt)
-    yield* displayReview(updatedBuiltPrompt)
-
-    return yield* acceptOrEdit(tui, builtPrompt)
   })
 
 /**
@@ -329,71 +236,60 @@ const acceptOrEdit = (
  * Flow:
  * 1. Show welcome screen
  * 2. Select template from available options
- * 3. Collect user responses through guided interview
+ * 3. Collect user responses from template fields
  * 4. Generate prompt using template
- * 5. Display prompt in formatted panel
- * 6. Show review table of responses
- * 7. Allow accept (clipboard) or edit (regenerate) workflow
- * 8. Handle errors gracefully
+ * 5. Validate generated prompt
+ * 6. Display prompt in formatted panel
+ * 7. Show review table of responses
+ * 8. Attempt to copy to clipboard
+ *
+ * Note: This demo version uses pre-filled responses because interactive
+ * prompts (prompt, selectOption, multiSelect, confirm) are not yet implemented
+ * in TUIHandler. Once Ink integration is complete, full interactivity will
+ * be restored.
  */
 const promptBuilderApp = (): Effect.Effect<void> =>
   Effect.gen(function* () {
     yield* showWelcome()
 
-    const tui = yield* TUIHandler
+    const template = yield* selectTemplate()
 
-    const template = yield* selectTemplate(tui).pipe(
-      Effect.catchTag('TUIError', (err) => {
-        yield* displayError(`Failed to select template: ${err.message}`)
-        return yield* Effect.fail(err)
-      })
-    )
-
-    const responses = yield* collectResponses(tui, template).pipe(
-      Effect.catchTag('TUIError', (err) => {
-        yield* displayError(`Interview cancelled: ${err.message}`)
-        return yield* Effect.fail(err)
-      })
-    )
+    const responses = yield* collectResponses(template)
 
     const promptText = template.generatePrompt(responses)
 
     // Validate generated prompt
     yield* validateGeneratedPrompt(promptText).pipe(
-      Effect.catchAll((err) => {
-        yield* displayError(`Failed to generate prompt: ${err.message}`)
-        return Effect.fail(err)
-      })
+      Effect.flatMap(() => Effect.succeed(undefined)),
+      Effect.catchAll((err) =>
+        Effect.gen(function* () {
+          yield* displayError(`Failed to generate prompt: ${err.message}`)
+          return yield* Effect.fail(err)
+        })
+      )
     )
 
-    const initialBuiltPrompt: BuiltPrompt = {
+    const builtPrompt: BuiltPrompt = {
       template,
       responses,
       promptText
     }
 
-    yield* displayGeneratedPrompt(initialBuiltPrompt)
-    yield* displayReview(initialBuiltPrompt)
+    yield* displayGeneratedPrompt(builtPrompt)
+    yield* displayReview(builtPrompt)
 
-    const builtPromptRef = yield* Ref.make(initialBuiltPrompt)
-
-    const _final = yield* acceptOrEdit(tui, builtPromptRef).pipe(
-      Effect.catchAll((err) => {
-        yield* display('')
-        yield* display('Session ended.', { type: 'info' })
-        return Effect.succeed(initialBuiltPrompt)
-      })
-    )
+    // Attempt clipboard copy
+    yield* copyPromptToClipboard(promptText)
+    yield* displaySuccess('Ready to use!')
 
     yield* display('')
-    yield* displaySuccess('Thank you for using Prompt Builder!')
+    yield* display('Thank you for using Prompt Builder!', { type: 'success' })
   })
 
 /**
- * Run the application with TUIHandler and EffectCLI services provided
+ * Run the application with EffectCLI service provided for clipboard access
  */
 const main = promptBuilderApp().pipe(
-  Effect.provide(TUIHandler.Default),
   Effect.provide(EffectCLI.Default)
 )
 

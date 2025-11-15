@@ -10,7 +10,7 @@
  */
 
 import { Effect } from 'effect'
-import { EffectCLI } from '../src/index.js'
+import { EffectCLI } from '../../src/index.js'
 
 /**
  * Detect which clipboard command is available on this platform
