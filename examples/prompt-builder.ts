@@ -26,6 +26,7 @@
  * ```
  */
 
+import React from 'react'
 import { Effect } from 'effect'
 import {
   display,
@@ -33,13 +34,12 @@ import {
   displayError,
   displayPanel,
   displayTable,
-  EffectCLI
+  EffectCLI,
+  renderInkWithResult,
+  Select,
+  Input,
+  Confirm
 } from '../src/index.js'
-import {
-  promptInput,
-  promptChoice,
-  promptConfirm
-} from '../src/interactive/prompt.js'
 import {
   templates,
   getTemplate
@@ -79,18 +79,21 @@ const showWelcome = (): Effect.Effect<void> =>
   })
 
 /**
- * Interactive template selection screen
+ * Interactive template selection using Ink Select component
  */
 const selectTemplate = (): Effect.Effect<PromptTemplate> =>
   Effect.gen(function* () {
     yield* display('')
     yield* display('Prompt Engineering Strategies:', { type: 'info' })
+    yield* display('')
 
     const templateNames = templates.map((t) => t.name)
-    const selectedName = yield* promptChoice(
-      'Choose a template:',
-      templateNames,
-      0
+    const selectedName = yield* renderInkWithResult<string>((onComplete) =>
+      <Select
+        message="Choose a template:"
+        choices={templateNames}
+        onSubmit={onComplete}
+      />
     )
 
     const selectedTemplate = templates.find((t) => t.name === selectedName)
@@ -125,21 +128,31 @@ const collectResponses = (
       let value: string | boolean
 
       if (field.type === 'choice' && field.choices) {
-        // Choice field
-        value = yield* promptChoice(
-          `${prefix} ${field.label}`,
-          field.choices,
-          0
+        // Choice field using Select component
+        value = yield* renderInkWithResult<string>((onComplete) =>
+          <Select
+            message={`${prefix} ${field.label}`}
+            choices={field.choices}
+            onSubmit={onComplete}
+          />
         )
       } else if (field.type === 'boolean') {
-        // Boolean field
-        value = yield* promptConfirm(`${prefix} ${field.label}?`, true)
+        // Boolean field using Confirm component
+        value = yield* renderInkWithResult<boolean>((onComplete) =>
+          <Confirm
+            message={`${prefix} ${field.label}?`}
+            onSubmit={onComplete}
+          />
+        )
       } else {
-        // Text or multiline field
-        value = yield* promptInput(
-          `${prefix} ${field.label}`,
-          field.placeholder || '',
-          createInputValidator(field)
+        // Text or multiline field using Input component
+        value = yield* renderInkWithResult<string>((onComplete) =>
+          <Input
+            message={`${prefix} ${field.label}`}
+            placeholder={field.placeholder || ''}
+            onSubmit={onComplete}
+            validate={createInputValidator(field)}
+          />
         )
       }
 
@@ -236,8 +249,8 @@ const copyPromptToClipboard = (promptText: string): Effect.Effect<void> =>
  *
  * Flow:
  * 1. Show welcome screen with feature overview
- * 2. Interactively select template from 5 strategies
- * 3. Answer guided questions to fill template parameters
+ * 2. Interactively select template from 5 strategies (Ink Select component)
+ * 3. Answer guided questions to fill template parameters (Ink Input/Select/Confirm)
  * 4. Validate all responses with Effect Schema
  * 5. Generate prompt using selected template
  * 6. Validate generated prompt
@@ -245,7 +258,11 @@ const copyPromptToClipboard = (promptText: string): Effect.Effect<void> =>
  * 8. Show responses in formatted table
  * 9. Attempt to copy to system clipboard
  *
- * Uses @inquirer/prompts for interactive CLI input
+ * Demonstrates:
+ * - renderInkWithResult() for interactive components
+ * - Effect composition with Ink components
+ * - Schema validation
+ * - Display utilities
  */
 const promptBuilderApp = (): Effect.Effect<void> =>
   Effect.gen(function* () {
