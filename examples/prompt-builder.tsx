@@ -59,7 +59,6 @@ import {
  */
 const showWelcome = (): Effect.Effect<void> =>
   Effect.gen(function* () {
-    yield* display('')
     yield* displayPanel(
       [
         'Interactive CLI tool for crafting effective LLM prompts',
@@ -76,7 +75,6 @@ const showWelcome = (): Effect.Effect<void> =>
       'Welcome to Prompt Builder',
       { type: 'info' }
     )
-    yield* display('')
   })
 
 /**
@@ -84,10 +82,6 @@ const showWelcome = (): Effect.Effect<void> =>
  */
 const selectTemplate = (): Effect.Effect<PromptTemplate> =>
   Effect.gen(function* () {
-    yield* display('')
-    yield* display('Prompt Engineering Strategies:', { type: 'info' })
-    yield* display('')
-
     const templateNames = templates.map((t) => t.name)
     const selectedName = yield* renderInkWithResult<string>((onComplete) =>
       <Select
@@ -104,7 +98,6 @@ const selectTemplate = (): Effect.Effect<PromptTemplate> =>
     }
 
     yield* displaySuccess(`Selected: ${selectedTemplate.name}`)
-    yield* display(selectedTemplate.description)
     return selectedTemplate
   })
 
@@ -117,11 +110,6 @@ const collectResponses = (
 ): Effect.Effect<UserResponses> =>
   Effect.gen(function* () {
     const responses: UserResponses = {}
-
-    yield* display('')
-    yield* display(`Answer questions for your ${template.name} prompt:`, {
-      type: 'info'
-    })
 
     for (const field of template.fields) {
       const prefix = field.required ? '[Required]' : '[Optional]'
@@ -191,13 +179,11 @@ const collectResponses = (
  */
 const displayGeneratedPrompt = (builtPrompt: BuiltPrompt): Effect.Effect<void> =>
   Effect.gen(function* () {
-    yield* display('')
     yield* displayPanel(
       builtPrompt.promptText,
       `Generated ${builtPrompt.template.name} Prompt`,
       { type: 'success' }
     )
-    yield* display('')
   })
 
 /**
@@ -213,14 +199,12 @@ const displayReview = (builtPrompt: BuiltPrompt): Effect.Effect<void> =>
       }))
 
     if (reviewData.length > 0) {
-      yield* display('Your Responses:', { type: 'info' })
       yield* displayTable(reviewData, {
         columns: [
           { key: 'field', header: 'Field', width: 20 },
           { key: 'value', header: 'Value', width: 50 }
         ]
       })
-      yield* display('')
     }
   })
 
@@ -297,10 +281,7 @@ const promptBuilderApp = (): Effect.Effect<void> =>
 
     // Attempt clipboard copy
     yield* copyPromptToClipboard(promptText)
-    yield* displaySuccess('Ready to use!')
-
-    yield* display('')
-    yield* display('Thank you for using Prompt Builder!', { type: 'success' })
+    yield* displaySuccess('Ready to use! Prompt copied to clipboard.')
   })
 
 /**
