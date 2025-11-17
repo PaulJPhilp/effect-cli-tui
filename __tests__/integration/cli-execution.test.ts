@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { Effect } from 'effect'
-import { EffectCLI } from '../../src/cli'
+import { Effect } from "effect";
+import { describe, expect, it } from "vitest";
 import {
+  createMockCLI,
   MockCLI,
   MockCLIFailure,
   MockCLITimeout,
-  createMockCLI
-} from '../../__tests__/fixtures/test-layers'
+} from "../../__tests__/fixtures/test-layers";
+import { EffectCLI } from "../../src/cli";
 
 /**
  * Integration tests for EffectCLI service.
@@ -19,97 +19,97 @@ import {
  * - Timeouts work as expected
  */
 
-describe('EffectCLI Integration Tests', () => {
-  describe('Mock CLI Execution', () => {
-    it('should execute mock command successfully', async () => {
+describe("EffectCLI Integration Tests", () => {
+  describe("Mock CLI Execution", () => {
+    it("should execute mock command successfully", async () => {
       const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI
-        const result = yield* cli.run('test-command')
-        return result
-      }).pipe(Effect.provide(MockCLI))
+        const cli = yield* EffectCLI;
+        const result = yield* cli.run("test-command");
+        return result;
+      }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(program)
-      expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('successful')
-      expect(result.stderr).toBe('')
-    })
+      const result = await Effect.runPromise(program);
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain("successful");
+      expect(result.stderr).toBe("");
+    });
 
-    it('should handle mock command failure', async () => {
+    it("should handle mock command failure", async () => {
       const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI
-        return yield* cli.run('failing-command').pipe(
-          Effect.catchTag('CLIError', (error) => Effect.succeed(error))
-        )
-      }).pipe(Effect.provide(MockCLIFailure))
+        const cli = yield* EffectCLI;
+        return yield* cli
+          .run("failing-command")
+          .pipe(Effect.catchTag("CLIError", (error) => Effect.succeed(error)));
+      }).pipe(Effect.provide(MockCLIFailure));
 
-      const error = await Effect.runPromise(program)
-      expect(error.reason).toBe('CommandFailed')
-      expect(error.message).toContain('exit code 1')
-    })
+      const error = await Effect.runPromise(program);
+      expect(error.reason).toBe("CommandFailed");
+      expect(error.message).toContain("exit code 1");
+    });
 
-    it('should handle mock timeout', async () => {
+    it("should handle mock timeout", async () => {
       const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI
-        return yield* cli.run('slow-command').pipe(
-          Effect.catchTag('CLIError', (error) => Effect.succeed(error))
-        )
-      }).pipe(Effect.provide(MockCLITimeout))
+        const cli = yield* EffectCLI;
+        return yield* cli
+          .run("slow-command")
+          .pipe(Effect.catchTag("CLIError", (error) => Effect.succeed(error)));
+      }).pipe(Effect.provide(MockCLITimeout));
 
-      const error = await Effect.runPromise(program)
-      expect(error.reason).toBe('Timeout')
-      expect(error.message).toContain('timed out')
-    })
+      const error = await Effect.runPromise(program);
+      expect(error.reason).toBe("Timeout");
+      expect(error.message).toContain("timed out");
+    });
 
-    it('should use custom mock response', async () => {
+    it("should use custom mock response", async () => {
       const customMock = createMockCLI({
         exitCode: 0,
-        stdout: 'Custom output from mock',
-        stderr: ''
-      })
+        stdout: "Custom output from mock",
+        stderr: "",
+      });
 
       const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI
-        return yield* cli.run('custom')
-      }).pipe(Effect.provide(customMock))
+        const cli = yield* EffectCLI;
+        return yield* cli.run("custom");
+      }).pipe(Effect.provide(customMock));
 
-      const result = await Effect.runPromise(program)
-      expect(result.stdout).toBe('Custom output from mock')
-    })
-  })
+      const result = await Effect.runPromise(program);
+      expect(result.stdout).toBe("Custom output from mock");
+    });
+  });
 
   // Real command execution tests have been moved to cli-execution-real.test.ts
   // to prevent resource contention when running the full test suite.
   // Run them separately with: bun test __tests__/integration/cli-execution-real.test.ts
 
-  describe('Service Interface Completeness', () => {
-    it('should provide run and stream methods', async () => {
+  describe("Service Interface Completeness", () => {
+    it("should provide run and stream methods", async () => {
       const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI
+        const cli = yield* EffectCLI;
         return {
-          hasRun: typeof cli.run === 'function',
-          hasStream: typeof cli.stream === 'function'
-        }
-      }).pipe(Effect.provide(EffectCLI.Default))
+          hasRun: typeof cli.run === "function",
+          hasStream: typeof cli.stream === "function",
+        };
+      }).pipe(Effect.provide(EffectCLI.Default));
 
-      const result = await Effect.runPromise(program)
-      expect(result.hasRun).toBe(true)
-      expect(result.hasStream).toBe(true)
-    })
+      const result = await Effect.runPromise(program);
+      expect(result.hasRun).toBe(true);
+      expect(result.hasStream).toBe(true);
+    });
 
-    it('should return Effect from CLI methods', async () => {
+    it("should return Effect from CLI methods", async () => {
       const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI
-        const runEffect = cli.run('echo', ['test'])
-        const streamEffect = cli.stream('echo', ['test'])
+        const cli = yield* EffectCLI;
+        const runEffect = cli.run("echo", ["test"]);
+        const streamEffect = cli.stream("echo", ["test"]);
         return {
-          runIsEffect: runEffect && typeof runEffect === 'object',
-          streamIsEffect: streamEffect && typeof streamEffect === 'object'
-        }
-      }).pipe(Effect.provide(EffectCLI.Default))
+          runIsEffect: runEffect && typeof runEffect === "object",
+          streamIsEffect: streamEffect && typeof streamEffect === "object",
+        };
+      }).pipe(Effect.provide(EffectCLI.Default));
 
-      const result = await Effect.runPromise(program)
-      expect(result.runIsEffect).toBe(true)
-      expect(result.streamIsEffect).toBe(true)
-    })
-  })
-})
+      const result = await Effect.runPromise(program);
+      expect(result.runIsEffect).toBe(true);
+      expect(result.streamIsEffect).toBe(true);
+    });
+  });
+});

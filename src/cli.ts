@@ -1,5 +1,5 @@
-import { Effect } from "effect";
 import { spawn } from "node:child_process";
+import { Effect } from "effect";
 import { isErrnoException, isError } from "./core/error-utils";
 import { CLIError, type CLIResult, type CLIRunOptions } from "./types";
 
@@ -27,14 +27,23 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
             const cwd = options.cwd || process.cwd();
             let stdout = "";
             let stderr = "";
+            let hasResumed = false;
+
+            const safeResume = (effect: Effect.Effect<CLIResult, CLIError>) => {
+              if (!hasResumed) {
+                hasResumed = true;
+                resume(effect);
+              }
+            };
 
             const child = spawn(command, args, {
               cwd,
               env: { ...process.env, ...options.env },
+              stdio: ["pipe", "pipe", "pipe"],
             });
 
-            if (!child.stdout || !child.stderr) {
-              resume(
+            if (!(child.stdout && child.stderr)) {
+              safeResume(
                 Effect.fail(
                   new CLIError(
                     "NotFound",
@@ -58,7 +67,7 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
                   const timeoutMs = options.timeout;
                   return setTimeout(() => {
                     child.kill();
-                    resume(
+                    safeResume(
                       Effect.fail(
                         new CLIError(
                           "Timeout",
@@ -74,11 +83,11 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
               if (timeout) clearTimeout(timeout);
 
               if (exitCode === 0) {
-                resume(
+                safeResume(
                   Effect.succeed({ exitCode: exitCode ?? 0, stdout, stderr })
                 );
               } else {
-                resume(
+                safeResume(
                   Effect.fail(
                     new CLIError(
                       "CommandFailed",
@@ -93,7 +102,7 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
             child.on("error", (err) => {
               if (timeout) clearTimeout(timeout);
               if (isErrnoException(err) && err.code === "ENOENT") {
-                resume(
+                safeResume(
                   Effect.fail(
                     new CLIError(
                       "NotFound",
@@ -102,7 +111,7 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
                   )
                 );
               } else {
-                resume(
+                safeResume(
                   Effect.fail(
                     new CLIError(
                       "ExecutionError",
@@ -128,6 +137,14 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
         ) =>
           Effect.async<void, CLIError>((resume) => {
             const cwd = options.cwd || process.cwd();
+            let hasResumed = false;
+
+            const safeResume = (effect: Effect.Effect<void, CLIError>) => {
+              if (!hasResumed) {
+                hasResumed = true;
+                resume(effect);
+              }
+            };
 
             const child = spawn(command, args, {
               cwd,
@@ -140,7 +157,7 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
                   const timeoutMs = options.timeout;
                   return setTimeout(() => {
                     child.kill();
-                    resume(
+                    safeResume(
                       Effect.fail(
                         new CLIError(
                           "Timeout",
@@ -156,9 +173,9 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
               if (timeout) clearTimeout(timeout);
 
               if (exitCode === 0) {
-                resume(Effect.succeed(undefined));
+                safeResume(Effect.succeed(undefined));
               } else {
-                resume(
+                safeResume(
                   Effect.fail(
                     new CLIError(
                       "CommandFailed",
@@ -173,7 +190,7 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
             child.on("error", (err) => {
               if (timeout) clearTimeout(timeout);
               if (isErrnoException(err) && err.code === "ENOENT") {
-                resume(
+                safeResume(
                   Effect.fail(
                     new CLIError(
                       "NotFound",
@@ -182,7 +199,7 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
                   )
                 );
               } else {
-                resume(
+                safeResume(
                   Effect.fail(
                     new CLIError(
                       "ExecutionError",

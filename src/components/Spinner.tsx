@@ -4,13 +4,25 @@
  * Provides an animated spinner with a message.
  */
 
-import React from 'react'
-import { Box, Text } from 'ink'
-import Spinner from 'ink-spinner'
+import { Box, Text } from "ink";
+import Spinner from "ink-spinner";
+import type React from "react";
 
 export interface SpinnerComponentProps {
-    message: string
-    type?: 'dots' | 'dots2' | 'dots3' | 'dots4' | 'dots5' | 'dots6' | 'dots7' | 'dots8' | 'dots9' | 'dots10' | 'line' | 'line2'
+  message: string;
+  type?:
+    | "dots"
+    | "dots2"
+    | "dots3"
+    | "dots4"
+    | "dots5"
+    | "dots6"
+    | "dots7"
+    | "dots8"
+    | "dots9"
+    | "dots10"
+    | "line"
+    | "line2";
 }
 
 /**
@@ -27,19 +39,17 @@ export interface SpinnerComponentProps {
  * ```
  */
 export const SpinnerComponent: React.FC<SpinnerComponentProps> = ({
-    message,
-    type = 'dots'
-}) => {
-    return (
-        <Box>
-            <Box marginRight={1}>
-                <Text color="cyan">
-                    <Spinner type={type} />
-                </Text>
-            </Box>
-            <Text>{message}</Text>
-        </Box>
-    )
-}
+  message,
+  type = "dots",
+}) => (
+  <Box>
+    <Box marginRight={1}>
+      <Text color="cyan">
+        <Spinner type={type} />
+      </Text>
+    </Box>
+    <Text>{message}</Text>
+  </Box>
+);
 
-export default SpinnerComponent
+export default SpinnerComponent;

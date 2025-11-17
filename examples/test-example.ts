@@ -4,10 +4,10 @@
  */
 
 import {
-  EffectCLIRuntime,
   display,
   displayError,
   displaySuccess,
+  EffectCLIRuntime,
 } from "../src";
 
 const test = async () => {

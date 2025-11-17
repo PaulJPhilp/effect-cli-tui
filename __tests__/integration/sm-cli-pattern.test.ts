@@ -101,8 +101,7 @@ describe("SM-CLI Integration Patterns", () => {
       ).toBe(true);
       expect(
         allCalls.some(
-          (call) =>
-            call.includes("ℹ") && call.includes("Processing payment...")
+          (call) => call.includes("ℹ") && call.includes("Processing payment...")
         )
       ).toBe(true);
       expect(

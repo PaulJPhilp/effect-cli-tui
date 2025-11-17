@@ -4,14 +4,15 @@
  * Provides a simple y/n confirmation dialog.
  */
 
-import React, { useState } from 'react'
-import { Box, Text } from 'ink'
-import TextInput from 'ink-text-input'
+import { Box, Text } from "ink";
+import TextInput from "ink-text-input";
+import type React from "react";
+import { useState } from "react";
 
 export interface ConfirmProps {
-    message: string
-    default?: boolean
-    onSubmit: (value: boolean) => void
+  message: string;
+  default?: boolean;
+  onSubmit: (value: boolean) => void;
 }
 
 /**
@@ -34,51 +35,55 @@ export interface ConfirmProps {
  * />
  * ```
  */
-export const Confirm: React.FC<ConfirmProps> = ({ message, default: defaultValue = true, onSubmit }) => {
-    const [input, setInput] = useState('')
-    const [error, setError] = useState<string | null>(null)
+export const Confirm: React.FC<ConfirmProps> = ({
+  message,
+  default: defaultValue = true,
+  onSubmit,
+}) => {
+  const [input, setInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = (value: string) => {
-        const trimmed = value.trim().toLowerCase()
+  const handleSubmit = (value: string) => {
+    const trimmed = value.trim().toLowerCase();
 
-        if (!trimmed) {
-            // Use default if empty
-            onSubmit(defaultValue)
-            return
-        }
-
-        if (trimmed === 'y' || trimmed === 'yes') {
-            onSubmit(true)
-        } else if (trimmed === 'n' || trimmed === 'no') {
-            onSubmit(false)
-        } else {
-            setError('Please enter y/yes or n/no')
-        }
+    if (!trimmed) {
+      // Use default if empty
+      onSubmit(defaultValue);
+      return;
     }
 
-    const defaultStr = defaultValue ? 'Y/n' : 'y/N'
+    if (trimmed === "y" || trimmed === "yes") {
+      onSubmit(true);
+    } else if (trimmed === "n" || trimmed === "no") {
+      onSubmit(false);
+    } else {
+      setError("Please enter y/yes or n/no");
+    }
+  };
 
-    return (
-        <Box flexDirection="column">
-            <Box>
-                <Text>{message} </Text>
-                <Text color="gray">({defaultStr}) </Text>
-                <TextInput
-                    value={input}
-                    onChange={(val) => {
-                        setInput(val)
-                        if (error) setError(null)
-                    }}
-                    onSubmit={handleSubmit}
-                />
-            </Box>
-            {error && (
-                <Box marginTop={0}>
-                    <Text color="red">{error}</Text>
-                </Box>
-            )}
+  const defaultStr = defaultValue ? "Y/n" : "y/N";
+
+  return (
+    <Box flexDirection="column">
+      <Box>
+        <Text>{message} </Text>
+        <Text color="gray">({defaultStr}) </Text>
+        <TextInput
+          onChange={(val) => {
+            setInput(val);
+            if (error) setError(null);
+          }}
+          onSubmit={handleSubmit}
+          value={input}
+        />
+      </Box>
+      {error && (
+        <Box marginTop={0}>
+          <Text color="red">{error}</Text>
         </Box>
-    )
-}
+      )}
+    </Box>
+  );
+};
 
-export default Confirm
+export default Confirm;

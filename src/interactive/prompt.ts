@@ -1,19 +1,13 @@
-import { Effect } from 'effect';
-import { Data } from 'effect';
-import {
-  input,
-  confirm,
-  select,
-  password,
-} from '@inquirer/prompts';
+import { confirm, input, password, select } from "@inquirer/prompts";
+import { Data, Effect } from "effect";
 
-export class PromptError extends Data.TaggedError('PromptError')<{
+export class PromptError extends Data.TaggedError("PromptError")<{
   message: string;
 }> {}
 
 export interface PromptOptions {
   message: string;
-  type?: 'text' | 'confirm' | 'choice' | 'password';
+  type?: "text" | "confirm" | "choice" | "password";
   default?: string;
   choices?: string[];
   validate?: (value: string) => boolean | string;
@@ -28,16 +22,17 @@ export function promptInput(
   validate?: (value: string) => boolean | string
 ): Effect.Effect<string, PromptError> {
   return Effect.tryPromise({
-    try: async () => {
-      return await input({
+    try: async () =>
+      await input({
         message,
         default: defaultValue,
-        validate: validate ? (v) => {
-          const result = validate(v);
-          return result === true ? true : String(result);
-        } : undefined,
-      });
-    },
+        validate: validate
+          ? (v) => {
+              const result = validate(v);
+              return result === true ? true : String(result);
+            }
+          : undefined,
+      }),
     catch: (error) =>
       new PromptError({
         message: `Prompt failed: ${String(error)}`,
@@ -53,12 +48,11 @@ export function promptConfirm(
   defaultValue?: boolean
 ): Effect.Effect<boolean, PromptError> {
   return Effect.tryPromise({
-    try: async () => {
-      return await confirm({
+    try: async () =>
+      await confirm({
         message,
         default: defaultValue ?? true,
-      });
-    },
+      }),
     catch: (error) =>
       new PromptError({
         message: `Confirmation prompt failed: ${String(error)}`,
@@ -75,16 +69,15 @@ export function promptChoice(
   defaultIndex?: number
 ): Effect.Effect<string, PromptError> {
   return Effect.tryPromise({
-    try: async () => {
-      return await select({
+    try: async () =>
+      await select({
         message,
         choices: choices.map((choice) => ({
           name: choice,
           value: choice,
         })),
         default: defaultIndex !== undefined ? choices[defaultIndex] : undefined,
-      });
-    },
+      }),
     catch: (error) =>
       new PromptError({
         message: `Choice prompt failed: ${String(error)}`,
@@ -100,16 +93,17 @@ export function promptPassword(
   validate?: (value: string) => boolean | string
 ): Effect.Effect<string, PromptError> {
   return Effect.tryPromise({
-    try: async () => {
-      return await password({
+    try: async () =>
+      await password({
         message,
-        mask: '*',
-        validate: validate ? (v) => {
-          const result = validate(v);
-          return result === true ? true : String(result);
-        } : undefined,
-      });
-    },
+        mask: "*",
+        validate: validate
+          ? (v) => {
+              const result = validate(v);
+              return result === true ? true : String(result);
+            }
+          : undefined,
+      }),
     catch: (error) =>
       new PromptError({
         message: `Password prompt failed: ${String(error)}`,
@@ -127,38 +121,31 @@ export function prompt(
     let value: string;
 
     switch (options.type) {
-      case 'confirm': {
+      case "confirm": {
         const confirmed = yield* promptConfirm(
           options.message,
-          options.default === 'true'
+          options.default === "true"
         );
         value = String(confirmed);
         break;
       }
 
-      case 'choice':
+      case "choice":
         if (!options.choices) {
           return yield* Effect.fail(
             new PromptError({
-              message: 'Choices required for choice prompt',
+              message: "Choices required for choice prompt",
             })
           );
         }
-        value = yield* promptChoice(
-          options.message,
-          options.choices,
-          0
-        );
+        value = yield* promptChoice(options.message, options.choices, 0);
         break;
 
-      case 'password':
-        value = yield* promptPassword(
-          options.message,
-          options.validate
-        );
+      case "password":
+        value = yield* promptPassword(options.message, options.validate);
         break;
 
-      case 'text':
+      case "text":
       default:
         value = yield* promptInput(
           options.message,

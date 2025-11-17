@@ -4,7 +4,6 @@
  * Provides Effect.Service for rendering Ink/React components.
  */
 
-export { InkService } from "./service";
 export type { InkService as InkServiceApi } from "./api";
 export { InkError } from "./errors";
-
+export { InkService } from "./service";

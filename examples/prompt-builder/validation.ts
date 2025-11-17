@@ -5,8 +5,8 @@
  * Ensures user responses meet field requirements before prompt generation
  */
 
-import { Schema, Effect } from 'effect'
-import { TemplateField, UserResponses } from './types.js'
+import { Effect } from "effect";
+import type { TemplateField, UserResponses } from "./types.js";
 
 /**
  * Validate a single field value against its field definition
@@ -27,29 +27,33 @@ export const validateField = (
 ): Effect.Effect<boolean, string> =>
   Effect.gen(function* () {
     if (field.required && !value) {
-      return yield* Effect.fail(`${field.label} is required`)
+      return yield* Effect.fail(`${field.label} is required`);
     }
 
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       if (value.length === 0 && field.required) {
-        return yield* Effect.fail(`${field.label} cannot be empty`)
+        return yield* Effect.fail(`${field.label} cannot be empty`);
       }
 
-      if (field.type === 'choice' && field.choices) {
-        if (!field.choices.includes(value)) {
-          return yield* Effect.fail(
-            `${field.label} must be one of: ${field.choices.join(', ')}`
-          )
-        }
+      if (
+        field.type === "choice" &&
+        field.choices &&
+        !field.choices.includes(value)
+      ) {
+        return yield* Effect.fail(
+          `${field.label} must be one of: ${field.choices.join(", ")}`
+        );
       }
     }
 
-    if (field.type === 'boolean' && typeof value !== 'boolean') {
-      return yield* Effect.fail(`${field.label} must be answered with yes (y) or no (n)`)
+    if (field.type === "boolean" && typeof value !== "boolean") {
+      return yield* Effect.fail(
+        `${field.label} must be answered with yes (y) or no (n)`
+      );
     }
 
-    return true
-  })
+    return true;
+  });
 
 /**
  * Validate all user responses against template fields
@@ -64,12 +68,12 @@ export const validateResponses = (
 ): Effect.Effect<UserResponses, string> =>
   Effect.gen(function* () {
     for (const field of fields) {
-      const value = responses[field.name]
-      yield* validateField(field, value)
+      const value = responses[field.name];
+      yield* validateField(field, value);
     }
 
-    return responses
-  })
+    return responses;
+  });
 
 /**
  * Create a validation function for prompt inputs
@@ -97,24 +101,26 @@ export const createInputValidator = (
   return (input: string) => {
     // Required check
     if (fieldDef.required && input.trim().length === 0) {
-      return `${fieldDef.label} is required`
+      return `${fieldDef.label} is required`;
     }
 
     // Choice validation
-    if (fieldDef.type === 'choice' && fieldDef.choices) {
-      if (!fieldDef.choices.includes(input)) {
-        return `Please select one of the available options: ${fieldDef.choices.join(', ')}`
-      }
+    if (
+      fieldDef.type === "choice" &&
+      fieldDef.choices &&
+      !fieldDef.choices.includes(input)
+    ) {
+      return `Please select one of the available options: ${fieldDef.choices.join(", ")}`;
     }
 
     // Text length validation (reasonable limits)
     if (input.length > 5000) {
-      return 'Your input is too long. Please keep it under 5000 characters.'
+      return "Your input is too long. Please keep it under 5000 characters.";
     }
 
-    return true
-  }
-}
+    return true;
+  };
+};
 
 /**
  * Validate a generated prompt text
@@ -131,14 +137,20 @@ export const validateGeneratedPrompt = (
 ): Effect.Effect<string, Error> =>
   Effect.gen(function* () {
     if (!promptText || promptText.length === 0) {
-      return yield* Effect.fail(new Error('Unable to generate prompt: The generated prompt is empty. Please check your template and responses.'))
-    }
-
-    if (promptText.length > 10000) {
       return yield* Effect.fail(
-        new Error('Unable to generate prompt: The generated prompt is too long (maximum 10,000 characters). Please simplify your inputs.')
-      )
+        new Error(
+          "Unable to generate prompt: The generated prompt is empty. Please check your template and responses."
+        )
+      );
     }
 
-    return promptText
-  })
+    if (promptText.length > 10_000) {
+      return yield* Effect.fail(
+        new Error(
+          "Unable to generate prompt: The generated prompt is too long (maximum 10,000 characters). Please simplify your inputs."
+        )
+      );
+    }
+
+    return promptText;
+  });

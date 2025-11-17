@@ -48,11 +48,8 @@ export function isError(value: unknown): value is Error {
  * }
  * ```
  */
-export function isErrnoException(
-  err: unknown
-): err is NodeJS.ErrnoException {
+export function isErrnoException(err: unknown): err is NodeJS.ErrnoException {
   return (
-    isError(err) &&
-    typeof (err as NodeJS.ErrnoException).code === "string"
+    isError(err) && typeof (err as NodeJS.ErrnoException).code === "string"
   );
 }

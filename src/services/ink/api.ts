@@ -48,4 +48,3 @@ export interface InkService {
     component: (onComplete: (value: T) => void) => React.ReactElement
   ) => Effect.Effect<T, InkError>;
 }
-

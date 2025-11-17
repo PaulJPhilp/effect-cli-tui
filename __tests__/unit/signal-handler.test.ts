@@ -119,9 +119,7 @@ describe("Signal Handler Utilities", () => {
     });
 
     it("should handle async cleanup handlers", async () => {
-      const handler = vi.fn(async () => {
-        return Promise.resolve();
-      });
+      const handler = vi.fn(async () => Promise.resolve());
       await Effect.runPromise(registerCleanupHandler(handler));
       expect(getCleanupHandlerCount()).toBe(1);
     });

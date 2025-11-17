@@ -1,13 +1,13 @@
 import * as Effect from "effect/Effect";
 import { describe, expect, it, vi } from "vitest";
 import {
-  EffectCLI,
-  TUIHandler,
   display,
   displayError,
   displayJson,
   displayLines,
   displaySuccess,
+  EffectCLI,
+  TUIHandler,
 } from "../src/index";
 
 describe("effect-cli-tui Integration", () => {
@@ -65,7 +65,9 @@ describe("effect-cli-tui Integration", () => {
     });
 
     it("display should output with error prefix", async () => {
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       await Effect.runPromise(display("Error!", { type: "error" }));
       expect(consoleErrorSpy).toHaveBeenCalledWith("\n✗ Error!");
       consoleErrorSpy.mockRestore();
@@ -133,7 +135,9 @@ describe("effect-cli-tui Integration", () => {
     });
 
     it("displayError should be equivalent to display with error type", async () => {
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       await Effect.runPromise(displayError("Failed!"));
       expect(consoleErrorSpy).toHaveBeenCalledWith("\n✗ Failed!");
       consoleErrorSpy.mockRestore();

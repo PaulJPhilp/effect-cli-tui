@@ -5,4 +5,3 @@
  */
 
 export { InkError } from "../../types";
-

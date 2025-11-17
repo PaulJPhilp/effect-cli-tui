@@ -31,13 +31,13 @@
  * ```
  */
 
-import { Effect, Layer, ManagedRuntime } from "effect";
+import { type Effect, Layer, ManagedRuntime } from "effect";
+import { EffectCLI } from "./cli";
+import { Terminal } from "./core/terminal";
 import { DisplayService } from "./services/display";
 import { InkService } from "./services/ink";
 import { ThemeService } from "./services/theme/service";
-import { Terminal } from "./core/terminal";
 import { TUIHandler } from "./tui";
-import { EffectCLI } from "./cli";
 
 /**
  * Combined layer providing all CLI/TUI services
@@ -167,7 +167,11 @@ export const DisplayRuntime = ManagedRuntime.make(
  * ```
  */
 export async function runWithRuntime<A, E>(
-  effect: Effect.Effect<A, E, EffectCLI | TUIHandler | DisplayService | InkService | Terminal>
+  effect: Effect.Effect<
+    A,
+    E,
+    EffectCLI | TUIHandler | DisplayService | InkService | Terminal
+  >
 ): Promise<A> {
   try {
     return await EffectCLIRuntime.runPromise(effect);
@@ -192,7 +196,11 @@ export async function runWithRuntime<A, E>(
  * ```
  */
 export async function runWithTUI<A, E>(
-  effect: Effect.Effect<A, E, TUIHandler | DisplayService | InkService | Terminal>
+  effect: Effect.Effect<
+    A,
+    E,
+    TUIHandler | DisplayService | InkService | Terminal
+  >
 ): Promise<A> {
   try {
     return await TUIHandlerRuntime.runPromise(effect);
@@ -225,4 +233,3 @@ export async function runWithCLI<A, E>(
     await EffectCLIOnlyRuntime.dispose();
   }
 }
-

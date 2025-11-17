@@ -23,7 +23,12 @@ import { Password } from "./components/Password";
 import { Select } from "./components/Select";
 import { DEFAULT_DISPLAY_TYPE, getDisplayIcon } from "./core/icons";
 import { InkService } from "./services/ink";
-import { InkError, TUIError, type DisplayType, type SelectOption } from "./types";
+import {
+  type DisplayType,
+  InkError,
+  type SelectOption,
+  TUIError,
+} from "./types";
 
 /**
  * TUI Handler Service

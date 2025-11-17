@@ -43,4 +43,3 @@ export interface ThemeService {
     effect: Effect.Effect<A, E, R>
   ) => Effect.Effect<A, E, R>;
 }
-

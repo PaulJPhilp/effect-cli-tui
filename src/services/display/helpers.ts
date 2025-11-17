@@ -1,5 +1,6 @@
 import { applyChalkStyle } from "../../core/colors";
 import { getDisplayColor, getDisplayIcon } from "../../core/icons";
+import type { ChalkColor } from "../../types";
 import type { DisplayOptions, DisplayType } from "./types";
 
 /**
@@ -30,8 +31,10 @@ export function formatDisplayOutput(
   } else {
     // Use theme color for message
     const themeColor = getDisplayColor(type);
-    styledMessage = applyChalkStyle(message, { color: themeColor as any });
-    styledPrefix = applyChalkStyle(prefix, { color: themeColor as any });
+    styledMessage = applyChalkStyle(message, {
+      color: themeColor as ChalkColor,
+    });
+    styledPrefix = applyChalkStyle(prefix, { color: themeColor as ChalkColor });
   }
 
   const output =

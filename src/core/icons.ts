@@ -85,6 +85,26 @@ export const COLOR_HIGHLIGHT = "cyan" as const;
 export const COLOR_DEFAULT = COLOR_INFO;
 
 /**
+ * Type for theme module exports
+ */
+interface ThemeModule {
+  getCurrentThemeSync?: () => {
+    icons: {
+      success: string;
+      error: string;
+      warning: string;
+      info: string;
+    };
+    colors: {
+      success: string;
+      error: string;
+      warning: string;
+      info: string;
+    };
+  };
+}
+
+/**
  * Get the appropriate icon for a display type
  *
  * Uses the current theme if available, otherwise falls back to default icons.
@@ -98,21 +118,23 @@ export function getDisplayIcon(
   // Try to get theme, fallback to defaults if not available
   // Using dynamic import to avoid circular dependencies
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const themeModule = require("../services/theme/service");
-    if (themeModule && typeof themeModule.getCurrentThemeSync === "function") {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    const themeModule: ThemeModule = require("../services/theme/service");
+    if (themeModule?.getCurrentThemeSync) {
       const theme = themeModule.getCurrentThemeSync();
-      switch (type) {
-        case "success":
-          return theme.icons.success;
-        case "error":
-          return theme.icons.error;
-        case "warning":
-          return theme.icons.warning;
-        case "info":
-          return theme.icons.info;
-        default:
-          return ICON_INFO;
+      if (theme?.icons) {
+        switch (type) {
+          case "success":
+            return theme.icons.success;
+          case "error":
+            return theme.icons.error;
+          case "warning":
+            return theme.icons.warning;
+          case "info":
+            return theme.icons.info;
+          default:
+            return ICON_INFO;
+        }
       }
     }
   } catch {
@@ -147,21 +169,23 @@ export function getDisplayColor(
 ): string {
   // Try to get theme, fallback to defaults if not available
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const themeModule = require("../services/theme/service");
-    if (themeModule && typeof themeModule.getCurrentThemeSync === "function") {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    const themeModule: ThemeModule = require("../services/theme/service");
+    if (themeModule?.getCurrentThemeSync) {
       const theme = themeModule.getCurrentThemeSync();
-      switch (type) {
-        case "success":
-          return theme.colors.success;
-        case "error":
-          return theme.colors.error;
-        case "warning":
-          return theme.colors.warning;
-        case "info":
-          return theme.colors.info;
-        default:
-          return COLOR_INFO;
+      if (theme?.colors) {
+        switch (type) {
+          case "success":
+            return theme.colors.success;
+          case "error":
+            return theme.colors.error;
+          case "warning":
+            return theme.colors.warning;
+          case "info":
+            return theme.colors.info;
+          default:
+            return COLOR_INFO;
+        }
       }
     }
   } catch {

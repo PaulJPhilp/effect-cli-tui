@@ -1,19 +1,19 @@
 // Existing exports
+
+export type { BoxStyle } from "./boxes/box";
+// Boxes
+export { displayBox, displayPanel } from "./boxes/box";
 export { EffectCLI } from "./cli";
-export { TUIHandler } from "./tui";
-export * from "./types";
-export type { DisplayTypeColor } from "./types";
-
-// Terminal service export
-export { Terminal, TerminalTest, createCustomTerminal } from "./core/terminal";
-
-// Ink service exports
-export { InkService } from "./services/ink";
-export type { InkServiceApi } from "./services/ink";
-
-// Backward compatibility: convenience wrappers
-export { renderInkComponent, renderInkWithResult } from "./effects/ink-wrapper";
-
+export type {
+  ConfirmProps,
+  InputProps,
+  MessageProps,
+  MultiSelectProps,
+  PasswordProps,
+  ProgressBarProps,
+  SelectProps,
+  SpinnerComponentProps,
+} from "./components";
 // Ink components exports
 export {
   Confirm,
@@ -25,53 +25,6 @@ export {
   Select,
   SpinnerComponent,
 } from "./components";
-export type {
-  ConfirmProps,
-  InputProps,
-  MessageProps,
-  MultiSelectProps,
-  PasswordProps,
-  ProgressBarProps,
-  SelectProps,
-  SpinnerComponentProps,
-} from "./components";
-
-// Display service exports
-export { DisplayService } from "./services/display";
-export type { DisplayServiceApi } from "./services/display";
-export type {
-  DisplayOptions,
-  DisplayType,
-  JsonDisplayOptions,
-} from "./services/display/types";
-
-// Theme service exports
-export { createTheme, mergeTheme } from "./services/theme/helpers";
-export {
-  darkTheme,
-  defaultTheme,
-  emojiTheme,
-  minimalTheme,
-  themes,
-} from "./services/theme/presets";
-export {
-  ThemeService,
-  getCurrentTheme,
-  setTheme,
-  withTheme,
-} from "./services/theme/service";
-export type { PartialTheme, Theme } from "./services/theme/types";
-
-// Display API exports (convenience wrappers)
-export {
-  display,
-  displayError,
-  displayJson,
-  displayLines,
-  displayOutput,
-  displaySuccess,
-} from "./core/display";
-
 // Color and styling exports
 export {
   applyChalkStyle,
@@ -81,7 +34,15 @@ export {
   displayMuted,
   displayWarning,
 } from "./core/colors";
-
+// Display API exports (convenience wrappers)
+export {
+  display,
+  displayError,
+  displayJson,
+  displayLines,
+  displayOutput,
+  displaySuccess,
+} from "./core/display";
 // Icon constants
 export {
   ANSI_CARRIAGE_RETURN,
@@ -98,6 +59,7 @@ export {
   DEFAULT_DISPLAY_TYPE,
   EXIT_CODE_SIGINT,
   EXIT_CODE_SIGTERM,
+  getDisplayIcon,
   ICON_ERROR,
   ICON_INFO,
   ICON_SUCCESS,
@@ -107,18 +69,12 @@ export {
   SPINNER_MESSAGE_DONE,
   SPINNER_MESSAGE_FAILED,
   SYMBOL_BULLET,
-  getDisplayIcon,
 } from "./core/icons";
-
-// Tables
-export { displayTable } from "./tables/table";
-export type { TableColumn, TableOptions } from "./tables/table";
-
-// Boxes
-export { displayBox, displayPanel } from "./boxes/box";
-export type { BoxStyle } from "./boxes/box";
-export type { BorderStyle } from "./types";
-
+// Terminal service export
+export { createCustomTerminal, Terminal, TerminalTest } from "./core/terminal";
+// Backward compatibility: convenience wrappers
+export { renderInkComponent, renderInkWithResult } from "./effects/ink-wrapper";
+export type { SpinnerOptions } from "./progress/spinner";
 // Progress & Spinners
 export {
   spinnerEffect,
@@ -126,16 +82,47 @@ export {
   stopSpinner,
   updateSpinner,
 } from "./progress/spinner";
-export type { SpinnerOptions } from "./progress/spinner";
-
 // Runtime exports
 export {
   DisplayRuntime,
   EffectCLIOnlyRuntime,
   EffectCLIRuntime,
   EffectCLITUILayer,
-  TUIHandlerRuntime,
   runWithCLI,
   runWithRuntime,
   runWithTUI,
+  TUIHandlerRuntime,
 } from "./runtime";
+export type { DisplayServiceApi } from "./services/display";
+// Display service exports
+export { DisplayService } from "./services/display";
+export type {
+  DisplayOptions,
+  DisplayType,
+  JsonDisplayOptions,
+} from "./services/display/types";
+export type { InkServiceApi } from "./services/ink";
+// Ink service exports
+export { InkService } from "./services/ink";
+// Theme service exports
+export { createTheme, mergeTheme } from "./services/theme/helpers";
+export {
+  darkTheme,
+  defaultTheme,
+  emojiTheme,
+  minimalTheme,
+  themes,
+} from "./services/theme/presets";
+export {
+  getCurrentTheme,
+  setTheme,
+  ThemeService,
+  withTheme,
+} from "./services/theme/service";
+export type { PartialTheme, Theme } from "./services/theme/types";
+export type { TableColumn, TableOptions } from "./tables/table";
+// Tables
+export { displayTable } from "./tables/table";
+export { TUIHandler } from "./tui";
+export type { BorderStyle, DisplayTypeColor } from "./types";
+export * from "./types";

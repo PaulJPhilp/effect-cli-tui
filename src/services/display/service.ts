@@ -70,17 +70,19 @@ export class DisplayService extends Effect.Service<DisplayService>()(
             return Effect.gen(function* () {
               const jsonString = JSON.stringify(data, null, spaces);
 
-              if (!showPrefix && !customPrefix) {
+              if (!(showPrefix || customPrefix)) {
                 const output =
                   options.newline !== false ? `\n${jsonString}` : jsonString;
                 yield* Console.log(output);
                 return;
               }
 
-              const prefix = customPrefix ?? (showPrefix ? getDisplayIcon(type) : "");
-              const styledPrefix = options.style && prefix
-                ? applyChalkStyle(prefix, options.style)
-                : prefix;
+              const prefix =
+                customPrefix ?? (showPrefix ? getDisplayIcon(type) : "");
+              const styledPrefix =
+                options.style && prefix
+                  ? applyChalkStyle(prefix, options.style)
+                  : prefix;
 
               const prefixedJson = jsonString
                 .split("\n")

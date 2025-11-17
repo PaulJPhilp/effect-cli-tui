@@ -67,4 +67,3 @@ export type PartialTheme = {
   readonly colors?: Partial<Theme["colors"]>;
   readonly styles?: Partial<Theme["styles"]>;
 };
-

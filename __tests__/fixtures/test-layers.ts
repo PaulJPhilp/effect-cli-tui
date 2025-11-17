@@ -1,8 +1,8 @@
-import { Effect, Layer } from 'effect'
-import { EffectCLI } from '../../src/cli'
-import { InkService } from '../../src/services/ink'
-import { TUIHandler } from '../../src/tui'
-import { CLIResult, CLIError, TUIError } from '../../src/types'
+import { Effect, Layer } from "effect";
+import { EffectCLI } from "../../src/cli";
+import { InkService } from "../../src/services/ink";
+import { TUIHandler } from "../../src/tui";
+import { CLIError, type CLIResult, TUIError } from "../../src/types";
 
 /**
  * Mock layer for EffectCLI service.
@@ -23,13 +23,13 @@ export const MockCLI = Layer.succeed(
     run: (): Effect.Effect<CLIResult, CLIError> =>
       Effect.succeed({
         exitCode: 0,
-        stdout: 'Mock command executed successfully',
-        stderr: ''
+        stdout: "Mock command executed successfully",
+        stderr: "",
       }),
 
-    stream: (): Effect.Effect<void, CLIError> => Effect.void
+    stream: (): Effect.Effect<void, CLIError> => Effect.void,
   })
-)
+);
 
 /**
  * Mock layer for EffectCLI that simulates command failures
@@ -50,17 +50,15 @@ export const MockCLIFailure = Layer.succeed(
     run: (): Effect.Effect<CLIResult, CLIError> =>
       Effect.fail(
         new CLIError(
-          'CommandFailed',
-          'Mock command failed with exit code 1.\nError output'
+          "CommandFailed",
+          "Mock command failed with exit code 1.\nError output"
         )
       ),
 
     stream: (): Effect.Effect<void, CLIError> =>
-      Effect.fail(
-        new CLIError('CommandFailed', 'Mock stream command failed')
-      )
+      Effect.fail(new CLIError("CommandFailed", "Mock stream command failed")),
   })
-)
+);
 
 /**
  * Mock layer for EffectCLI that simulates timeout
@@ -79,16 +77,14 @@ export const MockCLITimeout = Layer.succeed(
   EffectCLI,
   EffectCLI.of({
     run: (): Effect.Effect<CLIResult, CLIError> =>
-      Effect.fail(
-        new CLIError('Timeout', 'Command timed out after 5000ms')
-      ),
+      Effect.fail(new CLIError("Timeout", "Command timed out after 5000ms")),
 
     stream: (): Effect.Effect<void, CLIError> =>
       Effect.fail(
-        new CLIError('Timeout', 'Stream command timed out after 5000ms')
-      )
+        new CLIError("Timeout", "Stream command timed out after 5000ms")
+      ),
   })
-)
+);
 
 /**
  * Mock layer for TUIHandler service.
@@ -118,14 +114,13 @@ export const MockTUI = Layer.succeed(
     /**
      * Mock prompt: Returns predefined mock value
      */
-    prompt: (): Effect.Effect<string> =>
-      Effect.succeed('mock-input'),
+    prompt: (): Effect.Effect<string> => Effect.succeed("mock-input"),
 
     /**
      * Mock selectOption: Returns first choice
      */
     selectOption: (choices: string[]): Effect.Effect<string> =>
-      Effect.succeed(choices[0] ?? 'default-choice'),
+      Effect.succeed(choices[0] ?? "default-choice"),
 
     /**
      * Mock multiSelect: Returns all choices
@@ -136,16 +131,15 @@ export const MockTUI = Layer.succeed(
     /**
      * Mock confirm: Returns true
      */
-    confirm: (): Effect.Effect<boolean> =>
-      Effect.succeed(true),
+    confirm: (): Effect.Effect<boolean> => Effect.succeed(true),
 
     /**
      * Mock password: Returns predefined mock password
      */
     password: (): Effect.Effect<string> =>
-      Effect.succeed('mock-password-12345')
+      Effect.succeed("mock-password-12345"),
   })
-).pipe(Layer.provide(InkService.Default))
+).pipe(Layer.provide(InkService.Default));
 
 /**
  * Mock layer for TUIHandler that simulates user cancellation
@@ -166,21 +160,23 @@ export const MockTUICancelled = Layer.succeed(
     display: (): Effect.Effect<void> => Effect.void,
 
     prompt: (): Effect.Effect<string, TUIError> =>
-      Effect.fail(new TUIError('Cancelled', 'User cancelled the prompt')),
+      Effect.fail(new TUIError("Cancelled", "User cancelled the prompt")),
 
     selectOption: (): Effect.Effect<string, TUIError> =>
-      Effect.fail(new TUIError('Cancelled', 'User cancelled the selection')),
+      Effect.fail(new TUIError("Cancelled", "User cancelled the selection")),
 
     multiSelect: (): Effect.Effect<string[], TUIError> =>
-      Effect.fail(new TUIError('Cancelled', 'User cancelled the multi-select')),
+      Effect.fail(new TUIError("Cancelled", "User cancelled the multi-select")),
 
     confirm: (): Effect.Effect<boolean, TUIError> =>
-      Effect.fail(new TUIError('Cancelled', 'User cancelled the confirmation')),
+      Effect.fail(new TUIError("Cancelled", "User cancelled the confirmation")),
 
     password: (): Effect.Effect<string, TUIError> =>
-      Effect.fail(new TUIError('Cancelled', 'User cancelled the password prompt'))
+      Effect.fail(
+        new TUIError("Cancelled", "User cancelled the password prompt")
+      ),
   })
-).pipe(Layer.provide(InkService.Default))
+).pipe(Layer.provide(InkService.Default));
 
 /**
  * Mock layer for TUIHandler with validation failure
@@ -201,21 +197,21 @@ export const MockTUIValidationFailed = Layer.succeed(
     display: (): Effect.Effect<void> => Effect.void,
 
     prompt: (): Effect.Effect<string, TUIError> =>
-      Effect.fail(new TUIError('ValidationFailed', 'Validation failed')),
+      Effect.fail(new TUIError("ValidationFailed", "Validation failed")),
 
     selectOption: (): Effect.Effect<string, TUIError> =>
-      Effect.fail(new TUIError('ValidationFailed', 'Validation failed')),
+      Effect.fail(new TUIError("ValidationFailed", "Validation failed")),
 
     multiSelect: (): Effect.Effect<string[], TUIError> =>
-      Effect.fail(new TUIError('ValidationFailed', 'Validation failed')),
+      Effect.fail(new TUIError("ValidationFailed", "Validation failed")),
 
     confirm: (): Effect.Effect<boolean, TUIError> =>
-      Effect.fail(new TUIError('ValidationFailed', 'Validation failed')),
+      Effect.fail(new TUIError("ValidationFailed", "Validation failed")),
 
     password: (): Effect.Effect<string, TUIError> =>
-      Effect.fail(new TUIError('ValidationFailed', 'Validation failed'))
+      Effect.fail(new TUIError("ValidationFailed", "Validation failed")),
   })
-).pipe(Layer.provide(InkService.Default))
+).pipe(Layer.provide(InkService.Default));
 
 /**
  * Convenience helper to create a combined mock layer with custom responses
@@ -242,19 +238,18 @@ export function createMockCLI(response: CLIResult) {
       run: (): Effect.Effect<CLIResult, CLIError> => {
         // Mimic the real EffectCLI behavior: fail on non-zero exit code
         if (response.exitCode === 0) {
-          return Effect.succeed(response)
-        } else {
-          return Effect.fail(
-            new CLIError(
-              'CommandFailed',
-              `Command failed with exit code ${response.exitCode}.\n${response.stderr}`
-            )
-          )
+          return Effect.succeed(response);
         }
+        return Effect.fail(
+          new CLIError(
+            "CommandFailed",
+            `Command failed with exit code ${response.exitCode}.\n${response.stderr}`
+          )
+        );
       },
-      stream: (): Effect.Effect<void, CLIError> => Effect.void
+      stream: (): Effect.Effect<void, CLIError> => Effect.void,
     })
-  )
+  );
 }
 
 /**
@@ -272,11 +267,11 @@ export function createMockCLI(response: CLIResult) {
  * ```
  */
 export function createMockTUI(responses: {
-  prompt?: string
-  selectOption?: string
-  multiSelect?: string[]
-  confirm?: boolean
-  password?: string
+  prompt?: string;
+  selectOption?: string;
+  multiSelect?: string[];
+  confirm?: boolean;
+  password?: string;
 }) {
   return Layer.succeed(
     TUIHandler,
@@ -284,12 +279,10 @@ export function createMockTUI(responses: {
       display: (): Effect.Effect<void> => Effect.void,
 
       prompt: (): Effect.Effect<string> =>
-        Effect.succeed(responses.prompt ?? 'mock-input'),
+        Effect.succeed(responses.prompt ?? "mock-input"),
 
       selectOption: (choices: string[]): Effect.Effect<string> =>
-        Effect.succeed(
-          responses.selectOption ?? choices[0] ?? 'default'
-        ),
+        Effect.succeed(responses.selectOption ?? choices[0] ?? "default"),
 
       multiSelect: (): Effect.Effect<string[]> =>
         Effect.succeed(responses.multiSelect ?? []),
@@ -298,7 +291,7 @@ export function createMockTUI(responses: {
         Effect.succeed(responses.confirm ?? true),
 
       password: (): Effect.Effect<string> =>
-        Effect.succeed(responses.password ?? 'mock-password')
+        Effect.succeed(responses.password ?? "mock-password"),
     })
-  ).pipe(Layer.provide(InkService.Default))
+  ).pipe(Layer.provide(InkService.Default));
 }

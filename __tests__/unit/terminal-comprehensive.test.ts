@@ -1,9 +1,9 @@
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 import {
+  createCustomTerminal,
   Terminal,
   TerminalTest,
-  createCustomTerminal,
 } from "../../src/core/terminal";
 
 /**

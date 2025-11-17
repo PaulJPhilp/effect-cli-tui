@@ -4,8 +4,6 @@ import type { ChalkBgColor, ChalkColor } from "../types";
 import { display } from "./display";
 import {
   COLOR_HIGHLIGHT,
-  COLOR_INFO,
-  COLOR_WARNING,
   DEFAULT_DISPLAY_TYPE,
   getDisplayColor,
   getDisplayIcon,
@@ -58,13 +56,17 @@ export function applyChalkStyle(
  */
 export function displayHighlight(message: string): Effect.Effect<void> {
   // Try to get theme highlight color, fallback to default
-  let highlightColor = COLOR_HIGHLIGHT;
+  let highlightColor: ChalkColor = COLOR_HIGHLIGHT;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const themeModule = require("../services/theme/service");
-    if (themeModule && typeof themeModule.getCurrentThemeSync === "function") {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    const themeModule: {
+      getCurrentThemeSync?: () => { colors: { highlight: ChalkColor } };
+    } = require("../services/theme/service");
+    if (themeModule?.getCurrentThemeSync) {
       const theme = themeModule.getCurrentThemeSync();
-      highlightColor = theme.colors.highlight;
+      if (theme?.colors?.highlight) {
+        highlightColor = theme.colors.highlight;
+      }
     }
   } catch {
     // Fallback to default
@@ -93,7 +95,7 @@ export function displayMuted(message: string): Effect.Effect<void> {
 export function displayWarning(message: string): Effect.Effect<void> {
   const warningColor = getDisplayColor("warning");
   const styledMessage = applyChalkStyle(message, {
-    color: warningColor as any,
+    color: warningColor as ChalkColor,
     bold: true,
   });
   return display(styledMessage, { prefix: getDisplayIcon("warning") });
@@ -106,7 +108,9 @@ export function displayWarning(message: string): Effect.Effect<void> {
  */
 export function displayInfo(message: string): Effect.Effect<void> {
   const infoColor = getDisplayColor("info");
-  const styledMessage = applyChalkStyle(message, { color: infoColor as any });
+  const styledMessage = applyChalkStyle(message, {
+    color: infoColor as ChalkColor,
+  });
   return display(styledMessage, { type: DEFAULT_DISPLAY_TYPE });
 }
 
@@ -124,16 +128,20 @@ export function displayListItem(
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
     const bulletChar = bullet || SYMBOL_BULLET;
-    
+
     // Use custom color if provided, otherwise try theme highlight color
-    let bulletColor = options?.color || COLOR_HIGHLIGHT;
+    let bulletColor: ChalkColor = options?.color || COLOR_HIGHLIGHT;
     if (!options?.color) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const themeModule = require("../services/theme/service");
-        if (themeModule && typeof themeModule.getCurrentThemeSync === "function") {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+        const themeModule: {
+          getCurrentThemeSync?: () => { colors: { highlight: ChalkColor } };
+        } = require("../services/theme/service");
+        if (themeModule?.getCurrentThemeSync) {
           const theme = themeModule.getCurrentThemeSync();
-          bulletColor = theme.colors.highlight;
+          if (theme?.colors?.highlight) {
+            bulletColor = theme.colors.highlight;
+          }
         }
       } catch {
         // Fallback to default
@@ -141,7 +149,7 @@ export function displayListItem(
     }
 
     const styledBullet = applyChalkStyle(bulletChar, {
-      color: bulletColor as any,
+      color: bulletColor,
     });
     yield* Effect.log(`\n${styledBullet} ${item}`);
   });

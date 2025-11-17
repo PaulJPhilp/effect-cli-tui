@@ -1,4 +1,3 @@
-import type { Theme } from "./types";
 import {
   COLOR_ERROR,
   COLOR_HIGHLIGHT,
@@ -10,6 +9,7 @@ import {
   ICON_SUCCESS,
   ICON_WARNING,
 } from "../../core/icons";
+import type { Theme } from "./types";
 
 /**
  * Default theme matching current behavior
@@ -106,4 +106,3 @@ export const themes = {
   dark: darkTheme,
   emoji: emojiTheme,
 } as const;
-

@@ -95,7 +95,7 @@ export function displayJson(
   return Effect.gen(function* () {
     const jsonString = JSON.stringify(data, null, spaces);
 
-    if (!showPrefix && !customPrefix) {
+    if (!(showPrefix || customPrefix)) {
       const output = newline ? `\n${jsonString}` : jsonString;
       yield* Effect.log(output);
       return;
