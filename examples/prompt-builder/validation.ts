@@ -45,7 +45,7 @@ export const validateField = (
     }
 
     if (field.type === 'boolean' && typeof value !== 'boolean') {
-      return yield* Effect.fail(`${field.label} must be a yes/no value`)
+      return yield* Effect.fail(`${field.label} must be answered with yes (y) or no (n)`)
     }
 
     return true
@@ -103,13 +103,13 @@ export const createInputValidator = (
     // Choice validation
     if (fieldDef.type === 'choice' && fieldDef.choices) {
       if (!fieldDef.choices.includes(input)) {
-        return `Must be one of: ${fieldDef.choices.join(', ')}`
+        return `Please select one of the available options: ${fieldDef.choices.join(', ')}`
       }
     }
 
     // Text length validation (reasonable limits)
     if (input.length > 5000) {
-      return 'Input too long (max 5000 characters)'
+      return 'Your input is too long. Please keep it under 5000 characters.'
     }
 
     return true
@@ -131,12 +131,12 @@ export const validateGeneratedPrompt = (
 ): Effect.Effect<string, Error> =>
   Effect.gen(function* () {
     if (!promptText || promptText.length === 0) {
-      return yield* Effect.fail(new Error('Generated prompt cannot be empty'))
+      return yield* Effect.fail(new Error('Unable to generate prompt: The generated prompt is empty. Please check your template and responses.'))
     }
 
     if (promptText.length > 10000) {
       return yield* Effect.fail(
-        new Error('Generated prompt too long (max 10000 characters)')
+        new Error('Unable to generate prompt: The generated prompt is too long (maximum 10,000 characters). Please simplify your inputs.')
       )
     }
 

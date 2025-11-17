@@ -7,10 +7,11 @@
 import React from 'react'
 import { Box, Text } from 'ink'
 import SelectInput from 'ink-select-input'
+import type { SelectOption } from '../types'
 
 export interface SelectProps {
     message: string
-    choices: string[]
+    choices: string[] | SelectOption[]
     onSubmit: (value: string) => void
 }
 
@@ -32,9 +33,17 @@ export interface SelectProps {
  * ```
  */
 export const Select: React.FC<SelectProps> = ({ message, choices, onSubmit }) => {
-    const items = choices.map((choice) => ({
-        label: choice,
-        value: choice
+    // Normalize choices to SelectOption format
+    const normalizedChoices: SelectOption[] = choices.map((choice) =>
+        typeof choice === 'string'
+            ? { label: choice, value: choice }
+            : choice
+    )
+
+    const items = normalizedChoices.map((choice) => ({
+        label: choice.label,
+        value: choice.value,
+        description: choice.description
     }))
 
     return (
@@ -55,10 +64,17 @@ export const Select: React.FC<SelectProps> = ({ message, choices, onSubmit }) =>
                         {props.isSelected ? '> ' : '  '}
                     </Text>
                 )}
-                itemComponent={({ label }) => (
-                    <Text color="white">
-                        {label}
-                    </Text>
+                itemComponent={(props: { label: string; description?: string; isSelected?: boolean }) => (
+                    <Box flexDirection="column">
+                        <Text color={props.isSelected ? 'cyan' : 'white'} bold={props.isSelected}>
+                            {props.label}
+                        </Text>
+                        {props.description && (
+                            <Text color="gray" dimColor>
+                                {'  '}{props.description}
+                            </Text>
+                        )}
+                    </Box>
                 )}
             />
         </Box>

@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { Effect } from 'effect'
+import { spawn } from 'node:child_process'
 import { EffectCLI } from '../../src/cli'
 import {
   MockCLI,
@@ -467,6 +468,37 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
 
       const result = await Effect.runPromise(program)
       expect(result).toBe(true)
+    })
+  })
+
+  describe('Command Execution Verification', () => {
+    it('should use the correct command passed to stream() (not hardcoded)', async () => {
+      // Spy on spawn to verify it's called with the correct command
+      const spawnSpy = vi.spyOn(await import('node:child_process'), 'spawn')
+
+      const program = Effect.gen(function* () {
+        const cli = yield* EffectCLI
+        // Use a unique command name to verify it's not hardcoded
+        yield* cli.stream('custom-test-command', ['arg1', 'arg2'])
+      }).pipe(Effect.provide(EffectCLI.Default))
+
+      try {
+        await Effect.runPromise(program)
+      } catch {
+        // Ignore errors - we just want to verify spawn was called correctly
+      }
+
+      // Verify spawn was called with the correct command (not "effect")
+      expect(spawnSpy).toHaveBeenCalled()
+      const calls = spawnSpy.mock.calls
+      expect(calls.length).toBeGreaterThan(0)
+      
+      // Check that the first call uses the command we passed, not "effect"
+      const firstCall = calls[0]
+      expect(firstCall[0]).toBe('custom-test-command')
+      expect(firstCall[1]).toEqual(['arg1', 'arg2'])
+
+      spawnSpy.mockRestore()
     })
   })
 })

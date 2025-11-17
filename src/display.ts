@@ -1,5 +1,6 @@
-import { Effect } from 'effect'
-import type { DisplayOptions, JsonDisplayOptions } from './types'
+import { Effect } from "effect";
+import { DEFAULT_DISPLAY_TYPE, getDisplayIcon } from "./core/icons";
+import type { DisplayOptions, JsonDisplayOptions } from "./types";
 
 /**
  * Core display function for single-line messages
@@ -16,18 +17,21 @@ import type { DisplayOptions, JsonDisplayOptions } from './types'
  * ```
  */
 export function display(
-    message: string,
-    options: DisplayOptions = {}
+  message: string,
+  options: DisplayOptions = {}
 ): Effect.Effect<void> {
-    const { type = 'info', prefix: customPrefix, newline = true } = options
+  const {
+    type = DEFAULT_DISPLAY_TYPE,
+    prefix: customPrefix,
+    newline = true,
+  } = options;
 
-    return Effect.sync(() => {
-        const prefix = customPrefix ??
-            (type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ')
+  return Effect.gen(function* () {
+    const prefix = customPrefix ?? getDisplayIcon(type);
 
-        const output = newline ? `\n${prefix} ${message}` : `${prefix} ${message}`
-        console.log(output)
-    })
+    const output = newline ? `\n${prefix} ${message}` : `${prefix} ${message}`;
+    yield* Effect.log(output);
+  });
 }
 
 /**
@@ -51,14 +55,14 @@ export function display(
  * ```
  */
 export function displayLines(
-    lines: string[],
-    options: DisplayOptions = {}
+  lines: string[],
+  options: DisplayOptions = {}
 ): Effect.Effect<void> {
-    return Effect.gen(function* (_) {
-        for (const line of lines) {
-            yield* _(display(line, options))
-        }
-    })
+  return Effect.gen(function* (_) {
+    for (const line of lines) {
+      yield* _(display(line, options));
+    }
+  });
 }
 
 /**
@@ -77,30 +81,39 @@ export function displayLines(
  * ```
  */
 export function displayJson(
-    data: unknown,
-    options: JsonDisplayOptions = {}
+  data: unknown,
+  options: JsonDisplayOptions = {}
 ): Effect.Effect<void> {
-    const { type = 'info', spaces = 2, prefix: showPrefix = true, newline = true } = options
+  const {
+    type = DEFAULT_DISPLAY_TYPE,
+    spaces = 2,
+    showPrefix = true,
+    customPrefix,
+    newline = true,
+  } = options;
 
-    return Effect.sync(() => {
-        const prefix = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'
+  return Effect.gen(function* () {
+    const jsonString = JSON.stringify(data, null, spaces);
 
-        const jsonString = JSON.stringify(data, null, spaces)
+    if (!showPrefix && !customPrefix) {
+      const output = newline ? `\n${jsonString}` : jsonString;
+      yield* Effect.log(output);
+      return;
+    }
 
-        if (!showPrefix) {
-            const output = newline ? `\n${jsonString}` : jsonString
-            console.log(output)
-            return
-        }
+    const prefix = customPrefix ?? (showPrefix ? getDisplayIcon(type) : "");
+    const prefixedJson = jsonString
+      .split("\n")
+      .map((line, index) =>
+        index === 0
+          ? `${prefix} ${line}`
+          : `${" ".repeat(prefix.length + 1)}${line}`
+      )
+      .join("\n");
 
-        const prefixedJson = jsonString
-            .split('\n')
-            .map((line, index) => index === 0 ? `${prefix} ${line}` : `${' '.repeat(prefix.length + 1)}${line}`)
-            .join('\n')
-
-        const output = newline ? `\n${prefixedJson}` : prefixedJson
-        console.log(output)
-    })
+    const output = newline ? `\n${prefixedJson}` : prefixedJson;
+    yield* Effect.log(output);
+  });
 }
 
 /**
@@ -117,7 +130,7 @@ export function displayJson(
  * ```
  */
 export function displaySuccess(message: string): Effect.Effect<void> {
-    return display(message, { type: 'success' })
+  return display(message, { type: "success" });
 }
 
 /**
@@ -134,5 +147,5 @@ export function displaySuccess(message: string): Effect.Effect<void> {
  * ```
  */
 export function displayError(message: string): Effect.Effect<void> {
-    return display(message, { type: 'error' })
+  return display(message, { type: "error" });
 }

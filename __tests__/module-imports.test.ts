@@ -20,45 +20,43 @@ describe('ESM Module Imports', () => {
   })
 
   it('should import types from ESM build', async () => {
-    // Test that types are available (this will fail at runtime if types are missing)
+    // TypeScript types are erased at runtime, so we can't check for them
+    // Instead, verify that the module exports exist and can be imported
     const module = await import('../dist/index.js')
-    expect(module).toHaveProperty('DisplayType')
-    expect(module).toHaveProperty('DisplayOptions')
-    expect(module).toHaveProperty('JsonDisplayOptions')
+    expect(module).toBeDefined()
+    // Types are compile-time only, so we skip runtime checks
   })
 
   it('should import new table functions from ESM build', async () => {
-    const { displayTable, TableColumn, TableOptions } = await import('../dist/index.js')
+    const { displayTable } = await import('../dist/index.js')
 
     expect(displayTable).toBeDefined()
-    expect(TableColumn).toBeDefined()
-    expect(TableOptions).toBeDefined()
-
     expect(typeof displayTable).toBe('function')
+    // TableColumn and TableOptions are TypeScript types, not runtime values
   })
 
   it('should import new box functions from ESM build', async () => {
-    const { displayBox, displayPanel, BoxStyle } = await import('../dist/index.js')
+    const { displayBox, displayPanel } = await import('../dist/index.js')
 
     expect(displayBox).toBeDefined()
     expect(displayPanel).toBeDefined()
-    expect(BoxStyle).toBeDefined()
 
     expect(typeof displayBox).toBe('function')
     expect(typeof displayPanel).toBe('function')
+    // BoxStyle is a TypeScript type, not a runtime value
   })
 
   it('should import new spinner functions from ESM build', async () => {
-    const { spinnerEffect, startSpinner, stopSpinner, SpinnerOptions } = await import('../dist/index.js')
+    const { spinnerEffect, startSpinner, stopSpinner } = await import('../dist/index.js')
 
     expect(spinnerEffect).toBeDefined()
     expect(startSpinner).toBeDefined()
     expect(stopSpinner).toBeDefined()
-    expect(SpinnerOptions).toBeDefined()
 
     expect(typeof spinnerEffect).toBe('function')
     expect(typeof startSpinner).toBe('function')
     expect(typeof stopSpinner).toBe('function')
+    // SpinnerOptions is a TypeScript type, not a runtime value
   })
 
 

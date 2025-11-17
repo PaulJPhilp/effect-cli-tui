@@ -1,178 +1,198 @@
-import { spawn } from 'child_process'
-import { Effect } from 'effect'
-import { CLIError, CLIResult, CLIRunOptions } from './types'
+import { Effect } from "effect";
+import { spawn } from "node:child_process";
+import { isErrnoException, isError } from "./core/error-utils";
+import { CLIError, type CLIResult, type CLIRunOptions } from "./types";
 
 /**
  * Service for running and streaming CLI commands.
  * Uses Effect.Service pattern for dependency injection.
  */
-export class EffectCLI extends Effect.Service<EffectCLI>()('app/EffectCLI', {
-  effect: Effect.sync(() => ({
-    /**
-     * Run a CLI command and capture output.
-     * @param command - The command to execute
-     * @param args - Command arguments
-     * @param options - Run options (cwd, env, timeout)
-     * @returns Effect with CLIResult or CLIError
-     */
-    run: (command: string, args: string[] = [], options: CLIRunOptions = {}) =>
-      Effect.async<CLIResult, CLIError>((resume) => {
-        const cwd = options.cwd || process.cwd()
-        let stdout = ''
-        let stderr = ''
+export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
+  effect: Effect.sync(
+    () =>
+      ({
+        /**
+         * Run a CLI command and capture output.
+         * @param command - The command to execute
+         * @param args - Command arguments
+         * @param options - Run options (cwd, env, timeout)
+         * @returns Effect with CLIResult or CLIError
+         */
+        run: (
+          command: string,
+          args: string[] = [],
+          options: CLIRunOptions = {}
+        ) =>
+          Effect.async<CLIResult, CLIError>((resume) => {
+            const cwd = options.cwd || process.cwd();
+            let stdout = "";
+            let stderr = "";
 
-        const child = spawn('effect', [command, ...args], {
-          cwd,
-          env: { ...process.env, ...options.env }
-        })
+            const child = spawn(command, args, {
+              cwd,
+              env: { ...process.env, ...options.env },
+            });
 
-        if (!child.stdout || !child.stderr) {
-          resume(
-            Effect.fail(
-              new CLIError(
-                'NotFound',
-                'Failed to spawn Effect CLI process'
-              )
-            )
-          )
-          return
-        }
-
-        child.stdout.on('data', (data: Buffer) => {
-          stdout += data.toString()
-        })
-
-        child.stderr.on('data', (data: Buffer) => {
-          stderr += data.toString()
-        })
-
-        const timeout = options.timeout
-          ? setTimeout(() => {
-            child.kill()
-            resume(
-              Effect.fail(
-                new CLIError(
-                  'Timeout',
-                  `Command timed out after ${options.timeout}ms`
+            if (!child.stdout || !child.stderr) {
+              resume(
+                Effect.fail(
+                  new CLIError(
+                    "NotFound",
+                    "Unable to start the command. Please check that the command is available and try again."
+                  )
                 )
-              )
-            )
-          }, options.timeout)
-          : null
+              );
+              return;
+            }
 
-        child.on('close', (exitCode) => {
-          if (timeout) clearTimeout(timeout)
+            child.stdout.on("data", (data: Buffer) => {
+              stdout += data.toString();
+            });
 
-          if (exitCode === 0) {
-            resume(Effect.succeed({ exitCode: exitCode ?? 0, stdout, stderr }))
-          } else {
-            resume(
-              Effect.fail(
-                new CLIError(
-                  'CommandFailed',
-                  `Command failed with exit code ${exitCode}.\n${stderr}`
-                )
-              )
-            )
-          }
-        })
+            child.stderr.on("data", (data: Buffer) => {
+              stderr += data.toString();
+            });
 
-        child.on('error', (err) => {
-          if (timeout) clearTimeout(timeout)
-          const error = err as NodeJS.ErrnoException
-          if (error.code === 'ENOENT') {
-            resume(
-              Effect.fail(
-                new CLIError(
-                  'NotFound',
-                  'Effect CLI not found. Please install with: pnpm add -g effect'
-                )
-              )
-            )
-          } else {
-            resume(
-              Effect.fail(
-                new CLIError(
-                  'NotFound',
-                  `Failed to execute: ${err.message}`
-                )
-              )
-            )
-          }
-        })
-      }),
+            const timeout = options.timeout
+              ? (() => {
+                  const timeoutMs = options.timeout;
+                  return setTimeout(() => {
+                    child.kill();
+                    resume(
+                      Effect.fail(
+                        new CLIError(
+                          "Timeout",
+                          `The command took too long to complete (timeout: ${Math.round(timeoutMs / 1000)}s). Please try again or increase the timeout.`
+                        )
+                      )
+                    );
+                  }, timeoutMs);
+                })()
+              : null;
 
-    /**
-     * Stream a CLI command with inherited stdio.
-     * @param command - The command to execute
-     * @param args - Command arguments
-     * @param options - Run options (cwd, env, timeout)
-     * @returns Effect<void, CLIError>
-     */
-    stream: (command: string, args: string[] = [], options: CLIRunOptions = {}) =>
-      Effect.async<void, CLIError>((resume) => {
-        const cwd = options.cwd || process.cwd()
+            child.on("close", (exitCode) => {
+              if (timeout) clearTimeout(timeout);
 
-        const child = spawn('effect', [command, ...args], {
-          cwd,
-          env: { ...process.env, ...options.env },
-          stdio: 'inherit'
-        })
+              if (exitCode === 0) {
+                resume(
+                  Effect.succeed({ exitCode: exitCode ?? 0, stdout, stderr })
+                );
+              } else {
+                resume(
+                  Effect.fail(
+                    new CLIError(
+                      "CommandFailed",
+                      `The command failed (exit code ${exitCode}).\n\nError details:\n${stderr || "No error details available"}`,
+                      exitCode ?? undefined
+                    )
+                  )
+                );
+              }
+            });
 
-        const timeout = options.timeout
-          ? setTimeout(() => {
-            child.kill()
-            resume(
-              Effect.fail(
-                new CLIError(
-                  'Timeout',
-                  `Command timed out after ${options.timeout}ms`
-                )
-              )
-            )
-          }, options.timeout)
-          : null
+            child.on("error", (err) => {
+              if (timeout) clearTimeout(timeout);
+              if (isErrnoException(err) && err.code === "ENOENT") {
+                resume(
+                  Effect.fail(
+                    new CLIError(
+                      "NotFound",
+                      `The command "${command}" was not found. Please verify it is installed and available in your PATH.`
+                    )
+                  )
+                );
+              } else {
+                resume(
+                  Effect.fail(
+                    new CLIError(
+                      "ExecutionError",
+                      `Unable to execute the command: ${isError(err) ? err.message : String(err)}\n\nPlease verify the command is installed and accessible in your PATH.`
+                    )
+                  )
+                );
+              }
+            });
+          }),
 
-        child.on('close', (exitCode) => {
-          if (timeout) clearTimeout(timeout)
+        /**
+         * Stream a CLI command with inherited stdio.
+         * @param command - The command to execute
+         * @param args - Command arguments
+         * @param options - Run options (cwd, env, timeout)
+         * @returns Effect<void, CLIError>
+         */
+        stream: (
+          command: string,
+          args: string[] = [],
+          options: CLIRunOptions = {}
+        ) =>
+          Effect.async<void, CLIError>((resume) => {
+            const cwd = options.cwd || process.cwd();
 
-          if (exitCode === 0) {
-            resume(Effect.succeed(undefined))
-          } else {
-            resume(
-              Effect.fail(
-                new CLIError(
-                  'CommandFailed',
-                  `Command failed with exit code ${exitCode}`
-                )
-              )
-            )
-          }
-        })
+            const child = spawn(command, args, {
+              cwd,
+              env: { ...process.env, ...options.env },
+              stdio: "inherit",
+            });
 
-        child.on('error', (err) => {
-          if (timeout) clearTimeout(timeout)
-          const error = err as NodeJS.ErrnoException
-          if (error.code === 'ENOENT') {
-            resume(
-              Effect.fail(
-                new CLIError(
-                  'NotFound',
-                  'Effect CLI not found. Please install with: pnpm add -g effect'
-                )
-              )
-            )
-          } else {
-            resume(
-              Effect.fail(
-                new CLIError(
-                  'NotFound',
-                  `Failed to execute: ${err.message}`
-                )
-              )
-            )
-          }
-        })
-      })
-  } as const))
+            const timeout = options.timeout
+              ? (() => {
+                  const timeoutMs = options.timeout;
+                  return setTimeout(() => {
+                    child.kill();
+                    resume(
+                      Effect.fail(
+                        new CLIError(
+                          "Timeout",
+                          `The command took too long to complete (timeout: ${Math.round(timeoutMs / 1000)}s). Please try again or increase the timeout.`
+                        )
+                      )
+                    );
+                  }, timeoutMs);
+                })()
+              : null;
+
+            child.on("close", (exitCode) => {
+              if (timeout) clearTimeout(timeout);
+
+              if (exitCode === 0) {
+                resume(Effect.succeed(undefined));
+              } else {
+                resume(
+                  Effect.fail(
+                    new CLIError(
+                      "CommandFailed",
+                      `The command failed with exit code ${exitCode}. Please check the command output above for details.`,
+                      exitCode ?? undefined
+                    )
+                  )
+                );
+              }
+            });
+
+            child.on("error", (err) => {
+              if (timeout) clearTimeout(timeout);
+              if (isErrnoException(err) && err.code === "ENOENT") {
+                resume(
+                  Effect.fail(
+                    new CLIError(
+                      "NotFound",
+                      `The command "${command}" was not found. Please verify it is installed and available in your PATH.`
+                    )
+                  )
+                );
+              } else {
+                resume(
+                  Effect.fail(
+                    new CLIError(
+                      "ExecutionError",
+                      `Unable to execute the command: ${isError(err) ? err.message : String(err)}\n\nPlease verify the command is installed and accessible in your PATH.`
+                    )
+                  )
+                );
+              }
+            });
+          }),
+      }) as const
+  ),
 }) {}

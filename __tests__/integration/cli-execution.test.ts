@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { Effect } from 'effect'
 import { EffectCLI } from '../../src/cli'
 import {
@@ -77,71 +77,9 @@ describe('EffectCLI Integration Tests', () => {
     })
   })
 
-  describe('Real Command Execution', () => {
-    /**
-     * Tests that use real command execution.
-     * These test common CLI tools that should be available on most systems.
-     */
-
-    it('should execute echo command successfully', async () => {
-      const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI
-        return yield* cli.run('echo', ['hello world'])
-      }).pipe(Effect.provide(EffectCLI.Default))
-
-      const result = await Effect.runPromise(program)
-      expect(result.exitCode).toBe(0)
-      expect(result.stdout.trim()).toBe('hello world')
-    })
-
-    it('should handle command not found error', async () => {
-      const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI
-        return yield* cli.run('nonexistent-command-xyz-123').pipe(
-          Effect.catchTag('CLIError', (error) => Effect.succeed(error))
-        )
-      }).pipe(Effect.provide(EffectCLI.Default))
-
-      const error = await Effect.runPromise(program)
-      expect(error.reason).toBe('NotFound')
-    })
-
-    it('should capture both stdout and stderr from command', async () => {
-      const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI
-        return yield* cli.run('sh', ['-c', 'echo "output"; echo "error" >&2'])
-      }).pipe(Effect.provide(EffectCLI.Default))
-
-      const result = await Effect.runPromise(program)
-      expect(result.stdout).toContain('output')
-      expect(result.stderr).toContain('error')
-    })
-
-    it('should pass environment variables to command', async () => {
-      const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI
-        return yield* cli.run('sh', ['-c', 'echo $TEST_VAR'], {
-          env: { TEST_VAR: 'test-value-123' }
-        })
-      }).pipe(Effect.provide(EffectCLI.Default))
-
-      const result = await Effect.runPromise(program)
-      expect(result.stdout.trim()).toBe('test-value-123')
-    })
-
-    it('should handle command execution with multiple arguments', async () => {
-      const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI
-        return yield* cli.run('sh', ['-c', 'for arg in "$@"; do echo "$arg"; done', '--', 'arg1', 'arg2', 'arg3'])
-      }).pipe(Effect.provide(EffectCLI.Default))
-
-      const result = await Effect.runPromise(program)
-      expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('arg1')
-      expect(result.stdout).toContain('arg2')
-      expect(result.stdout).toContain('arg3')
-    })
-  })
+  // Real command execution tests have been moved to cli-execution-real.test.ts
+  // to prevent resource contention when running the full test suite.
+  // Run them separately with: bun test __tests__/integration/cli-execution-real.test.ts
 
   describe('Service Interface Completeness', () => {
     it('should provide run and stream methods', async () => {

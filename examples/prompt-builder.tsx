@@ -93,7 +93,7 @@ const selectTemplate = (): Effect.Effect<PromptTemplate> =>
 
     const selectedTemplate = templates.find((t) => t.name === selectedName)
     if (!selectedTemplate) {
-      yield* displayError('Template not found')
+      yield* displayError('Unable to find the selected template. Please try selecting again.')
       return yield* Effect.fail(new Error('Invalid template'))
     }
 
@@ -150,7 +150,7 @@ const collectResponses = (
         Effect.flatMap(() => Effect.succeed(undefined)),
         Effect.catchAll((err) =>
           Effect.gen(function* () {
-            yield* displayError(`Validation error: ${err}`)
+            yield* displayError(`${field.label}: ${err}`)
             return yield* Effect.fail(new Error(err))
           })
         )
@@ -164,7 +164,7 @@ const collectResponses = (
       Effect.flatMap(() => Effect.succeed(undefined)),
       Effect.catchAll((err) =>
         Effect.gen(function* () {
-          yield* displayError(`Failed to validate responses: ${err}`)
+          yield* displayError(`Validation failed: ${err}\n\nPlease review your answers and try again.`)
           return yield* Effect.fail(new Error(err))
         })
       )
@@ -179,16 +179,10 @@ const collectResponses = (
  */
 const displayGeneratedPrompt = (builtPrompt: BuiltPrompt): Effect.Effect<void> =>
   Effect.gen(function* () {
-    yield* display('')
     yield* displaySuccess(`✨ Generated ${builtPrompt.template.name} Prompt:`)
     yield* display('')
-    yield* displayLines(
-      [
-        '─'.repeat(80),
-        builtPrompt.promptText,
-        '─'.repeat(80)
-      ]
-    )
+    // Display prompt text without prefixes on each line
+    yield* display(builtPrompt.promptText, { prefix: false, newline: true })
     yield* display('')
   })
 
@@ -224,9 +218,9 @@ const copyPromptToClipboard = (promptText: string): Effect.Effect<void> =>
       Effect.catchAll((_err) =>
         Effect.gen(function* () {
           yield* displayError(
-            `Clipboard unavailable: ${_err.message}`
+            `Unable to copy to clipboard: ${_err.message}`
           )
-          yield* display('You can still manually copy the prompt text above.', {
+          yield* display('You can still manually copy the prompt text shown above.', {
             type: 'info'
           })
           return undefined
@@ -270,7 +264,7 @@ const promptBuilderApp = (): Effect.Effect<void> =>
       Effect.flatMap(() => Effect.succeed(undefined)),
       Effect.catchAll((err) =>
         Effect.gen(function* () {
-          yield* displayError(`Failed to generate prompt: ${err.message}`)
+          yield* displayError(`Unable to generate prompt: ${err.message}\n\nPlease check your template and responses, then try again.`)
           return yield* Effect.fail(err)
         })
       )

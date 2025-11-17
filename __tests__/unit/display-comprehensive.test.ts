@@ -79,13 +79,13 @@ describe('Display - Comprehensive Coverage', () => {
     })
 
     it('should output message with error type', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       const program = displayOutput('Error', 'error')
       await Effect.runPromise(program)
 
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✗'))
-      consoleSpy.mockRestore()
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('✗'))
+      consoleErrorSpy.mockRestore()
     })
 
     it('should apply style options', async () => {
@@ -181,7 +181,7 @@ describe('Display - Comprehensive Coverage', () => {
     it('should display JSON without prefix', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-      const program = displayJson({ test: 'data' }, { prefix: false })
+      const program = displayJson({ test: 'data' }, { showPrefix: false })
       await Effect.runPromise(program)
 
       expect(consoleSpy).toHaveBeenCalled()
@@ -280,39 +280,40 @@ describe('Display - Comprehensive Coverage', () => {
 
   describe('displayError', () => {
     it('should display error message', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       const program = displayError('Operation failed!')
       await Effect.runPromise(program)
 
-      expect(consoleSpy).toHaveBeenCalledWith('\n✗ Operation failed!')
-      consoleSpy.mockRestore()
+      expect(consoleErrorSpy).toHaveBeenCalledWith('\n✗ Operation failed!')
+      consoleErrorSpy.mockRestore()
     })
 
     it('should display error with custom prefix', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       const program = displayError('Failed', { prefix: '❌' })
       await Effect.runPromise(program)
 
-      expect(consoleSpy).toHaveBeenCalled()
-      consoleSpy.mockRestore()
+      expect(consoleErrorSpy).toHaveBeenCalled()
+      consoleErrorSpy.mockRestore()
     })
 
     it('should display error without newline', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       const program = displayError('Error', { newline: false })
       await Effect.runPromise(program)
 
-      expect(consoleSpy).toHaveBeenCalled()
-      consoleSpy.mockRestore()
+      expect(consoleErrorSpy).toHaveBeenCalled()
+      consoleErrorSpy.mockRestore()
     })
   })
 
   describe('Complex Display Scenarios', () => {
     it('should compose multiple display calls', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       const program = Effect.gen(function* () {
         yield* display('Starting process...')
@@ -323,8 +324,9 @@ describe('Display - Comprehensive Coverage', () => {
 
       await Effect.runPromise(program)
 
-      expect(consoleSpy.mock.calls.length).toBeGreaterThanOrEqual(4)
-      consoleSpy.mockRestore()
+      expect(consoleLogSpy.mock.calls.length + consoleErrorSpy.mock.calls.length).toBeGreaterThanOrEqual(4)
+      consoleLogSpy.mockRestore()
+      consoleErrorSpy.mockRestore()
     })
 
     it('should display structured workflow output', async () => {

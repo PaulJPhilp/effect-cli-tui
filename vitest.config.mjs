@@ -4,6 +4,9 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['__tests__/**/*.test.{ts,tsx}'],
+    exclude: ['__tests__/integration/cli-execution-real.test.ts'], // Exclude real CLI tests from main suite
+    setupFiles: ['__tests__/setup.ts'],
+    testTimeout: 15000, // 15 second timeout for tests (allows CLI commands with 10s timeout)
     // coverage: {
     //   provider: 'v8',
     //   reporter: ['text', 'json', 'html'],

@@ -4,7 +4,7 @@
  * Demonstrates building a complex workflow with multiple steps,
  * validation, and conditional flow using Effect composition.
  *
- * Run with: npx ts-node examples/multi-step-wizard.ts
+ * Run with: bun run examples/multi-step-wizard.tsx
  */
 
 import * as Effect from 'effect/Effect'
@@ -140,7 +140,7 @@ const setupWizard = Effect.gen(function* () {
     if (config.installDeps) {
         console.log('📦 Installing dependencies...\n')
         // Simulate installation
-        await new Promise((resolve) => setTimeout(resolve, 2000))
+        yield* Effect.sleep('2 seconds')
     }
 
     console.log('✓ Setup complete! Happy coding! 🎉\n')

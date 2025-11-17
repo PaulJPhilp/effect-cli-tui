@@ -8,7 +8,7 @@
  */
 
 import { Effect } from 'effect'
-import { execSync } from 'child_process'
+import { execSync, spawn } from 'child_process'
 
 /**
  * Detect which clipboard command is available on this platform
@@ -66,15 +66,18 @@ export const copyToClipboard = (text: string): Effect.Effect<void, Error> =>
     if (!command) {
       return yield* Effect.fail(
         new Error(
-          'No clipboard command found. Tried: pbcopy, xclip, xsel, clip'
+          'Unable to copy to clipboard: No clipboard tool found on your system.\n\n' +
+          'To enable clipboard support, please install one of these tools:\n' +
+          '  • macOS: pbcopy (usually pre-installed)\n' +
+          '  • Linux: xclip or xsel (install with: sudo apt install xclip)\n' +
+          '  • Windows: clip (usually pre-installed)\n\n' +
+          'You can still manually copy the prompt text shown above.'
         )
       )
     }
 
     yield* Effect.tryPromise(() =>
       new Promise<void>((resolve, reject) => {
-        const { spawn } = require('child_process')
-
         let args: string[] = []
         if (command === 'xclip') {
           args = ['-selection', 'clipboard']
@@ -92,7 +95,7 @@ export const copyToClipboard = (text: string): Effect.Effect<void, Error> =>
           if (code === 0) {
             resolve()
           } else {
-            reject(new Error(`${command} failed with code ${code}`))
+            reject(new Error(`Unable to copy to clipboard: The ${command} command failed (exit code ${code}).\n\nYou can still manually copy the prompt text shown above.`))
           }
         })
       })

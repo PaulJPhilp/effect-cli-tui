@@ -24,10 +24,10 @@
   },
   "main": "dist/index.js",
   "module": "dist/index.js",
-  "types": "dist/index.d.mts",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.mts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
@@ -42,6 +42,7 @@
     "test:watch": "vitest watch",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
+    "test:real-cli": "vitest run --config vitest.real-cli.config.mjs",
     "lint": "eslint src __tests__",
     "format": "prettier --write src __tests__ docs",
     "type-check": "tsc --noEmit",
@@ -62,7 +63,7 @@
     "react": "^18.3.1"
   },
   "peerDependencies": {
-    "effect": "^3.0.0"
+    "effect": "^3.19.0"
   },
   "devDependencies": {
     "@types/ink-select-input": "^3.0.5",
@@ -83,5 +84,6 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "sideEffects": false
 }

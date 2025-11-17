@@ -21,8 +21,8 @@ import {
   displayTable,
   displayBox,
   spinnerEffect,
-  Output,
-  OutputTest,
+  Terminal,
+  TerminalTest,
   applyChalkStyle
 } from '../src'
 import {
@@ -37,14 +37,17 @@ import {
 } from './fixtures/test-layers'
 
 describe('Integration Tests - Comprehensive Scenarios', () => {
-  let consoleSpy: ReturnType<typeof vi.spyOn>
+  let consoleLogSpy: ReturnType<typeof vi.spyOn>
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   afterEach(() => {
-    consoleSpy.mockRestore()
+    consoleLogSpy.mockRestore()
+    consoleErrorSpy.mockRestore()
   })
 
   // ==========================================================================
@@ -58,14 +61,17 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
         yield* displayError('Operation failed')
         yield* displayWarning('Operation warning')
         yield* displayHighlight('Important information')
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       await Effect.runPromise(program)
-      expect(consoleSpy).toHaveBeenCalled()
-      const calls = consoleSpy.mock.calls.map((c) => c[0] as string).join('\n')
-      expect(calls).toContain('✓')
-      expect(calls).toContain('✗')
-      expect(calls).toContain('⚠')
+      expect(consoleLogSpy).toHaveBeenCalled()
+      expect(consoleErrorSpy).toHaveBeenCalled() // Error messages go to stderr
+      const logCalls = consoleLogSpy.mock.calls.map((c) => c[0] as string).join('\n')
+      const errorCalls = consoleErrorSpy.mock.calls.map((c) => c[0] as string).join('\n')
+      const allCalls = logCalls + '\n' + errorCalls
+      expect(allCalls).toContain('✓')
+      expect(allCalls).toContain('✗')
+      expect(allCalls).toContain('⚠')
     })
 
     it('should display JSON with formatting', async () => {
@@ -73,10 +79,10 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
 
       const program = Effect.gen(function* () {
         yield* displayJson(data, { type: 'success', spaces: 2 })
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       await Effect.runPromise(program)
-      const output = consoleSpy.mock.calls
+      const output = consoleLogSpy.mock.calls
         .map((c) => c[0] as string)
         .join('\n')
       expect(output).toContain('test')
@@ -88,10 +94,10 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
 
       const program = Effect.gen(function* () {
         yield* displayLines(lines, { type: 'info' })
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       await Effect.runPromise(program)
-      expect(consoleSpy).toHaveBeenCalledTimes(3)
+      expect(consoleLogSpy).toHaveBeenCalledTimes(3)
     })
 
     it('should apply chalk styling correctly', () => {
@@ -128,10 +134,10 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
             { key: 'age', header: 'Age' }
           ]
         })
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       await Effect.runPromise(program)
-      const output = consoleSpy.mock.calls
+      const output = consoleLogSpy.mock.calls
         .map((c) => c[0] as string)
         .join('\n')
       expect(output).toContain('Alice')
@@ -143,10 +149,10 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
         yield* displayTable([], {
           columns: [{ key: 'id', header: 'ID' }]
         })
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       await Effect.runPromise(program)
-      const output = consoleSpy.mock.calls
+      const output = consoleLogSpy.mock.calls
         .map((c) => c[0] as string)
         .join('\n')
       expect(output).toContain('No data')
@@ -155,10 +161,10 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
     it('should render boxes with content', async () => {
       const program = Effect.gen(function* () {
         yield* displayBox('Important Message')
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       await Effect.runPromise(program)
-      expect(consoleSpy).toHaveBeenCalled()
+      expect(consoleLogSpy).toHaveBeenCalled()
     })
 
     it('should work with spinner effects', async () => {
@@ -214,28 +220,28 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
   })
 
   // ==========================================================================
-  // 5. Output Service Integration
+  // 5. Terminal Service Integration
   // ==========================================================================
 
-  describe('Output Service Integration', () => {
-    it('should use OutputTest for testing', async () => {
+  describe('Terminal Service Integration', () => {
+    it('should use TerminalTest for testing', async () => {
       const program = Effect.gen(function* () {
-        const output = yield* Output
-        yield* output.stdout('test')
-        yield* output.line('line')
-        yield* output.stderr('error')
-      }).pipe(Effect.provide(OutputTest))
+        const terminal = yield* Terminal
+        yield* terminal.stdout('test')
+        yield* terminal.line('line')
+        yield* terminal.stderr('error')
+      }).pipe(Effect.provide(TerminalTest))
 
       await Effect.runPromise(program)
     })
 
-    it('should work with Output.Default', async () => {
+    it('should work with Terminal.Default', async () => {
       const program = Effect.gen(function* () {
-        const output = yield* Output
-        yield* output.line('Test line')
-        yield* output.stdout('Direct output')
+        const terminal = yield* Terminal
+        yield* terminal.line('Test line')
+        yield* terminal.stdout('Direct output')
         return 'done'
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       const result = await Effect.runPromise(program)
       expect(result).toBe('done')
@@ -341,11 +347,11 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
         yield* displayWarning('Step 2 warning')
         yield* displaySuccess('Workflow finished')
         return 'completed'
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       const result = await Effect.runPromise(program)
       expect(result).toBe('completed')
-      expect(consoleSpy).toHaveBeenCalled()
+      expect(consoleLogSpy).toHaveBeenCalled()
     })
 
     it('should execute a multi-step workflow', async () => {
@@ -357,7 +363,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
         )
         yield* displaySuccess('Process complete')
         return 'done'
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       const result = await Effect.runPromise(program)
       expect(result).toBe('done')
@@ -374,7 +380,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
         })
         yield* displaySuccess('Data processed')
         return 'success'
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       const result = await Effect.runPromise(workflow)
       expect(result).toBe('success')
@@ -403,7 +409,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
       const program = Effect.gen(function* () {
         yield* displayLines([])
         return 'empty_handled'
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       const result = await Effect.runPromise(program)
       expect(result).toBe('empty_handled')
@@ -416,11 +422,11 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
         yield* display('Step 3')
         yield* displaySuccess('All steps complete')
         return 'success'
-      }).pipe(Effect.provide(Output.Default))
+      }).pipe(Effect.provide(Terminal.Default))
 
       const result = await Effect.runPromise(program)
       expect(result).toBe('success')
-      expect(consoleSpy).toHaveBeenCalled()
+      expect(consoleLogSpy).toHaveBeenCalled()
     })
   })
 })

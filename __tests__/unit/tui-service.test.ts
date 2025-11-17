@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { Effect } from 'effect'
 import { TUIHandler } from '../../src/tui'
+import { TUIError } from '../../src/types'
 import {
   MockTUI,
   MockTUICancelled,
@@ -15,13 +16,14 @@ import {
 
 describe('TUIHandler Service', () => {
   describe('Service Registration', () => {
-    it('should be accessible via Context.Tag', () => {
-      const effect = Effect.gen(function* () {
+    it('should be accessible via Effect.Service', async () => {
+      const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
-        return tui
+        return tui !== undefined
       }).pipe(Effect.provide(TUIHandler.Default))
 
-      expect(effect).toBeDefined()
+      const result = await Effect.runPromise(program)
+      expect(result).toBe(true)
     })
 
     it('should provide Default layer', () => {
@@ -151,19 +153,15 @@ describe('TUIHandler Service', () => {
     })
 
     it('should handle prompt cancellation with mock', async () => {
-      const effect = Effect.gen(function* () {
+      const program = Effect.gen(function* () {
+        const tui = yield* TUIHandler
         return yield* tui.prompt('Question:').pipe(
           Effect.catchTag('TUIError', (err) => Effect.succeed('cancelled'))
         )
-      }).pipe(
-        Effect.flatMap((f) => {
-          const tui2 = Effect.sync(() => ({ prompt: f }))
-          return tui2
-        })
-      )
+      }).pipe(Effect.provide(MockTUICancelled))
 
-      // Alternative test structure
-      expect(true).toBe(true)
+      const result = await Effect.runPromise(program)
+      expect(result).toBe('cancelled')
     })
   })
 
@@ -364,16 +362,15 @@ describe('TUIHandler Service', () => {
     })
 
     it('should use MockTUICancelled for cancellation error', async () => {
-      const effect = Effect.gen(function* () {
+      const program = Effect.gen(function* () {
+        const tui = yield* TUIHandler
         return yield* tui.prompt('Q:').pipe(
           Effect.catchTag('TUIError', (err) => Effect.succeed(`error: ${err.reason}`))
         )
-      }).pipe(
-        Effect.flatMap(() => Effect.succeed('test'))
-      )
+      }).pipe(Effect.provide(MockTUICancelled))
 
-      // Alternative structure
-      expect(true).toBe(true)
+      const result = await Effect.runPromise(program)
+      expect(result).toContain('error:')
     })
 
     it('should use MockTUIValidationFailed for validation errors', async () => {
@@ -408,15 +405,15 @@ describe('TUIHandler Service', () => {
 
   describe('Error Handling', () => {
     it('should handle TUIError gracefully', async () => {
-      const effect = Effect.gen(function* () {
+      const program = Effect.gen(function* () {
+        const tui = yield* TUIHandler
         return yield* tui.prompt('Q:').pipe(
           Effect.catchTag('TUIError', () => Effect.succeed('fallback'))
         )
-      }).pipe(
-        Effect.flatMap(() => Effect.succeed('ok'))
-      )
+      }).pipe(Effect.provide(MockTUICancelled))
 
-      expect(effect).toBeDefined()
+      const result = await Effect.runPromise(program)
+      expect(result).toBe('fallback')
     })
 
     it('should support error recovery chain', async () => {
@@ -551,6 +548,127 @@ describe('TUIHandler Service', () => {
 
       const result = await Effect.runPromise(effect)
       expect(result).toBe(true)
+    })
+  })
+
+  describe('Cancellation Handling', () => {
+    beforeEach(() => {
+      // Ensure clean state for each test
+      vi.clearAllMocks()
+    })
+
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('should handle cancellation errors with Cancelled reason', async () => {
+      const program = Effect.gen(function* () {
+        const tui = yield* TUIHandler
+        return yield* tui.prompt('Enter name:').pipe(
+          Effect.catchTag('TUIError', (err) => {
+            if (err.reason === 'Cancelled') {
+              return Effect.succeed('cancelled')
+            }
+            return Effect.fail(err)
+          })
+        )
+      }).pipe(Effect.provide(MockTUICancelled))
+
+      const result = await Effect.runPromise(program)
+      expect(result).toBe('cancelled')
+    })
+
+    it('should map InkError TerminalError with cancelled message to TUIError Cancelled', async () => {
+      // This test verifies the error mapping logic in TUIHandler
+      const program = Effect.gen(function* () {
+        const tui = yield* TUIHandler
+        // Simulate cancellation by using mock that returns cancelled error
+        return yield* tui.selectOption('Choose:', ['A', 'B']).pipe(
+          Effect.catchTag('TUIError', (err) => {
+            expect(err.reason).toBe('Cancelled')
+            expect(err.message).toContain('cancelled')
+            return Effect.succeed('handled')
+          })
+        )
+      }).pipe(Effect.provide(MockTUICancelled))
+
+      const result = await Effect.runPromise(program)
+      expect(result).toBe('handled')
+    })
+
+    it('should handle cancellation in multiSelect', async () => {
+      const program = Effect.gen(function* () {
+        const tui = yield* TUIHandler
+        return yield* tui.multiSelect('Choose:', ['A', 'B']).pipe(
+          Effect.catchTag('TUIError', (err) => {
+            if (err.reason === 'Cancelled') {
+              return Effect.succeed([])
+            }
+            return Effect.fail(err)
+          })
+        )
+      }).pipe(Effect.provide(MockTUICancelled))
+
+      const result = await Effect.runPromise(program)
+      expect(result).toEqual([])
+    })
+
+    it('should handle cancellation in confirm', async () => {
+      const program = Effect.gen(function* () {
+        const tui = yield* TUIHandler
+        return yield* tui.confirm('Continue?').pipe(
+          Effect.catchTag('TUIError', (err) => {
+            if (err.reason === 'Cancelled') {
+              return Effect.succeed(false)
+            }
+            return Effect.fail(err)
+          })
+        )
+      }).pipe(Effect.provide(MockTUICancelled))
+
+      const result = await Effect.runPromise(program)
+      expect(result).toBe(false)
+    })
+
+    it('should handle cancellation in password', async () => {
+      const program = Effect.gen(function* () {
+        const tui = yield* TUIHandler
+        return yield* tui.password('Password:').pipe(
+          Effect.catchTag('TUIError', (err) => {
+            if (err.reason === 'Cancelled') {
+              return Effect.succeed('')
+            }
+            return Effect.fail(err)
+          })
+        )
+      }).pipe(Effect.provide(MockTUICancelled))
+
+      const result = await Effect.runPromise(program)
+      expect(result).toBe('')
+    })
+
+    it('should allow recovery from cancellation', async () => {
+      const program = Effect.gen(function* () {
+        const tui = yield* TUIHandler
+        // Try prompt, recover from cancellation, try again
+        const first = yield* tui.prompt('First:').pipe(
+          Effect.catchTag('TUIError', (err) => {
+            if (err.reason === 'Cancelled') {
+              return Effect.succeed('default')
+            }
+            return Effect.fail(err)
+          })
+        )
+        // Second attempt should also work
+        const second = yield* tui.prompt('Second:').pipe(
+          Effect.catchTag('TUIError', () => Effect.succeed('second-default'))
+        )
+        return { first, second }
+      }).pipe(Effect.provide(MockTUI))
+
+      const result = await Effect.runPromise(program)
+      expect(result.first).toBeDefined()
+      expect(result.second).toBeDefined()
     })
   })
 })

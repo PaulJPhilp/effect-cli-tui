@@ -33,11 +33,13 @@ describe('Table Display', () => {
 
       await Effect.runPromise(displayTable(data, { columns }))
 
-      expect(consoleSpy).toHaveBeenCalledTimes(2) // Header + data rows + padding
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Name'))
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Age'))
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Alice'))
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Bob'))
+      // cli-table3 outputs the entire table as a single string
+      expect(consoleSpy).toHaveBeenCalledTimes(1)
+      const output = consoleSpy.mock.calls[0][0] as string
+      expect(output).toContain('Name')
+      expect(output).toContain('Age')
+      expect(output).toContain('Alice')
+      expect(output).toContain('Bob')
       consoleSpy.mockRestore()
     })
 

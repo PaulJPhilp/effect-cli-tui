@@ -1,95 +1,98 @@
-import { Effect } from 'effect'
-import type { DisplayOptions, DisplayType, JsonDisplayOptions } from '../types'
-import { applyChalkStyle } from './colors'
+import { Effect } from "effect";
+import { DisplayService } from "../services/display";
+import type {
+  DisplayOptions,
+  DisplayType,
+  JsonDisplayOptions,
+} from "../services/display/types";
 
 /**
  * Enhanced display function with style support
+ *
+ * Convenience wrapper around DisplayService
  */
 export function displayOutput(
-    message: string,
-    type: DisplayType = 'info',
-    options: DisplayOptions = {}
+  message: string,
+  type: DisplayType,
+  options: DisplayOptions = {}
 ): Effect.Effect<void> {
-    return Effect.sync(() => {
-        const prefix = options.prefix ??
-            (type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ')
-
-        const styledMessage = options.style ? applyChalkStyle(message, options.style) : message
-        const styledPrefix = options.style ? applyChalkStyle(prefix, options.style) : prefix
-
-        const output = options.newline !== false ? `\n${styledPrefix} ${styledMessage}` : `${styledPrefix} ${styledMessage}`
-        console.log(output)
-    })
+  return Effect.gen(function* () {
+    const display = yield* DisplayService;
+    yield* display.output(message, { ...options, type });
+  }).pipe(Effect.provide(DisplayService.Default));
 }
 
 /**
  * Enhanced display function for single-line messages with style support
+ *
+ * Convenience wrapper around DisplayService
  */
 export function display(
-    message: string,
-    options: DisplayOptions = {}
+  message: string,
+  options: DisplayOptions = {}
 ): Effect.Effect<void> {
-    const { type = 'info', ...restOptions } = options
-    return displayOutput(message, type, restOptions)
+  return Effect.gen(function* () {
+    const display = yield* DisplayService;
+    yield* display.output(message, options);
+  }).pipe(Effect.provide(DisplayService.Default));
 }
 
 /**
  * Enhanced display multiple lines with style support
+ *
+ * Convenience wrapper around DisplayService
  */
 export function displayLines(
-    lines: string[],
-    options: DisplayOptions = {}
+  lines: string[],
+  options: DisplayOptions = {}
 ): Effect.Effect<void> {
-    const { type = 'info', ...restOptions } = options
-
-    return Effect.gen(function* () {
-        for (const line of lines) {
-            yield* displayOutput(line, type, { ...restOptions, newline: true })
-        }
-    })
+  return Effect.gen(function* () {
+    const display = yield* DisplayService;
+    yield* display.lines(lines, options);
+  }).pipe(Effect.provide(DisplayService.Default));
 }
 
 /**
  * Enhanced display JSON with style support
+ *
+ * Convenience wrapper around DisplayService
  */
 export function displayJson(
-    data: unknown,
-    options: JsonDisplayOptions = {}
+  data: unknown,
+  options: JsonDisplayOptions = {}
 ): Effect.Effect<void> {
-    const { type = 'info', spaces = 2, prefix: showPrefix = true } = options
-
-    return Effect.sync(() => {
-        const jsonString = JSON.stringify(data, null, spaces)
-
-        if (!showPrefix) {
-            const output = options.newline !== false ? `\n${jsonString}` : jsonString
-            console.log(output)
-            return
-        }
-
-        const prefix = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'
-        const styledPrefix = options.style ? applyChalkStyle(prefix, options.style) : prefix
-
-        const prefixedJson = jsonString
-            .split('\n')
-            .map((line, index) => index === 0 ? `${styledPrefix} ${line}` : `${' '.repeat(String(styledPrefix).length + 1)}${line}`)
-            .join('\n')
-
-        const output = options.newline !== false ? `\n${prefixedJson}` : prefixedJson
-        console.log(output)
-    })
+  return Effect.gen(function* () {
+    const display = yield* DisplayService;
+    yield* display.json(data, options);
+  }).pipe(Effect.provide(DisplayService.Default));
 }
 
 /**
  * Enhanced success message display
+ *
+ * Convenience wrapper around DisplayService
  */
-export function displaySuccess(message: string, options: Omit<DisplayOptions, 'type'> = {}): Effect.Effect<void> {
-    return display(message, { ...options, type: 'success' })
+export function displaySuccess(
+  message: string,
+  options: Omit<DisplayOptions, "type"> = {}
+): Effect.Effect<void> {
+  return Effect.gen(function* () {
+    const display = yield* DisplayService;
+    yield* display.success(message, options);
+  }).pipe(Effect.provide(DisplayService.Default));
 }
 
 /**
  * Enhanced error message display
+ *
+ * Convenience wrapper around DisplayService
  */
-export function displayError(message: string, options: Omit<DisplayOptions, 'type'> = {}): Effect.Effect<void> {
-    return display(message, { ...options, type: 'error' })
+export function displayError(
+  message: string,
+  options: Omit<DisplayOptions, "type"> = {}
+): Effect.Effect<void> {
+  return Effect.gen(function* () {
+    const display = yield* DisplayService;
+    yield* display.error(message, options);
+  }).pipe(Effect.provide(DisplayService.Default));
 }

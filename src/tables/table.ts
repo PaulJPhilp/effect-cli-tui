@@ -1,29 +1,28 @@
-import { Effect } from 'effect';
-import Table from 'cli-table3';
-import chalk from 'chalk';
-import { applyChalkStyle } from '../core/colors';
+import chalk from "chalk";
+import Table from "cli-table3";
+import { Effect } from "effect";
+import { applyChalkStyle } from "../core/colors";
+import type { ChalkColor, DisplayType, TableAlignment } from "../types";
 
 export interface TableColumn<T = Record<string, unknown>> {
   key: keyof T | string;
   header: string;
   width?: number;
-  align?: 'left' | 'center' | 'right';
+  align?: TableAlignment;
   truncate?: boolean;
   formatter?: (value: unknown) => string;
 }
 
 export interface TableOptions<T> {
   columns: TableColumn<T>[];
-  type?: 'info' | 'success' | 'error';
+  type?: DisplayType;
   style?: {
-    color?: 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white' |
-'gray';
+    color?: ChalkColor;
     bold?: boolean;
   };
   bordered?: boolean;
   head?: {
-    color?: 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white' |
-'gray';
+    color?: ChalkColor;
     bold?: boolean;
   };
   stripColors?: boolean;
@@ -38,7 +37,7 @@ export function displayTable<T>(
 ): Effect.Effect<void> {
   return Effect.sync(() => {
     if (!data || data.length === 0) {
-      console.log('\nℹ No data to display\n');
+      console.log("\nℹ No data to display\n");
       return;
     }
 
@@ -52,7 +51,7 @@ export function displayTable<T>(
       colWidths: options.columns.map((col) => col.width || 20),
       style: {
         head: [],
-        border: options.bordered ? ['cyan'] : [],
+        border: options.bordered ? ["cyan"] : [],
         compact: true,
       },
       wordWrap: true,
@@ -69,7 +68,7 @@ export function displayTable<T>(
         }
 
         // Apply style if provided
-        const stringValue = String(value || '');
+        const stringValue = String(value || "");
         return options.style
           ? applyChalkStyle(stringValue, options.style)
           : stringValue;
@@ -78,6 +77,6 @@ export function displayTable<T>(
       table.push(rowData);
     }
 
-    console.log('\n' + table.toString() + '\n');
+    console.log(`\n${table.toString()}\n`);
   });
 }

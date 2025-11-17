@@ -11,6 +11,7 @@ import TextInput from 'ink-text-input'
 export interface InputProps {
     message: string
     defaultValue?: string
+    placeholder?: string
     validate?: (value: string) => boolean | string
     onSubmit: (value: string) => void
 }
@@ -29,10 +30,20 @@ export interface InputProps {
  *   validate={(input) => input.length > 0 ? true : 'Name is required'}
  * />
  * ```
+ *
+ * @example
+ * ```tsx
+ * <Input
+ *   message="Task:"
+ *   placeholder="e.g., Summarize the text"
+ *   onSubmit={(task) => console.log(task)}
+ * />
+ * ```
  */
 export const Input: React.FC<InputProps> = ({
     message,
     defaultValue = '',
+    placeholder = '',
     validate,
     onSubmit
 }) => {
@@ -65,7 +76,12 @@ export const Input: React.FC<InputProps> = ({
         <Box flexDirection="column">
             <Box>
                 <Text>{message} </Text>
-                <TextInput value={value} onChange={handleChange} onSubmit={handleSubmit} />
+                <TextInput 
+                    value={value} 
+                    onChange={handleChange} 
+                    onSubmit={handleSubmit} 
+                    placeholder={placeholder}
+                />
             </Box>
             {error && (
                 <Box marginTop={0}>
