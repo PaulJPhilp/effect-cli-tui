@@ -647,7 +647,7 @@ const program = Effect.gen(function* () {
 
 ### Q: Can I still import standalone prompt functions?
 
-**A:** Yes, `promptInput`, `promptChoice`, etc. are still exported from `interactive/prompt.ts` for advanced use cases. But you should prefer using `TUIHandler` for consistency.
+**A:** No. The legacy `promptInput`, `promptChoice`, `promptConfirm`, and related helpers were removed along with the `@inquirer/prompts` dependency. All interactive flows now go through Ink components via `TUIHandler` or `renderInkWithResult`.
 
 ### Q: How do I provide dependencies for services?
 
