@@ -1,5 +1,5 @@
-import { defaultTheme } from "./presets";
-import type { PartialTheme, Theme } from "./types";
+import { defaultTheme } from './presets'
+import type { PartialTheme, Theme } from './types'
 
 /**
  * Merge a partial theme with a base theme
@@ -32,7 +32,7 @@ export function mergeTheme(base: Theme, partial: PartialTheme): Theme {
       ...base.styles,
       ...partial.styles,
     },
-  };
+  }
 }
 
 /**
@@ -52,5 +52,5 @@ export function mergeTheme(base: Theme, partial: PartialTheme): Theme {
  * ```
  */
 export function createTheme(partial: PartialTheme): Theme {
-  return mergeTheme(defaultTheme, partial);
+  return mergeTheme(defaultTheme, partial)
 }

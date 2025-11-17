@@ -1,13 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { Effect } from 'effect'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TUIHandler } from '../../src/tui'
-import { TUIError } from '../../src/types'
-import {
-  MockTUI,
-  MockTUICancelled,
-  MockTUIValidationFailed,
-  createMockTUI
-} from '../fixtures/test-layers'
+import { createMockTUI, MockTUI, MockTUICancelled } from '../fixtures/test-layers'
 
 /**
  * Comprehensive tests for TUIHandler service.
@@ -140,10 +134,8 @@ describe('TUIHandler Service', () => {
     it('should prompt with validator', async () => {
       const effect = Effect.gen(function* () {
         const tui = yield* TUIHandler
-        const answer = yield* tui.prompt(
-          'Age:',
-          undefined,
-          (val) => /^\d+$/.test(val) ? true : 'Must be number'
+        const answer = yield* tui.prompt('Age:', undefined, (val) =>
+          /^\d+$/.test(val) ? true : 'Must be number',
         )
         return answer
       }).pipe(Effect.provide(MockTUI))
@@ -155,9 +147,9 @@ describe('TUIHandler Service', () => {
     it('should handle prompt cancellation with mock', async () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
-        return yield* tui.prompt('Question:').pipe(
-          Effect.catchTag('TUIError', (err) => Effect.succeed('cancelled'))
-        )
+        return yield* tui
+          .prompt('Question:')
+          .pipe(Effect.catchTag('TUIError', (_err) => Effect.succeed('cancelled')))
       }).pipe(Effect.provide(MockTUICancelled))
 
       const result = await Effect.runPromise(program)
@@ -249,7 +241,7 @@ describe('TUIHandler Service', () => {
 
     it('should handle all selected', async () => {
       const customMock = createMockTUI({
-        multiSelect: ['A', 'B', 'C']
+        multiSelect: ['A', 'B', 'C'],
       })
       const effect = Effect.gen(function* () {
         const tui = yield* TUIHandler
@@ -314,9 +306,8 @@ describe('TUIHandler Service', () => {
     it('should support validation', async () => {
       const effect = Effect.gen(function* () {
         const tui = yield* TUIHandler
-        const pwd = yield* tui.password(
-          'Password:',
-          (val) => val.length >= 8 ? true : 'Min 8 chars'
+        const pwd = yield* tui.password('Password:', (val) =>
+          val.length >= 8 ? true : 'Min 8 chars',
         )
         return pwd
       }).pipe(Effect.provide(MockTUI))
@@ -364,9 +355,9 @@ describe('TUIHandler Service', () => {
     it('should use MockTUICancelled for cancellation error', async () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
-        return yield* tui.prompt('Q:').pipe(
-          Effect.catchTag('TUIError', (err) => Effect.succeed(`error: ${err.reason}`))
-        )
+        return yield* tui
+          .prompt('Q:')
+          .pipe(Effect.catchTag('TUIError', (err) => Effect.succeed(`error: ${err.reason}`)))
       }).pipe(Effect.provide(MockTUICancelled))
 
       const result = await Effect.runPromise(program)
@@ -383,7 +374,7 @@ describe('TUIHandler Service', () => {
         prompt: 'custom-input',
         selectOption: 'selected',
         confirm: true,
-        password: 'secret123'
+        password: 'secret123',
       })
 
       const effect = Effect.gen(function* () {
@@ -407,9 +398,9 @@ describe('TUIHandler Service', () => {
     it('should handle TUIError gracefully', async () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
-        return yield* tui.prompt('Q:').pipe(
-          Effect.catchTag('TUIError', () => Effect.succeed('fallback'))
-        )
+        return yield* tui
+          .prompt('Q:')
+          .pipe(Effect.catchTag('TUIError', () => Effect.succeed('fallback')))
       }).pipe(Effect.provide(MockTUICancelled))
 
       const result = await Effect.runPromise(program)
@@ -418,9 +409,7 @@ describe('TUIHandler Service', () => {
 
     it('should support error recovery chain', async () => {
       const effect = Effect.gen(function* () {
-        const input = yield* MockTUI.pipe(
-          Effect.flatMap(() => Effect.succeed('test'))
-        )
+        const input = yield* MockTUI.pipe(Effect.flatMap(() => Effect.succeed('test')))
         return input
       })
 
@@ -437,12 +426,12 @@ describe('TUIHandler Service', () => {
     it('should handle sequential prompts', async () => {
       const effect = Effect.gen(function* () {
         const tui = yield* TUIHandler
-        const name = yield* tui.prompt('Name:').pipe(
-          Effect.catchTag('TUIError', () => Effect.succeed('Unknown'))
-        )
-        const confirmed = yield* tui.confirm('Continue?').pipe(
-          Effect.catchTag('TUIError', () => Effect.succeed(false))
-        )
+        const name = yield* tui
+          .prompt('Name:')
+          .pipe(Effect.catchTag('TUIError', () => Effect.succeed('Unknown')))
+        const confirmed = yield* tui
+          .confirm('Continue?')
+          .pipe(Effect.catchTag('TUIError', () => Effect.succeed(false)))
         return { name, confirmed }
       }).pipe(Effect.provide(MockTUI))
 
@@ -455,12 +444,12 @@ describe('TUIHandler Service', () => {
       const effect = Effect.gen(function* () {
         const tui = yield* TUIHandler
         yield* tui.display('Welcome')
-        const choice = yield* tui.selectOption(['A', 'B']).pipe(
-          Effect.catchTag('TUIError', () => Effect.succeed('A'))
-        )
-        const confirmed = yield* tui.confirm('Proceed?').pipe(
-          Effect.catchTag('TUIError', () => Effect.succeed(true))
-        )
+        const choice = yield* tui
+          .selectOption(['A', 'B'])
+          .pipe(Effect.catchTag('TUIError', () => Effect.succeed('A')))
+        const confirmed = yield* tui
+          .confirm('Proceed?')
+          .pipe(Effect.catchTag('TUIError', () => Effect.succeed(true)))
         return { choice, confirmed }
       }).pipe(Effect.provide(MockTUI))
 
@@ -472,14 +461,14 @@ describe('TUIHandler Service', () => {
     it('should handle conditional flows', async () => {
       const effect = Effect.gen(function* () {
         const tui = yield* TUIHandler
-        const proceed = yield* tui.confirm('Continue?').pipe(
-          Effect.catchTag('TUIError', () => Effect.succeed(false))
-        )
+        const proceed = yield* tui
+          .confirm('Continue?')
+          .pipe(Effect.catchTag('TUIError', () => Effect.succeed(false)))
 
         if (proceed) {
-          const name = yield* tui.prompt('Name:').pipe(
-            Effect.catchTag('TUIError', () => Effect.succeed('Anonymous'))
-          )
+          const name = yield* tui
+            .prompt('Name:')
+            .pipe(Effect.catchTag('TUIError', () => Effect.succeed('Anonymous')))
           return `Hello, ${name}`
         } else {
           return 'Cancelled'
@@ -496,9 +485,9 @@ describe('TUIHandler Service', () => {
         const results = []
 
         for (let i = 0; i < 3; i++) {
-          const input = yield* tui.prompt(`Q${i}:`).pipe(
-            Effect.catchTag('TUIError', () => Effect.succeed(`default-${i}`))
-          )
+          const input = yield* tui
+            .prompt(`Q${i}:`)
+            .pipe(Effect.catchTag('TUIError', () => Effect.succeed(`default-${i}`)))
           results.push(input)
         }
 
@@ -520,7 +509,7 @@ describe('TUIHandler Service', () => {
           hasSelectOption: typeof tui.selectOption === 'function',
           hasMultiSelect: typeof tui.multiSelect === 'function',
           hasConfirm: typeof tui.confirm === 'function',
-          hasPassword: typeof tui.password === 'function'
+          hasPassword: typeof tui.password === 'function',
         }
       }).pipe(Effect.provide(MockTUI))
 
@@ -570,7 +559,7 @@ describe('TUIHandler Service', () => {
               return Effect.succeed('cancelled')
             }
             return Effect.fail(err)
-          })
+          }),
         )
       }).pipe(Effect.provide(MockTUICancelled))
 
@@ -588,7 +577,7 @@ describe('TUIHandler Service', () => {
             expect(err.reason).toBe('Cancelled')
             expect(err.message).toContain('cancelled')
             return Effect.succeed('handled')
-          })
+          }),
         )
       }).pipe(Effect.provide(MockTUICancelled))
 
@@ -605,7 +594,7 @@ describe('TUIHandler Service', () => {
               return Effect.succeed([])
             }
             return Effect.fail(err)
-          })
+          }),
         )
       }).pipe(Effect.provide(MockTUICancelled))
 
@@ -622,7 +611,7 @@ describe('TUIHandler Service', () => {
               return Effect.succeed(false)
             }
             return Effect.fail(err)
-          })
+          }),
         )
       }).pipe(Effect.provide(MockTUICancelled))
 
@@ -639,7 +628,7 @@ describe('TUIHandler Service', () => {
               return Effect.succeed('')
             }
             return Effect.fail(err)
-          })
+          }),
         )
       }).pipe(Effect.provide(MockTUICancelled))
 
@@ -657,12 +646,12 @@ describe('TUIHandler Service', () => {
               return Effect.succeed('default')
             }
             return Effect.fail(err)
-          })
+          }),
         )
         // Second attempt should also work
-        const second = yield* tui.prompt('Second:').pipe(
-          Effect.catchTag('TUIError', () => Effect.succeed('second-default'))
-        )
+        const second = yield* tui
+          .prompt('Second:')
+          .pipe(Effect.catchTag('TUIError', () => Effect.succeed('second-default')))
         return { first, second }
       }).pipe(Effect.provide(MockTUI))
 

@@ -1,6 +1,6 @@
-import { applyChalkStyle } from "../../core/colors";
-import { getDisplayColor, getDisplayIcon } from "../../core/icons";
-import type { DisplayOptions, DisplayType } from "./types";
+import { applyChalkStyle } from '../../core/colors'
+import { getDisplayColor, getDisplayIcon } from '../../core/icons'
+import type { DisplayOptions, DisplayType } from './types'
 
 /**
  * Internal helper to format and style display output
@@ -15,29 +15,29 @@ import type { DisplayOptions, DisplayType } from "./types";
 export function formatDisplayOutput(
   message: string,
   type: DisplayType,
-  options: DisplayOptions = {}
+  options: DisplayOptions = {},
 ): string {
-  const prefix = options.prefix ?? getDisplayIcon(type);
+  const prefix = options.prefix ?? getDisplayIcon(type)
 
   // Apply theme color if no custom style provided
-  let styledMessage = message;
-  let styledPrefix = prefix;
+  let styledMessage = message
+  let styledPrefix = prefix
 
   if (options.style) {
     // Custom style overrides theme
-    styledMessage = applyChalkStyle(message, options.style);
-    styledPrefix = applyChalkStyle(prefix, options.style);
+    styledMessage = applyChalkStyle(message, options.style)
+    styledPrefix = applyChalkStyle(prefix, options.style)
   } else {
     // Use theme color for message
-    const themeColor = getDisplayColor(type);
-    styledMessage = applyChalkStyle(message, { color: themeColor as any });
-    styledPrefix = applyChalkStyle(prefix, { color: themeColor as any });
+    const themeColor = getDisplayColor(type)
+    styledMessage = applyChalkStyle(message, { color: themeColor })
+    styledPrefix = applyChalkStyle(prefix, { color: themeColor })
   }
 
   const output =
     options.newline !== false
       ? `\n${styledPrefix} ${styledMessage}`
-      : `${styledPrefix} ${styledMessage}`;
+      : `${styledPrefix} ${styledMessage}`
 
-  return output;
+  return output
 }

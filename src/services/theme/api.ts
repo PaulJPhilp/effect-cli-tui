@@ -1,5 +1,5 @@
-import type { Effect } from "effect";
-import type { Theme } from "./types";
+import type { Effect } from 'effect'
+import type { Theme } from './types'
 
 /**
  * Theme service API
@@ -12,7 +12,7 @@ export interface ThemeService {
    *
    * @returns The current theme
    */
-  readonly getTheme: () => Theme;
+  readonly getTheme: () => Effect.Effect<Theme>
 
   /**
    * Set the current theme
@@ -20,7 +20,7 @@ export interface ThemeService {
    * @param theme - The theme to set
    * @returns Effect that sets the theme
    */
-  readonly setTheme: (theme: Theme) => Effect.Effect<void>;
+  readonly setTheme: (theme: Theme) => Effect.Effect<void>
 
   /**
    * Run an effect with a temporary theme
@@ -40,7 +40,6 @@ export interface ThemeService {
    */
   readonly withTheme: <A, E, R>(
     theme: Theme,
-    effect: Effect.Effect<A, E, R>
-  ) => Effect.Effect<A, E, R>;
+    effect: Effect.Effect<A, E, R>,
+  ) => Effect.Effect<A, E, R>
 }
-

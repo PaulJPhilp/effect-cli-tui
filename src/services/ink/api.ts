@@ -1,6 +1,6 @@
-import type { Effect } from "effect";
-import type React from "react";
-import type { InkError } from "../../types";
+import type { Effect } from 'effect'
+import type React from 'react'
+import type { InkError } from '../../types'
 
 /**
  * Ink service API interface
@@ -23,9 +23,7 @@ export interface InkService {
    * yield* ink.renderComponent(<MyComponent />)
    * ```
    */
-  renderComponent: (
-    component: React.ReactElement
-  ) => Effect.Effect<void, InkError>;
+  renderComponent: (component: React.ReactElement) => Effect.Effect<void, InkError>
 
   /**
    * Render an Ink component that returns a value
@@ -45,7 +43,6 @@ export interface InkService {
    * ```
    */
   renderWithResult: <T>(
-    component: (onComplete: (value: T) => void) => React.ReactElement
-  ) => Effect.Effect<T, InkError>;
+    component: (onComplete: (value: T) => void) => React.ReactElement,
+  ) => Effect.Effect<T, InkError>
 }
-

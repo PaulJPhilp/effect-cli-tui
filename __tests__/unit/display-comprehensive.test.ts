@@ -1,12 +1,12 @@
-import { describe, it, expect, vi } from 'vitest'
 import { Effect } from 'effect'
+import { describe, expect, it, vi } from 'vitest'
 import {
   display,
-  displayOutput,
-  displayLines,
+  displayError,
   displayJson,
+  displayLines,
+  displayOutput,
   displaySuccess,
-  displayError
 } from '../../src/core/display'
 
 /**
@@ -92,7 +92,7 @@ describe('Display - Comprehensive Coverage', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const program = displayOutput('Styled message', 'info', {
-        style: { color: 'red', bold: true }
+        style: { color: 'red', bold: true },
       })
       await Effect.runPromise(program)
 
@@ -225,9 +225,9 @@ describe('Display - Comprehensive Coverage', () => {
         user: {
           name: 'Test',
           address: {
-            city: 'Boston'
-          }
-        }
+            city: 'Boston',
+          },
+        },
       })
       await Effect.runPromise(program)
 
@@ -324,7 +324,9 @@ describe('Display - Comprehensive Coverage', () => {
 
       await Effect.runPromise(program)
 
-      expect(consoleLogSpy.mock.calls.length + consoleErrorSpy.mock.calls.length).toBeGreaterThanOrEqual(4)
+      expect(
+        consoleLogSpy.mock.calls.length + consoleErrorSpy.mock.calls.length,
+      ).toBeGreaterThanOrEqual(4)
       consoleLogSpy.mockRestore()
       consoleErrorSpy.mockRestore()
     })

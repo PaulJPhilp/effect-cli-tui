@@ -336,6 +336,10 @@ interface CLIRunOptions {
   cwd?: string                    // Working directory
   env?: Record<string, string>    // Environment variables
   timeout?: number                // Timeout in milliseconds
+  maxBuffer?: number              // Max bytes to capture (0 = unlimited)
+  signal?: AbortSignal            // Abort running command
+  killSignal?: NodeJS.Signals | number // Signal used to terminate the process
+  stdin?: string | Buffer         // Optional stdin payload
 }
 ```
 
@@ -407,7 +411,7 @@ Thrown by EffectCLI methods when commands fail.
 ```typescript
 class CLIError {
   _tag: 'CLIError'
-  reason: 'CommandFailed' | 'Timeout' | 'NotFound'
+  reason: 'CommandFailed' | 'Timeout' | 'NotFound' | 'ExecutionError' | 'Aborted' | 'OutputLimitExceeded'
   message: string
 }
 ```

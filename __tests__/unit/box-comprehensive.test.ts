@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
 import { Effect } from 'effect'
-import { displayBox, displayPanel, type BoxStyle } from '../../src/boxes/box'
+import { describe, expect, it, vi } from 'vitest'
+import { displayBox, displayPanel } from '../../src/boxes/box'
 
 /**
  * Comprehensive tests for box.ts module
@@ -176,7 +176,7 @@ describe('Box Display - Comprehensive Coverage', () => {
     it('should display box with long title', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-      const longTitle = 'Important: ' + 'Title'.repeat(20)
+      const longTitle = `Important: ${'Title'.repeat(20)}`
       const program = displayBox('Content', { title: longTitle })
       await Effect.runPromise(program)
 
@@ -296,7 +296,7 @@ describe('Box Display - Comprehensive Coverage', () => {
 
       const program = displayBox('Content', {
         borderStyle: 'double',
-        type: 'success'
+        type: 'success',
       })
       await Effect.runPromise(program)
 
@@ -310,7 +310,7 @@ describe('Box Display - Comprehensive Coverage', () => {
 
       const program = displayBox('Content', {
         title: 'Section',
-        padding: 2
+        padding: 2,
       })
       await Effect.runPromise(program)
 
@@ -327,7 +327,7 @@ describe('Box Display - Comprehensive Coverage', () => {
         type: 'info',
         title: 'Header',
         padding: 1,
-        margin: 1
+        margin: 1,
       })
       await Effect.runPromise(program)
 
@@ -387,10 +387,7 @@ describe('Box Display - Comprehensive Coverage', () => {
     it('should display panel with multiline content', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-      const program = displayPanel(
-        'Line 1\nLine 2\nLine 3',
-        'Multi-line Panel'
-      )
+      const program = displayPanel('Line 1\nLine 2\nLine 3', 'Multi-line Panel')
       await Effect.runPromise(program)
 
       expect(consoleSpy).toHaveBeenCalled()

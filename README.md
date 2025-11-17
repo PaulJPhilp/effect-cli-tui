@@ -396,7 +396,7 @@ const program = Effect.gen(function* () {
 ```typescript
 // Get current theme
 const theme = yield* ThemeService
-const currentTheme = theme.getTheme()
+const currentTheme = yield* theme.getTheme()
 
 // Set theme
 yield* theme.setTheme(customTheme)
@@ -589,6 +589,10 @@ interface CLIRunOptions {
   cwd?: string                         // Working directory
   env?: Record<string, string>         // Environment variables
   timeout?: number                     // Timeout in milliseconds
+  maxBuffer?: number                   // Max bytes to capture (0 = unlimited)
+  signal?: AbortSignal                 // Abort running command
+  killSignal?: NodeJS.Signals | number // Signal used to terminate on cleanup
+  stdin?: string | Buffer              // Data to write to stdin
 }
 ```
 
@@ -634,7 +638,7 @@ Thrown by `EffectCLI` when commands fail.
 
 ```typescript
 class CLIError extends Data.TaggedError('CLIError') {
-  readonly reason: 'CommandFailed' | 'Timeout' | 'NotFound' | 'ExecutionError'
+  readonly reason: 'CommandFailed' | 'Timeout' | 'NotFound' | 'ExecutionError' | 'Aborted' | 'OutputLimitExceeded'
   readonly message: string
   readonly exitCode?: number  // Exit code when command fails (if available)
 }

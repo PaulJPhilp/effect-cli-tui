@@ -405,7 +405,7 @@ The application handles:
 ## Code Quality
 
 - **No TypeScript Errors** — Strict mode with full type safety
-- **ESLint Clean** — Follows project style guide
+- **Ultracite Clean** — Follows project style guide (Biome preset)
 - **Well Documented** — JSDoc comments on all functions
 - **Effect Pattern** — Uses modern Effect 3.9+ standards
 - **Schema Validation** — All inputs validated with Effect Schema

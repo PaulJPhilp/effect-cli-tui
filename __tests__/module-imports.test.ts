@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest'
 describe('ESM Module Imports', () => {
   it('should import display functions from ESM build', async () => {
     // This test verifies that the ESM build exports work for display functions
-    const { display, displayLines, displayJson, displaySuccess, displayError } = await import('../dist/index.js')
+    const { display, displayLines, displayJson, displaySuccess, displayError } = await import(
+      '../dist/index.js'
+    )
 
     expect(display).toBeDefined()
     expect(displayLines).toBeDefined()
@@ -59,10 +61,15 @@ describe('ESM Module Imports', () => {
     // SpinnerOptions is a TypeScript type, not a runtime value
   })
 
-
-
   it('should import color functions from ESM build', async () => {
-    const { applyChalkStyle, displayHighlight, displayMuted, displayWarning, displayInfo, displayListItem } = await import('../dist/index.js')
+    const {
+      applyChalkStyle,
+      displayHighlight,
+      displayMuted,
+      displayWarning,
+      displayInfo,
+      displayListItem,
+    } = await import('../dist/index.js')
 
     expect(applyChalkStyle).toBeDefined()
     expect(displayHighlight).toBeDefined()

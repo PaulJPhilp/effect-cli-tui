@@ -1,7 +1,7 @@
-import { Effect, Ref } from "effect";
-import type { ThemeService as ThemeServiceApi } from "./api";
-import { defaultTheme } from "./presets";
-import type { Theme } from "./types";
+import { Effect, Ref } from 'effect'
+import type { ThemeService as ThemeServiceApi } from './api'
+import { defaultTheme } from './presets'
+import type { Theme } from './types'
 
 /**
  * Ref for theme storage
@@ -10,7 +10,8 @@ import type { Theme } from "./types";
  * Uses Ref for thread-safe access. Note: This is global, not per-fiber.
  * For per-fiber isolation, use the ThemeService.withTheme() method.
  */
-const ThemeRef = Ref.unsafeMake<Theme>(defaultTheme);
+const ThemeRef = Ref.unsafeMake<Theme>(defaultTheme)
+let currentThemeSnapshot: Theme = defaultTheme
 
 /**
  * Theme service for managing display themes
@@ -28,35 +29,42 @@ const ThemeRef = Ref.unsafeMake<Theme>(defaultTheme);
  * }).pipe(Effect.provide(ThemeService.Default))
  * ```
  */
-export class ThemeService extends Effect.Service<ThemeService>()(
-  "app/ThemeService",
-  {
-    effect: Effect.sync(() => {
-      return {
-        getTheme: (): Theme => {
-          return Effect.runSync(Ref.get(ThemeRef));
-        },
+export class ThemeService extends Effect.Service<ThemeService>()('app/ThemeService', {
+  effect: Effect.sync(() => {
+    const setThemeRef = (theme: Theme) =>
+      Ref.set(ThemeRef, theme).pipe(
+        Effect.tap(() =>
+          Effect.sync(() => {
+            currentThemeSnapshot = theme
+          }),
+        ),
+      )
 
-        setTheme: (theme: Theme): Effect.Effect<void> => {
-          return Ref.set(ThemeRef, theme);
-        },
+    return {
+      getTheme: (): Effect.Effect<Theme> => Ref.get(ThemeRef),
 
-        withTheme: <A, E, R>(
-          theme: Theme,
-          effect: Effect.Effect<A, E, R>
-        ): Effect.Effect<A, E, R> => {
-          return Effect.gen(function* () {
-            const currentTheme: Theme = yield* Ref.get(ThemeRef);
-            yield* Ref.set(ThemeRef, theme);
-            const result = yield* effect;
-            yield* Ref.set(ThemeRef, currentTheme);
-            return result;
-          });
-        },
-      } as const satisfies ThemeServiceApi;
-    }),
-  }
-) {}
+      setTheme: (theme: Theme): Effect.Effect<void> => setThemeRef(theme),
+
+      withTheme: <A, E, R>(theme: Theme, effect: Effect.Effect<A, E, R>): Effect.Effect<A, E, R> =>
+        Effect.acquireUseRelease(
+          Effect.gen(function* () {
+            const previous = yield* Ref.get(ThemeRef)
+            yield* setThemeRef(theme)
+            return previous
+          }),
+          () => effect,
+          (previous) =>
+            Ref.set(ThemeRef, previous).pipe(
+              Effect.tap(() =>
+                Effect.sync(() => {
+                  currentThemeSnapshot = previous
+                }),
+              ),
+            ),
+        ),
+    } as const satisfies ThemeServiceApi
+  }),
+}) {}
 
 /**
  * Get the current theme synchronously
@@ -67,7 +75,7 @@ export class ThemeService extends Effect.Service<ThemeService>()(
  * @returns The current theme
  */
 export function getCurrentThemeSync(): Theme {
-  return Effect.runSync(Ref.get(ThemeRef));
+  return currentThemeSnapshot
 }
 
 /**
@@ -85,9 +93,9 @@ export function getCurrentThemeSync(): Theme {
  */
 export function getCurrentTheme(): Effect.Effect<Theme, never, ThemeService> {
   return Effect.gen(function* () {
-    const theme = yield* ThemeService;
-    return theme.getTheme();
-  });
+    const theme = yield* ThemeService
+    return yield* theme.getTheme()
+  })
 }
 
 /**
@@ -103,13 +111,11 @@ export function getCurrentTheme(): Effect.Effect<Theme, never, ThemeService> {
  * yield* setTheme(themes.emoji)
  * ```
  */
-export function setTheme(
-  theme: Theme
-): Effect.Effect<void, never, ThemeService> {
+export function setTheme(theme: Theme): Effect.Effect<void, never, ThemeService> {
   return Effect.gen(function* () {
-    const themeService = yield* ThemeService;
-    yield* themeService.setTheme(theme);
-  });
+    const themeService = yield* ThemeService
+    yield* themeService.setTheme(theme)
+  })
 }
 
 /**
@@ -130,10 +136,10 @@ export function setTheme(
  */
 export function withTheme<A, E, R>(
   theme: Theme,
-  effect: Effect.Effect<A, E, R>
+  effect: Effect.Effect<A, E, R>,
 ): Effect.Effect<A, E, R | ThemeService> {
   return Effect.gen(function* () {
-    const themeService = yield* ThemeService;
-    return yield* themeService.withTheme(theme, effect);
-  });
+    const themeService = yield* ThemeService
+    return yield* themeService.withTheme(theme, effect)
+  })
 }

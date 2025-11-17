@@ -31,13 +31,14 @@
  * ```
  */
 
-import { Effect, Layer, ManagedRuntime } from "effect";
-import { DisplayService } from "./services/display";
-import { InkService } from "./services/ink";
-import { ThemeService } from "./services/theme/service";
-import { Terminal } from "./core/terminal";
-import { TUIHandler } from "./tui";
-import { EffectCLI } from "./cli";
+import { Effect, Layer, ManagedRuntime } from 'effect'
+import { EffectCLI } from './cli'
+import { Terminal } from './core/terminal'
+import { SpinnerService } from './progress/spinner'
+import { DisplayService } from './services/display'
+import { InkService } from './services/ink'
+import { ThemeService } from './services/theme/service'
+import { TUIHandler } from './tui'
 
 /**
  * Combined layer providing all CLI/TUI services
@@ -60,8 +61,9 @@ export const EffectCLITUILayer = Layer.mergeAll(
   TUIHandler.Default, // Automatically includes InkService via dependencies
   DisplayService.Default,
   ThemeService.Default,
-  Terminal.Default
-);
+  SpinnerService.Default,
+  Terminal.Default,
+)
 
 /**
  * ManagedRuntime with all CLI/TUI services
@@ -83,7 +85,7 @@ export const EffectCLITUILayer = Layer.mergeAll(
  * await EffectCLIRuntime.dispose() // Clean up resources
  * ```
  */
-export const EffectCLIRuntime = ManagedRuntime.make(EffectCLITUILayer);
+export const EffectCLIRuntime = ManagedRuntime.make(EffectCLITUILayer)
 
 /**
  * Runtime with only TUIHandler and its dependencies
@@ -107,9 +109,10 @@ export const TUIHandlerRuntime = ManagedRuntime.make(
     DisplayService.Default,
     InkService.Default,
     ThemeService.Default,
-    Terminal.Default
-  )
-);
+    SpinnerService.Default,
+    Terminal.Default,
+  ),
+)
 
 /**
  * Runtime with only EffectCLI
@@ -127,7 +130,7 @@ export const TUIHandlerRuntime = ManagedRuntime.make(
  * await EffectCLIRuntime.runPromise(program)
  * ```
  */
-export const EffectCLIOnlyRuntime = ManagedRuntime.make(EffectCLI.Default);
+export const EffectCLIOnlyRuntime = ManagedRuntime.make(EffectCLI.Default)
 
 /**
  * Runtime with only DisplayService
@@ -147,8 +150,8 @@ export const EffectCLIOnlyRuntime = ManagedRuntime.make(EffectCLI.Default);
  * ```
  */
 export const DisplayRuntime = ManagedRuntime.make(
-  Layer.mergeAll(DisplayService.Default, ThemeService.Default)
-);
+  Layer.mergeAll(DisplayService.Default, ThemeService.Default, SpinnerService.Default),
+)
 
 /**
  * Convenience function to run an effect with the full CLI/TUI runtime
@@ -167,12 +170,12 @@ export const DisplayRuntime = ManagedRuntime.make(
  * ```
  */
 export async function runWithRuntime<A, E>(
-  effect: Effect.Effect<A, E, EffectCLI | TUIHandler | DisplayService | InkService | Terminal>
+  effect: Effect.Effect<A, E, EffectCLI | TUIHandler | DisplayService | InkService | Terminal>,
 ): Promise<A> {
   try {
-    return await EffectCLIRuntime.runPromise(effect);
+    return await EffectCLIRuntime.runPromise(effect)
   } finally {
-    await EffectCLIRuntime.dispose();
+    await EffectCLIRuntime.dispose()
   }
 }
 
@@ -192,12 +195,12 @@ export async function runWithRuntime<A, E>(
  * ```
  */
 export async function runWithTUI<A, E>(
-  effect: Effect.Effect<A, E, TUIHandler | DisplayService | InkService | Terminal>
+  effect: Effect.Effect<A, E, TUIHandler | DisplayService | InkService | Terminal>,
 ): Promise<A> {
   try {
-    return await TUIHandlerRuntime.runPromise(effect);
+    return await TUIHandlerRuntime.runPromise(effect)
   } finally {
-    await TUIHandlerRuntime.dispose();
+    await TUIHandlerRuntime.dispose()
   }
 }
 
@@ -216,13 +219,10 @@ export async function runWithTUI<A, E>(
  * const result = await runWithCLI(program)
  * ```
  */
-export async function runWithCLI<A, E>(
-  effect: Effect.Effect<A, E, EffectCLI>
-): Promise<A> {
+export async function runWithCLI<A, E>(effect: Effect.Effect<A, E, EffectCLI>): Promise<A> {
   try {
-    return await EffectCLIOnlyRuntime.runPromise(effect);
+    return await EffectCLIOnlyRuntime.runPromise(effect)
   } finally {
-    await EffectCLIOnlyRuntime.dispose();
+    await EffectCLIOnlyRuntime.dispose()
   }
 }
-

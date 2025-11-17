@@ -1,13 +1,7 @@
-import { describe, it, expect } from 'vitest'
 import { Effect } from 'effect'
+import { describe, expect, it } from 'vitest'
 import { EffectCLI } from '../../src/cli'
-import { CLIError, CLIResult } from '../../src/types'
-import {
-  MockCLI,
-  MockCLIFailure,
-  MockCLITimeout,
-  createMockCLI
-} from '../fixtures/test-layers'
+import { createMockCLI, MockCLI, MockCLIFailure, MockCLITimeout } from '../fixtures/test-layers'
 
 /**
  * Comprehensive unit tests for EffectCLI service.
@@ -121,7 +115,7 @@ describe('EffectCLI Service', () => {
         const result = yield* cli.run('cmd', [], {
           timeout: 5000,
           cwd: '/tmp',
-          env: { VAR: 'value' }
+          env: { VAR: 'value' },
         })
         return result
       }).pipe(Effect.provide(MockCLI))
@@ -147,8 +141,8 @@ describe('EffectCLI Service', () => {
         const result = yield* cli.run('cmd', [], {
           env: {
             CUSTOM_VAR: 'custom_value',
-            ANOTHER_VAR: 'another_value'
-          }
+            ANOTHER_VAR: 'another_value',
+          },
         })
         return result
       }).pipe(Effect.provide(MockCLI))
@@ -186,7 +180,7 @@ describe('EffectCLI Service', () => {
           cwd: '/tmp',
           env: { VAR: 'val' },
           timeout: 5000,
-          maxBuffer: 10 * 1024 * 1024
+          maxBuffer: 10 * 1024 * 1024,
         })
         return result
       }).pipe(Effect.provide(MockCLI))
@@ -200,9 +194,9 @@ describe('EffectCLI Service', () => {
     it('should fail with CLIError on command failure', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('fail').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
-        )
+        return yield* cli
+          .run('fail')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason)))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const reason = await Effect.runPromise(program)
@@ -212,9 +206,9 @@ describe('EffectCLI Service', () => {
     it('should handle CommandFailed reason', async () => {
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('failing-cmd').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
-        )
+        return yield* cli
+          .run('failing-cmd')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason)))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const reason = await Effect.runPromise(effect)
@@ -224,9 +218,9 @@ describe('EffectCLI Service', () => {
     it('should handle Timeout reason', async () => {
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('slow-cmd').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
-        )
+        return yield* cli
+          .run('slow-cmd')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason)))
       }).pipe(Effect.provide(MockCLITimeout))
 
       const reason = await Effect.runPromise(effect)
@@ -238,9 +232,9 @@ describe('EffectCLI Service', () => {
       // The behavior is tested in other integration tests
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('nonexistent-command-xyz').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
-        )
+        return yield* cli
+          .run('nonexistent-command-xyz')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason)))
       }).pipe(Effect.provide(EffectCLI.Default))
 
       const reason = await Effect.runPromise(program)
@@ -250,9 +244,9 @@ describe('EffectCLI Service', () => {
     it('should have error message', async () => {
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('fail').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.message))
-        )
+        return yield* cli
+          .run('fail')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.message)))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const message = await Effect.runPromise(effect)
@@ -263,11 +257,11 @@ describe('EffectCLI Service', () => {
     it('should support error recovery with orElse', async () => {
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('fail').pipe(
-          Effect.orElse(() =>
-            Effect.succeed({ exitCode: 1, stdout: 'fallback', stderr: '' })
+        return yield* cli
+          .run('fail')
+          .pipe(
+            Effect.orElse(() => Effect.succeed({ exitCode: 1, stdout: 'fallback', stderr: '' })),
           )
-        )
       }).pipe(Effect.provide(MockCLIFailure))
 
       const result = await Effect.runPromise(effect)
@@ -277,11 +271,11 @@ describe('EffectCLI Service', () => {
     it('should support error recovery with catchAll', async () => {
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('fail').pipe(
-          Effect.catchAll(() =>
-            Effect.succeed({ exitCode: 1, stdout: 'recovered', stderr: '' })
+        return yield* cli
+          .run('fail')
+          .pipe(
+            Effect.catchAll(() => Effect.succeed({ exitCode: 1, stdout: 'recovered', stderr: '' })),
           )
-        )
       }).pipe(Effect.provide(MockCLIFailure))
 
       const result = await Effect.runPromise(effect)
@@ -326,9 +320,9 @@ describe('EffectCLI Service', () => {
     it('should handle stream errors', async () => {
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.stream('fail').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
-        )
+        return yield* cli
+          .stream('fail')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason)))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const reason = await Effect.runPromise(effect)
@@ -338,9 +332,7 @@ describe('EffectCLI Service', () => {
     it('should support recovery on stream error', async () => {
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        yield* cli.stream('fail').pipe(
-          Effect.catchTag('CLIError', () => Effect.void)
-        )
+        yield* cli.stream('fail').pipe(Effect.catchTag('CLIError', () => Effect.void))
         return 'recovered'
       }).pipe(Effect.provide(MockCLIFailure))
 
@@ -354,7 +346,7 @@ describe('EffectCLI Service', () => {
       const customMock = createMockCLI({
         exitCode: 0,
         stdout: 'custom output',
-        stderr: ''
+        stderr: '',
       })
 
       const effect = Effect.gen(function* () {
@@ -371,14 +363,14 @@ describe('EffectCLI Service', () => {
       const customMock = createMockCLI({
         exitCode: 1,
         stdout: 'some output',
-        stderr: 'error message'
+        stderr: 'error message',
       })
 
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('cmd').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
-        )
+        return yield* cli
+          .run('cmd')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason)))
       }).pipe(Effect.provide(customMock))
 
       const reason = await Effect.runPromise(effect)
@@ -389,7 +381,7 @@ describe('EffectCLI Service', () => {
       const customMock = createMockCLI({
         exitCode: 0,
         stdout: '',
-        stderr: 'warning message'
+        stderr: 'warning message',
       })
 
       const effect = Effect.gen(function* () {
@@ -405,12 +397,10 @@ describe('EffectCLI Service', () => {
 
   describe('Edge Cases', () => {
     it('should handle very long command', async () => {
-      const longCmd = 'cmd-' + 'A'.repeat(10000)
+      const longCmd = `cmd-${'A'.repeat(10000)}`
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        yield* cli.run(longCmd).pipe(
-          Effect.catchTag('CLIError', () => Effect.void)
-        )
+        yield* cli.run(longCmd).pipe(Effect.catchTag('CLIError', () => Effect.void))
         return 'handled'
       }).pipe(Effect.provide(MockCLI))
 
@@ -433,9 +423,9 @@ describe('EffectCLI Service', () => {
     it('should handle special characters in command', async () => {
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        yield* cli.run('cmd-with-special-!@#$%').pipe(
-          Effect.catchTag('CLIError', () => Effect.void)
-        )
+        yield* cli
+          .run('cmd-with-special-!@#$%')
+          .pipe(Effect.catchTag('CLIError', () => Effect.void))
         return 'ok'
       }).pipe(Effect.provide(MockCLI))
 

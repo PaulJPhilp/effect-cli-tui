@@ -26,32 +26,27 @@
  * ```
  */
 
-import React from 'react'
 import { Effect } from 'effect'
 import {
+  Confirm,
   display,
-  displaySuccess,
   displayError,
-  displayLines,
   displayPanel,
+  displaySuccess,
   displayTable,
   EffectCLI,
+  Input,
   renderInkWithResult,
   Select,
-  Input,
-  Confirm
 } from '../src/index.js'
-import {
-  templates,
-  getTemplate
-} from './prompt-builder/templates.js'
-import { PromptTemplate, UserResponses, BuiltPrompt } from './prompt-builder/types.js'
 import { copyToClipboard } from './prompt-builder/clipboard.js'
+import { templates } from './prompt-builder/templates.js'
+import { BuiltPrompt, PromptTemplate, UserResponses } from './prompt-builder/types.js'
 import {
+  createInputValidator,
   validateField,
-  validateResponses,
   validateGeneratedPrompt,
-  createInputValidator
+  validateResponses,
 } from './prompt-builder/validation.js'
 
 /**
@@ -70,10 +65,10 @@ const showWelcome = (): Effect.Effect<void> =>
         '  • Contract-first: Input/output specs',
         '  • Chain-of-thought: Step-by-step reasoning',
         '',
-        'Build, review, and copy your prompts to clipboard!'
+        'Build, review, and copy your prompts to clipboard!',
       ].join('\n'),
       'Welcome to Prompt Builder',
-      { type: 'info' }
+      { type: 'info' },
     )
   })
 
@@ -83,13 +78,9 @@ const showWelcome = (): Effect.Effect<void> =>
 const selectTemplate = (): Effect.Effect<PromptTemplate> =>
   Effect.gen(function* () {
     const templateNames = templates.map((t) => t.name)
-    const selectedName = yield* renderInkWithResult<string>((onComplete) =>
-      <Select
-        message="Choose a template:"
-        choices={templateNames}
-        onSubmit={onComplete}
-      />
-    )
+    const selectedName = yield* renderInkWithResult<string>((onComplete) => (
+      <Select message="Choose a template:" choices={templateNames} onSubmit={onComplete} />
+    ))
 
     const selectedTemplate = templates.find((t) => t.name === selectedName)
     if (!selectedTemplate) {
@@ -105,9 +96,7 @@ const selectTemplate = (): Effect.Effect<PromptTemplate> =>
  * Interactively collect user responses for template fields
  * Supports text, choice, and boolean field types with validation
  */
-const collectResponses = (
-  template: PromptTemplate
-): Effect.Effect<UserResponses> =>
+const collectResponses = (template: PromptTemplate): Effect.Effect<UserResponses> =>
   Effect.gen(function* () {
     const responses: UserResponses = {}
 
@@ -118,31 +107,28 @@ const collectResponses = (
 
       if (field.type === 'choice' && field.choices) {
         // Choice field using Select component
-        value = yield* renderInkWithResult<string>((onComplete) =>
+        value = yield* renderInkWithResult<string>((onComplete) => (
           <Select
             message={`${prefix} ${field.label}`}
             choices={field.choices}
             onSubmit={onComplete}
           />
-        )
+        ))
       } else if (field.type === 'boolean') {
         // Boolean field using Confirm component
-        value = yield* renderInkWithResult<boolean>((onComplete) =>
-          <Confirm
-            message={`${prefix} ${field.label}?`}
-            onSubmit={onComplete}
-          />
-        )
+        value = yield* renderInkWithResult<boolean>((onComplete) => (
+          <Confirm message={`${prefix} ${field.label}?`} onSubmit={onComplete} />
+        ))
       } else {
         // Text or multiline field using Input component
-        value = yield* renderInkWithResult<string>((onComplete) =>
+        value = yield* renderInkWithResult<string>((onComplete) => (
           <Input
             message={`${prefix} ${field.label}`}
             placeholder={field.placeholder || ''}
             onSubmit={onComplete}
             validate={createInputValidator(field)}
           />
-        )
+        ))
       }
 
       // Validate the field
@@ -152,8 +138,8 @@ const collectResponses = (
           Effect.gen(function* () {
             yield* displayError(`${field.label}: ${err}`)
             return yield* Effect.fail(new Error(err))
-          })
-        )
+          }),
+        ),
       )
 
       responses[field.name] = value
@@ -164,10 +150,12 @@ const collectResponses = (
       Effect.flatMap(() => Effect.succeed(undefined)),
       Effect.catchAll((err) =>
         Effect.gen(function* () {
-          yield* displayError(`Validation failed: ${err}\n\nPlease review your answers and try again.`)
+          yield* displayError(
+            `Validation failed: ${err}\n\nPlease review your answers and try again.`,
+          )
           return yield* Effect.fail(new Error(err))
-        })
-      )
+        }),
+      ),
     )
 
     yield* displaySuccess('All responses validated!')
@@ -195,15 +183,15 @@ const displayReview = (builtPrompt: BuiltPrompt): Effect.Effect<void> =>
       .filter((f) => builtPrompt.responses[f.name] !== undefined)
       .map((f) => ({
         field: f.label,
-        value: String(builtPrompt.responses[f.name]).substring(0, 50)
+        value: String(builtPrompt.responses[f.name]).substring(0, 50),
       }))
 
     if (reviewData.length > 0) {
       yield* displayTable(reviewData, {
         columns: [
           { key: 'field', header: 'Field', width: 20 },
-          { key: 'value', header: 'Value', width: 50 }
-        ]
+          { key: 'value', header: 'Value', width: 50 },
+        ],
       })
     }
   })
@@ -217,15 +205,13 @@ const copyPromptToClipboard = (promptText: string): Effect.Effect<void> =>
     yield* copyToClipboard(promptText).pipe(
       Effect.catchAll((_err) =>
         Effect.gen(function* () {
-          yield* displayError(
-            `Unable to copy to clipboard: ${_err.message}`
-          )
+          yield* displayError(`Unable to copy to clipboard: ${_err.message}`)
           yield* display('You can still manually copy the prompt text shown above.', {
-            type: 'info'
+            type: 'info',
           })
           return undefined
-        })
-      )
+        }),
+      ),
     )
   })
 
@@ -264,16 +250,18 @@ const promptBuilderApp = (): Effect.Effect<void> =>
       Effect.flatMap(() => Effect.succeed(undefined)),
       Effect.catchAll((err) =>
         Effect.gen(function* () {
-          yield* displayError(`Unable to generate prompt: ${err.message}\n\nPlease check your template and responses, then try again.`)
+          yield* displayError(
+            `Unable to generate prompt: ${err.message}\n\nPlease check your template and responses, then try again.`,
+          )
           return yield* Effect.fail(err)
-        })
-      )
+        }),
+      ),
     )
 
     const builtPrompt: BuiltPrompt = {
       template,
       responses,
-      promptText
+      promptText,
     }
 
     yield* displayGeneratedPrompt(builtPrompt)
@@ -287,9 +275,7 @@ const promptBuilderApp = (): Effect.Effect<void> =>
 /**
  * Run the application with EffectCLI service provided for clipboard access
  */
-const main = promptBuilderApp().pipe(
-  Effect.provide(EffectCLI.Default)
-)
+const main = promptBuilderApp().pipe(Effect.provide(EffectCLI.Default))
 
 /**
  * Execute the effect

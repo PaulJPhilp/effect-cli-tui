@@ -1,16 +1,16 @@
 import * as Effect from 'effect/Effect'
-import { describe, expect, it, vi } from 'vitest'
 import { displayTable, TableColumn, TableOptions } from 'effect-cli-tui'
+import { describe, expect, it, vi } from 'vitest'
 
 describe('Table Display', () => {
   describe('displayTable', () => {
     it('should display empty table with no data message', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-      const data: any[] = []
+      const data: { name: string; age: number }[] = []
       const columns: TableColumn[] = [
         { key: 'name', header: 'Name' },
-        { key: 'age', header: 'Age' }
+        { key: 'age', header: 'Age' },
       ]
 
       await Effect.runPromise(displayTable(data, { columns }))
@@ -24,11 +24,11 @@ describe('Table Display', () => {
 
       const data = [
         { name: 'Alice', age: 30 },
-        { name: 'Bob', age: 25 }
+        { name: 'Bob', age: 25 },
       ]
       const columns: TableColumn[] = [
         { key: 'name', header: 'Name' },
-        { key: 'age', header: 'Age' }
+        { key: 'age', header: 'Age' },
       ]
 
       await Effect.runPromise(displayTable(data, { columns }))
@@ -49,12 +49,12 @@ describe('Table Display', () => {
       const data = [{ name: 'Very Long Name Here', age: 30 }]
       const columns: TableColumn[] = [
         { key: 'name', header: 'Name', width: 25 },
-        { key: 'age', header: 'Age', width: 10 }
+        { key: 'age', header: 'Age', width: 10 },
       ]
 
       await Effect.runPromise(displayTable(data, { columns }))
 
-      const output = consoleSpy.mock.calls.map(call => call[0]).join('')
+      const output = consoleSpy.mock.calls.map((call) => call[0]).join('')
       expect(output).toContain('Very Long Name Here')
       consoleSpy.mockRestore()
     })
@@ -65,11 +65,11 @@ describe('Table Display', () => {
       const data = [{ name: 'Test', age: 25 }]
       const columns: TableColumn[] = [
         { key: 'name', header: 'Name' },
-        { key: 'age', header: 'Age' }
+        { key: 'age', header: 'Age' },
       ]
-      const options: TableOptions<typeof data[0]> = {
+      const options: TableOptions<(typeof data)[0]> = {
         columns,
-        style: { color: 'green', bold: true }
+        style: { color: 'green', bold: true },
       }
 
       await Effect.runPromise(displayTable(data, options))
@@ -86,9 +86,9 @@ describe('Table Display', () => {
         {
           key: 'name',
           header: 'Name',
-          formatter: (value: string) => value.toUpperCase()
+          formatter: (value: string) => value.toUpperCase(),
         },
-        { key: 'age', header: 'Age' }
+        { key: 'age', header: 'Age' },
       ]
 
       await Effect.runPromise(displayTable(data, { columns }))
@@ -103,7 +103,7 @@ describe('Table Display', () => {
       const data = [{ name: 'Test', age: 25 }]
       const columns: TableColumn[] = [
         { key: 'name', header: 'Name' },
-        { key: 'age', header: 'Age' }
+        { key: 'age', header: 'Age' },
       ]
 
       await Effect.runPromise(displayTable(data, { columns, bordered: true }))
@@ -118,7 +118,7 @@ describe('Table Display', () => {
       const data = [{ name: 'Test' }]
       const columns: TableColumn[] = [
         { key: 'name', header: 'Name' },
-        { key: 'missing', header: 'Missing' }
+        { key: 'missing', header: 'Missing' },
       ]
 
       await Effect.runPromise(displayTable(data, { columns }))
@@ -131,7 +131,7 @@ describe('Table Display', () => {
       const data = [{ name: 'Test', age: 25 }]
       const columns: TableColumn[] = [
         { key: 'name', header: 'Name' },
-        { key: 'age', header: 'Age' }
+        { key: 'age', header: 'Age' },
       ]
 
       const effect = displayTable(data, { columns })

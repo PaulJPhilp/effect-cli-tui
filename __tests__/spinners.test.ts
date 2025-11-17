@@ -1,13 +1,17 @@
 import * as Effect from 'effect/Effect'
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { spinnerEffect, startSpinner, updateSpinner, stopSpinner, SpinnerOptions } from 'effect-cli-tui'
+import {
+  SpinnerOptions,
+  SpinnerService,
+  spinnerEffect,
+  startSpinner,
+  stopSpinner,
+  updateSpinner,
+} from 'effect-cli-tui'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Helper to advance fake timers
-const advanceTimers = (ms: number) => {
-  if (typeof vi.advanceTimersByTime === 'function') {
-    vi.advanceTimersByTime(ms)
-  }
-}
+const runWithSpinnerService = <A, E = never>(
+  program: Effect.Effect<A, E, SpinnerService>,
+) => Effect.runPromise(program.pipe(Effect.provide(SpinnerService.Default)))
 
 describe('Spinner Display', () => {
   let stdoutSpy: vi.SpyInstance
@@ -20,7 +24,7 @@ describe('Spinner Display', () => {
   afterEach(() => {
     // Clean up any running spinner before restoring
     try {
-      Effect.runSync(stopSpinner())
+      Effect.runSync(stopSpinner().pipe(Effect.provide(SpinnerService.Default)))
     } catch {
       // Ignore errors during cleanup
     }
@@ -31,9 +35,12 @@ describe('Spinner Display', () => {
   describe('startSpinner', () => {
     it('should start a spinner with default message', async () => {
       const message = 'Loading...'
-      await Effect.runPromise(startSpinner(message))
-      // Clean up spinner
-      await Effect.runPromise(stopSpinner())
+      await runWithSpinnerService(
+        Effect.gen(function* () {
+          yield* startSpinner(message)
+          yield* stopSpinner()
+        }),
+      )
 
       expect(stdoutSpy).toHaveBeenCalled()
       // Spinner should have started an interval
@@ -41,19 +48,31 @@ describe('Spinner Display', () => {
 
     it('should support different spinner types', async () => {
       const types: ('dots' | 'line' | 'pipe' | 'simpleDots' | 'simpleDotsScrolling')[] = [
-        'dots', 'line', 'pipe', 'simpleDots', 'simpleDotsScrolling'
+        'dots',
+        'line',
+        'pipe',
+        'simpleDots',
+        'simpleDotsScrolling',
       ]
 
       for (const type of types) {
-        await Effect.runPromise(startSpinner('Test', { type }))
-        await Effect.runPromise(stopSpinner())
+        await runWithSpinnerService(
+          Effect.gen(function* () {
+            yield* startSpinner('Test', { type })
+            yield* stopSpinner()
+          }),
+        )
         expect(stdoutSpy).toHaveBeenCalled()
       }
     })
 
     it('should hide cursor when hideCursor is true', async () => {
-      await Effect.runPromise(startSpinner('Test', { hideCursor: true }))
-      await Effect.runPromise(stopSpinner())
+      await runWithSpinnerService(
+        Effect.gen(function* () {
+          yield* startSpinner('Test', { hideCursor: true })
+          yield* stopSpinner()
+        }),
+      )
 
       expect(stdoutSpy).toHaveBeenCalledWith('\x1B[?25l')
     })
@@ -62,15 +81,19 @@ describe('Spinner Display', () => {
       const effect = startSpinner('Test')
       expect(effect).toBeDefined()
 
-      await Effect.runPromise(effect)
+      await runWithSpinnerService(effect)
     })
   })
 
   describe('updateSpinner', () => {
     it('should update spinner message', async () => {
-      await Effect.runPromise(startSpinner('Initial'))
-      await Effect.runPromise(updateSpinner('Updated'))
-      await Effect.runPromise(stopSpinner())
+      await runWithSpinnerService(
+        Effect.gen(function* () {
+          yield* startSpinner('Initial')
+          yield* updateSpinner('Updated')
+          yield* stopSpinner()
+        }),
+      )
 
       // Message should be updated internally
       expect(stdoutSpy).toHaveBeenCalled()
@@ -80,36 +103,42 @@ describe('Spinner Display', () => {
       const effect = updateSpinner('Test')
       expect(effect).toBeDefined()
 
-      await Effect.runPromise(effect)
+      await runWithSpinnerService(effect)
     })
   })
 
   describe('stopSpinner', () => {
     it('should stop spinner and show success message', async () => {
-      await Effect.runPromise(startSpinner('Test'))
-      stdoutSpy.mockClear() // Clear calls from startSpinner interval
-      
-      await Effect.runPromise(stopSpinner('Done', 'success'))
+      await runWithSpinnerService(
+        Effect.gen(function* () {
+          yield* startSpinner('Test')
+          stdoutSpy.mockClear()
+          yield* stopSpinner('Done', 'success')
+        }),
+      )
 
       // stopSpinner writes cursor show and message
       // The implementation writes: '\x1B[?25h' then '\r✓ Done\n'
       // With fake timers and mock, we verify at least cursor show was written
       expect(stdoutSpy.mock.calls.length).toBeGreaterThanOrEqual(1)
-      const allWrites = stdoutSpy.mock.calls.map(call => String(call[0] || '')).join('')
+      const allWrites = stdoutSpy.mock.calls.map((call) => String(call[0] || '')).join('')
       expect(allWrites).toContain('\x1B[?25h') // Cursor show
       // Note: The message write happens but may not be captured by spy in test environment
     })
 
     it('should stop spinner and show error message', async () => {
-      await Effect.runPromise(startSpinner('Test'))
-      stdoutSpy.mockClear() // Clear calls from startSpinner interval
-      
-      await Effect.runPromise(stopSpinner('Failed', 'error'))
+      await runWithSpinnerService(
+        Effect.gen(function* () {
+          yield* startSpinner('Test')
+          stdoutSpy.mockClear()
+          yield* stopSpinner('Failed', 'error')
+        }),
+      )
 
       // stopSpinner writes 2 calls: cursor show + message
       // The implementation writes: '\x1B[?25h' then '\r✗ Failed\n'
       expect(stdoutSpy.mock.calls.length).toBeGreaterThanOrEqual(1)
-      const calls = stdoutSpy.mock.calls.map(call => String(call[0] || ''))
+      const _calls = stdoutSpy.mock.calls.map((call) => String(call[0] || ''))
       const allText = calls.join('')
       // Must have cursor show
       expect(allText).toContain('\x1B[?25h')
@@ -118,8 +147,12 @@ describe('Spinner Display', () => {
     })
 
     it('should handle no message', async () => {
-      await Effect.runPromise(startSpinner('Test'))
-      await Effect.runPromise(stopSpinner())
+      await runWithSpinnerService(
+        Effect.gen(function* () {
+          yield* startSpinner('Test')
+          yield* stopSpinner()
+        }),
+      )
 
       expect(stdoutSpy).toHaveBeenCalled()
       // When no message, should write cursor show and empty line
@@ -131,7 +164,7 @@ describe('Spinner Display', () => {
       const effect = stopSpinner('Test')
       expect(effect).toBeDefined()
 
-      await Effect.runPromise(effect)
+      await runWithSpinnerService(effect)
     })
   })
 
@@ -140,14 +173,14 @@ describe('Spinner Display', () => {
       const mockEffect = Effect.succeed('result')
       stdoutSpy.mockClear() // Clear any previous calls
 
-      const result = await Effect.runPromise(spinnerEffect('Processing...', mockEffect))
+      const result = await runWithSpinnerService(spinnerEffect('Processing...', mockEffect))
 
       expect(result).toBe('result')
       // Check that stdout was written to (spinner cleanup and message)
       expect(stdoutSpy).toHaveBeenCalled()
       // The spinnerEffect calls stopSpinner which writes cursor show + message
       // With the current mock setup, we verify the spinner ran successfully
-      const calls = stdoutSpy.mock.calls.map(call => String(call[0] || ''))
+      const _calls = stdoutSpy.mock.calls.map((call) => String(call[0] || ''))
       const allText = calls.join('')
       // Verify cursor show was written (indicates stopSpinner was called)
       expect(allText).toContain('\x1B[?25h')
@@ -160,7 +193,7 @@ describe('Spinner Display', () => {
       stdoutSpy.mockClear() // Clear any previous calls
 
       try {
-        await Effect.runPromise(spinnerEffect('Processing...', mockEffect))
+        await runWithSpinnerService(spinnerEffect('Processing...', mockEffect))
         expect.fail('Should have thrown')
       } catch {
         // Expected to throw - Effect failure
@@ -168,8 +201,7 @@ describe('Spinner Display', () => {
 
       // The spinnerEffect should call stopSpinner on error
       // Verify that stopSpinner was called (cursor show sequence)
-      const calls = stdoutSpy.mock.calls.map(call => String(call[0] || ''))
-      const allText = calls.join('')
+      const _calls = stdoutSpy.mock.calls.map((call) => String(call[0] || ''))
       // The spinner may or may not have time to write before failure, but stopSpinner should be called
       expect(stdoutSpy.mock.calls.length).toBeGreaterThanOrEqual(0) // May or may not capture writes
     }, 10000) // 10 second timeout
@@ -178,7 +210,9 @@ describe('Spinner Display', () => {
       const mockEffect = Effect.succeed('result')
       const options: SpinnerOptions = { type: 'line', hideCursor: true }
 
-      const result = await Effect.runPromise(spinnerEffect('Processing...', mockEffect, options))
+      const result = await runWithSpinnerService(
+        spinnerEffect('Processing...', mockEffect, options),
+      )
 
       expect(result).toBe('result')
     })
@@ -187,7 +221,7 @@ describe('Spinner Display', () => {
       const mockEffect = Effect.succeed(42)
       const spinnerEffectResult = spinnerEffect('Test', mockEffect)
 
-      const result = await Effect.runPromise(spinnerEffectResult)
+      const result = await runWithSpinnerService(spinnerEffectResult)
       expect(result).toBe(42)
     })
   })

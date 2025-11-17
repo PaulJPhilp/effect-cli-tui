@@ -1,12 +1,12 @@
-import { describe, it, expect, vi } from 'vitest'
 import { Effect } from 'effect'
+import { describe, expect, it, vi } from 'vitest'
 import {
   applyChalkStyle,
   displayHighlight,
+  displayInfo,
+  displayListItem,
   displayMuted,
   displayWarning,
-  displayInfo,
-  displayListItem
 } from '../../src/index'
 
 /**
@@ -176,7 +176,7 @@ describe('Colors & Styling - Comprehensive Coverage', () => {
       const result = applyChalkStyle('test', {
         color: 'yellow',
         bold: true,
-        underline: true
+        underline: true,
       })
       expect(result).toBeDefined()
       expect(typeof result).toBe('string')
@@ -189,7 +189,7 @@ describe('Colors & Styling - Comprehensive Coverage', () => {
         italic: true,
         underline: true,
         inverse: true,
-        strikethrough: true
+        strikethrough: true,
       })
       expect(result).toBeDefined()
       expect(typeof result).toBe('string')
@@ -203,7 +203,7 @@ describe('Colors & Styling - Comprehensive Coverage', () => {
         italic: true,
         underline: false,
         inverse: false,
-        strikethrough: false
+        strikethrough: false,
       })
       expect(result).toBeDefined()
       expect(typeof result).toBe('string')
@@ -214,7 +214,7 @@ describe('Colors & Styling - Comprehensive Coverage', () => {
         color: 'black',
         bgColor: 'bgYellow',
         bold: true,
-        italic: true
+        italic: true,
       })
       expect(result).toBeDefined()
       expect(typeof result).toBe('string')
@@ -263,7 +263,7 @@ describe('Colors & Styling - Comprehensive Coverage', () => {
 
     it('should display long message', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-      const longMsg = 'Important: ' + 'a'.repeat(100)
+      const longMsg = `Important: ${'a'.repeat(100)}`
       await Effect.runPromise(displayHighlight(longMsg))
       expect(consoleSpy).toHaveBeenCalled()
       consoleSpy.mockRestore()
@@ -294,7 +294,7 @@ describe('Colors & Styling - Comprehensive Coverage', () => {
 
     it('should display long muted message', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-      const longMsg = 'Detail: ' + 'x'.repeat(100)
+      const longMsg = `Detail: ${'x'.repeat(100)}`
       await Effect.runPromise(displayMuted(longMsg))
       expect(consoleSpy).toHaveBeenCalled()
       consoleSpy.mockRestore()
@@ -331,7 +331,7 @@ describe('Colors & Styling - Comprehensive Coverage', () => {
 
     it('should display long warning', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-      const longMsg = 'Warning: ' + 'w'.repeat(100)
+      const longMsg = `Warning: ${'w'.repeat(100)}`
       await Effect.runPromise(displayWarning(longMsg))
       expect(consoleSpy).toHaveBeenCalled()
       consoleSpy.mockRestore()
@@ -362,7 +362,7 @@ describe('Colors & Styling - Comprehensive Coverage', () => {
 
     it('should display long info message', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-      const longMsg = 'Information: ' + 'i'.repeat(100)
+      const longMsg = `Information: ${'i'.repeat(100)}`
       await Effect.runPromise(displayInfo(longMsg))
       expect(consoleSpy).toHaveBeenCalled()
       consoleSpy.mockRestore()
@@ -455,7 +455,7 @@ describe('Colors & Styling - Comprehensive Coverage', () => {
 
     it('should display long list item text', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-      const longItem = 'Item: ' + 'a'.repeat(150)
+      const longItem = `Item: ${'a'.repeat(150)}`
       await Effect.runPromise(displayListItem(longItem))
       expect(consoleSpy).toHaveBeenCalled()
       consoleSpy.mockRestore()
@@ -498,7 +498,7 @@ describe('Colors & Styling - Comprehensive Coverage', () => {
         'magenta',
         'cyan',
         'white',
-        'gray'
+        'gray',
       ] as const
       const allBgColors = [
         'bgBlack',
@@ -508,7 +508,7 @@ describe('Colors & Styling - Comprehensive Coverage', () => {
         'bgBlue',
         'bgMagenta',
         'bgCyan',
-        'bgWhite'
+        'bgWhite',
       ] as const
 
       allColors.forEach((color) => {

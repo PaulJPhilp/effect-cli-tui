@@ -1,17 +1,22 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { Effect } from 'effect'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  type SpinnerOptions,
+  SpinnerService,
   spinnerEffect,
   startSpinner,
   stopSpinner,
   updateSpinner,
-  type SpinnerOptions
 } from '../../src/progress/spinner'
 
 /**
  * Comprehensive tests for spinner.ts module
  * Tests spinner lifecycle, options, and error handling
  */
+
+const runWithSpinnerService = <A, E = never>(
+  program: Effect.Effect<A, E, SpinnerService>,
+) => Effect.runPromise(program.pipe(Effect.provide(SpinnerService.Default)))
 
 describe('Spinner - Comprehensive Coverage', () => {
   beforeEach(() => {
@@ -31,7 +36,7 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner() // Clean up
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       expect(stdoutSpy).toHaveBeenCalled()
       stdoutSpy.mockRestore()
     })
@@ -44,7 +49,7 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner() // Clean up
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       expect(stdoutSpy).toHaveBeenCalled()
       stdoutSpy.mockRestore()
     })
@@ -57,7 +62,7 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner() // Clean up
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       expect(stdoutSpy).toHaveBeenCalledWith(expect.stringContaining('\x1B[?25l'))
       stdoutSpy.mockRestore()
     })
@@ -70,10 +75,10 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner() // Clean up
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       // Should not have hidden cursor
       const hideCursorCalls = stdoutSpy.mock.calls.filter((call) =>
-        call[0]?.toString().includes('\x1B[?25l')
+        call[0]?.toString().includes('\x1B[?25l'),
       )
       expect(hideCursorCalls.length).toBe(0)
       stdoutSpy.mockRestore()
@@ -89,7 +94,7 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner() // Clean up
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       expect(stdoutSpy).toHaveBeenCalled()
       stdoutSpy.mockRestore()
     })
@@ -102,7 +107,7 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner() // Clean up
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       expect(stdoutSpy).toHaveBeenCalled()
       stdoutSpy.mockRestore()
     })
@@ -115,7 +120,7 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner() // Clean up
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       expect(stdoutSpy).toHaveBeenCalled()
       stdoutSpy.mockRestore()
     })
@@ -128,7 +133,7 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner() // Clean up
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       expect(stdoutSpy).toHaveBeenCalled()
       stdoutSpy.mockRestore()
     })
@@ -141,18 +146,20 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner() // Clean up
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       expect(stdoutSpy).toHaveBeenCalled()
       stdoutSpy.mockRestore()
     })
 
     it('should throw error for invalid spinner type', async () => {
       const program = Effect.gen(function* () {
-        yield* startSpinner('Loading...', { type: 'invalid-type' as any })
+        yield* startSpinner('Loading...', {
+          type: 'invalid-type' as unknown as SpinnerOptions['type'],
+        })
         yield* stopSpinner() // Clean up
       })
 
-      await expect(Effect.runPromise(program)).rejects.toThrow()
+      await expect(runWithSpinnerService(program)).rejects.toThrow()
     })
   })
 
@@ -163,7 +170,7 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* Effect.succeed(undefined)
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
     })
 
     it('should update spinner with empty message', async () => {
@@ -172,17 +179,17 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* Effect.succeed(undefined)
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
     })
 
     it('should update spinner with long message', async () => {
-      const longMsg = 'Processing ' + 'data'.repeat(50)
+      const longMsg = `Processing ${'data'.repeat(50)}`
       const program = Effect.gen(function* () {
         yield* updateSpinner(longMsg)
         yield* Effect.succeed(undefined)
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
     })
   })
 
@@ -194,9 +201,9 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner('Completed!', 'success')
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       // stopSpinner writes to process.stdout, not console.log
-      const calls = stdoutSpy.mock.calls.map(call => String(call[0] || ''))
+      const calls = stdoutSpy.mock.calls.map((call) => String(call[0] || ''))
       const allText = calls.join('')
       expect(allText).toContain('✓')
       expect(allText).toContain('Completed!')
@@ -210,9 +217,9 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner('Failed!', 'error')
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       // stopSpinner writes to process.stdout, not console.log
-      const calls = stdoutSpy.mock.calls.map(call => String(call[0] || ''))
+      const calls = stdoutSpy.mock.calls.map((call) => String(call[0] || ''))
       const allText = calls.join('')
       expect(allText).toContain('✗')
       expect(allText).toContain('Failed!')
@@ -226,7 +233,7 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner(undefined, 'success')
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       // Should write cursor show and empty line
       expect(stdoutSpy.mock.calls.length).toBeGreaterThanOrEqual(1)
       stdoutSpy.mockRestore()
@@ -239,7 +246,7 @@ describe('Spinner - Comprehensive Coverage', () => {
         yield* stopSpinner('', 'success')
       })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
       // Should write cursor show and empty line (empty message means no prefix)
       expect(stdoutSpy.mock.calls.length).toBeGreaterThanOrEqual(1)
       stdoutSpy.mockRestore()
@@ -253,10 +260,10 @@ describe('Spinner - Comprehensive Coverage', () => {
       const effect = Effect.succeed('result')
       const program = spinnerEffect('Processing...', effect)
 
-      const result = await Effect.runPromise(program)
+      const result = await runWithSpinnerService(program)
       expect(result).toBe('result')
       // stopSpinner writes to process.stdout, not console.log
-      const calls = stdoutSpy.mock.calls.map(call => String(call[0] || ''))
+      const calls = stdoutSpy.mock.calls.map((call) => String(call[0] || ''))
       const allText = calls.join('')
       expect(allText).toContain('Done!')
 
@@ -270,8 +277,8 @@ describe('Spinner - Comprehensive Coverage', () => {
       const program = spinnerEffect('Processing...', effect)
 
       try {
-        await Effect.runPromise(program)
-      } catch (error) {
+        await runWithSpinnerService(program)
+      } catch (_error) {
         // Expected to throw
       }
 
@@ -289,7 +296,7 @@ describe('Spinner - Comprehensive Coverage', () => {
       const options: SpinnerOptions = { hideCursor: true, type: 'dots' }
       const program = spinnerEffect('Loading...', effect, options)
 
-      const result = await Effect.runPromise(program)
+      const result = await runWithSpinnerService(program)
       expect(result).toBe('done')
 
       stdoutSpy.mockRestore()
@@ -303,11 +310,11 @@ describe('Spinner - Comprehensive Coverage', () => {
       const effect = Effect.succeed('result')
       const program = spinnerEffect('Processing...', effect, { hideCursor: true })
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
 
       // Should have shown cursor again
       const showCursorCalls = stdoutSpy.mock.calls.filter((call) =>
-        call[0]?.toString().includes('\x1B[?25h')
+        call[0]?.toString().includes('\x1B[?25h'),
       )
       expect(showCursorCalls.length).toBeGreaterThan(0)
 
@@ -320,12 +327,12 @@ describe('Spinner - Comprehensive Coverage', () => {
       const effect = Effect.succeed('result')
       const program = spinnerEffect('Processing...', effect)
 
-      await Effect.runPromise(program)
+      await runWithSpinnerService(program)
 
       // stopSpinner writes '\r' to clear/overwrite the line, not '\x1B[K'
       // So we verify that cleanup happened (cursor show was written)
       const showCursorCalls = stdoutSpy.mock.calls.filter((call) =>
-        call[0]?.toString().includes('\x1B[?25h')
+        call[0]?.toString().includes('\x1B[?25h'),
       )
       expect(showCursorCalls.length).toBeGreaterThan(0)
 

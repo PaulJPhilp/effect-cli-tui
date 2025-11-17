@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
-  redactSecrets,
-  redactEnvironment,
-  safeEnvironmentLog,
   redactArguments,
-  safeCommandLog
+  redactEnvironment,
+  redactSecrets,
+  safeCommandLog,
+  safeEnvironmentLog,
 } from '../../src/core/redact'
 
 /**
@@ -22,7 +22,8 @@ describe('Secret Redaction Utilities', () => {
     })
 
     it('should redact JWT tokens', () => {
-      const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U'
+      const jwt =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U'
       const redacted = redactSecrets(jwt)
       expect(redacted).toContain('[REDACTED: JWT Token]')
     })
@@ -118,8 +119,8 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
     })
 
     it('should handle null/non-string inputs gracefully', () => {
-      expect(redactSecrets(null as any)).toBe(null)
-      expect(redactSecrets(undefined as any)).toBe(undefined)
+      expect(redactSecrets(null as unknown as string)).toBe(null)
+      expect(redactSecrets(undefined as unknown as string)).toBe(undefined)
     })
   })
 
@@ -127,7 +128,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
     it('should redact PASSWORD variables', () => {
       const env = {
         DATABASE_PASSWORD: 'secret123',
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
       }
       const safe = redactEnvironment(env)
       expect(safe.DATABASE_PASSWORD).toBe('[REDACTED]')
@@ -137,7 +138,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
     it('should redact API_KEY variables', () => {
       const env = {
         API_KEY: 'sk_live_xyz',
-        APIKEY: 'pk_test_abc'
+        APIKEY: 'pk_test_abc',
       }
       const safe = redactEnvironment(env)
       expect(safe.API_KEY).toBe('[REDACTED]')
@@ -148,7 +149,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
       const env = {
         AUTH_TOKEN: 'bearer_xyz',
         JWT_TOKEN: 'eyJ...',
-        OAUTH_TOKEN: 'oauth_abc'
+        OAUTH_TOKEN: 'oauth_abc',
       }
       const safe = redactEnvironment(env)
       expect(safe.AUTH_TOKEN).toBe('[REDACTED]')
@@ -160,7 +161,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
       const env = {
         AWS_ACCESS_KEY_ID: 'AKIA...',
         AWS_SECRET_ACCESS_KEY: 'wJalr...',
-        AWS_REGION: 'us-east-1'
+        AWS_REGION: 'us-east-1',
       }
       const safe = redactEnvironment(env)
       expect(safe.AWS_ACCESS_KEY_ID).toBe('[REDACTED]')
@@ -171,7 +172,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
     it('should redact GITHUB variables', () => {
       const env = {
         GITHUB_TOKEN: 'ghp_xyz',
-        GITHUB_PASSWORD: 'secret'
+        GITHUB_PASSWORD: 'secret',
       }
       const safe = redactEnvironment(env)
       expect(safe.GITHUB_TOKEN).toBe('[REDACTED]')
@@ -182,7 +183,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
       const env = {
         password: 'secret1',
         PASSWORD: 'secret2',
-        PaSsWoRd: 'secret3'
+        PaSsWoRd: 'secret3',
       }
       const safe = redactEnvironment(env)
       expect(safe.password).toBe('[REDACTED]')
@@ -200,7 +201,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
     it('should format safe variables with values', () => {
       const env = {
         NODE_ENV: 'production',
-        PORT: '3000'
+        PORT: '3000',
       }
       const log = safeEnvironmentLog(env)
       expect(log).toContain('NODE_ENV=production')
@@ -210,7 +211,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
     it('should redact sensitive variables', () => {
       const env = {
         DATABASE_PASSWORD: 'secret123',
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
       }
       const log = safeEnvironmentLog(env)
       expect(log).toContain('DATABASE_PASSWORD=[REDACTED]')
@@ -221,7 +222,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
     it('should return comma-separated format', () => {
       const env = {
         VAR1: 'value1',
-        VAR2: 'value2'
+        VAR2: 'value2',
       }
       const log = safeEnvironmentLog(env)
       expect(log).toContain(', ')
@@ -231,7 +232,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
       const env = {
         SAFE_VAR: 'visible',
         API_KEY: 'secret',
-        DEBUG: 'true'
+        DEBUG: 'true',
       }
       const log = safeEnvironmentLog(env)
       expect(log).toContain('SAFE_VAR=visible')
@@ -326,7 +327,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
         'API_KEY=secret123',
         '--name',
         'myapp',
-        'image:latest'
+        'image:latest',
       ])
       expect(log).not.toContain('secret123')
       expect(log).toContain('myapp')
@@ -338,11 +339,16 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
     it('should handle real-world database command', () => {
       const command = 'psql'
       const args = [
-        '-h', 'db.example.com',
-        '-p', '5432',
-        '-U', 'admin',
-        '-W', 'MyPassword123!',
-        '-d', 'production'
+        '-h',
+        'db.example.com',
+        '-p',
+        '5432',
+        '-U',
+        'admin',
+        '-W',
+        'MyPassword123!',
+        '-d',
+        'production',
       ]
       const safe = safeCommandLog(command, args)
       expect(safe).not.toContain('MyPassword123!')
@@ -365,7 +371,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
         DATABASE_PASSWORD: 'pass123',
         API_KEY: 'key456',
         DEBUG: 'false',
-        STRIPE_SECRET: 'sk_live_789'
+        STRIPE_SECRET: 'sk_live_789',
       }
       const safe = redactEnvironment(env)
       expect(Object.values(safe)).toHaveLength(5)

@@ -1,10 +1,6 @@
-import { Effect } from "effect";
-import { DisplayService } from "../services/display";
-import type {
-  DisplayOptions,
-  DisplayType,
-  JsonDisplayOptions,
-} from "../services/display/types";
+import { Effect } from 'effect'
+import { DisplayService } from '../services/display'
+import type { DisplayOptions, DisplayType, JsonDisplayOptions } from '../services/display/types'
 
 /**
  * Enhanced display function with style support
@@ -14,12 +10,12 @@ import type {
 export function displayOutput(
   message: string,
   type: DisplayType,
-  options: DisplayOptions = {}
+  options: DisplayOptions = {},
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.output(message, { ...options, type });
-  }).pipe(Effect.provide(DisplayService.Default));
+    const display = yield* DisplayService
+    yield* display.output(message, { ...options, type })
+  }).pipe(Effect.provide(DisplayService.Default))
 }
 
 /**
@@ -27,14 +23,11 @@ export function displayOutput(
  *
  * Convenience wrapper around DisplayService
  */
-export function display(
-  message: string,
-  options: DisplayOptions = {}
-): Effect.Effect<void> {
+export function display(message: string, options: DisplayOptions = {}): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.output(message, options);
-  }).pipe(Effect.provide(DisplayService.Default));
+    const display = yield* DisplayService
+    yield* display.output(message, options)
+  }).pipe(Effect.provide(DisplayService.Default))
 }
 
 /**
@@ -42,14 +35,11 @@ export function display(
  *
  * Convenience wrapper around DisplayService
  */
-export function displayLines(
-  lines: string[],
-  options: DisplayOptions = {}
-): Effect.Effect<void> {
+export function displayLines(lines: string[], options: DisplayOptions = {}): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.lines(lines, options);
-  }).pipe(Effect.provide(DisplayService.Default));
+    const display = yield* DisplayService
+    yield* display.lines(lines, options)
+  }).pipe(Effect.provide(DisplayService.Default))
 }
 
 /**
@@ -57,14 +47,11 @@ export function displayLines(
  *
  * Convenience wrapper around DisplayService
  */
-export function displayJson(
-  data: unknown,
-  options: JsonDisplayOptions = {}
-): Effect.Effect<void> {
+export function displayJson(data: unknown, options: JsonDisplayOptions = {}): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.json(data, options);
-  }).pipe(Effect.provide(DisplayService.Default));
+    const display = yield* DisplayService
+    yield* display.json(data, options)
+  }).pipe(Effect.provide(DisplayService.Default))
 }
 
 /**
@@ -74,12 +61,12 @@ export function displayJson(
  */
 export function displaySuccess(
   message: string,
-  options: Omit<DisplayOptions, "type"> = {}
+  options: Omit<DisplayOptions, 'type'> = {},
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.success(message, options);
-  }).pipe(Effect.provide(DisplayService.Default));
+    const display = yield* DisplayService
+    yield* display.success(message, options)
+  }).pipe(Effect.provide(DisplayService.Default))
 }
 
 /**
@@ -89,10 +76,10 @@ export function displaySuccess(
  */
 export function displayError(
   message: string,
-  options: Omit<DisplayOptions, "type"> = {}
+  options: Omit<DisplayOptions, 'type'> = {},
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.error(message, options);
-  }).pipe(Effect.provide(DisplayService.Default));
+    const display = yield* DisplayService
+    yield* display.error(message, options)
+  }).pipe(Effect.provide(DisplayService.Default))
 }

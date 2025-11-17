@@ -1,5 +1,5 @@
-import type { Effect } from "effect";
-import type { DisplayOptions, JsonDisplayOptions } from "./types";
+import type { Effect } from 'effect'
+import type { DisplayOptions, JsonDisplayOptions } from './types'
 
 /**
  * Display service API interface
@@ -21,7 +21,7 @@ export interface DisplayService {
    * yield* display.output('Hello, world!', { type: 'success' })
    * ```
    */
-  output: (message: string, options?: DisplayOptions) => Effect.Effect<void>;
+  output: (message: string, options?: DisplayOptions) => Effect.Effect<void>
 
   /**
    * Display multiple lines sequentially
@@ -36,7 +36,7 @@ export interface DisplayService {
    * yield* display.lines(['Line 1', 'Line 2'], { type: 'info' })
    * ```
    */
-  lines: (lines: string[], options?: DisplayOptions) => Effect.Effect<void>;
+  lines: (lines: string[], options?: DisplayOptions) => Effect.Effect<void>
 
   /**
    * Display JSON data with formatting
@@ -51,7 +51,7 @@ export interface DisplayService {
    * yield* display.json({ key: 'value' }, { spaces: 2 })
    * ```
    */
-  json: (data: unknown, options?: JsonDisplayOptions) => Effect.Effect<void>;
+  json: (data: unknown, options?: JsonDisplayOptions) => Effect.Effect<void>
 
   /**
    * Display a success message
@@ -60,10 +60,7 @@ export interface DisplayService {
    * @param options - Display options (type is set to 'success')
    * @returns Effect that displays the message
    */
-  success: (
-    message: string,
-    options?: Omit<DisplayOptions, "type">
-  ) => Effect.Effect<void>;
+  success: (message: string, options?: Omit<DisplayOptions, 'type'>) => Effect.Effect<void>
 
   /**
    * Display an error message
@@ -72,8 +69,5 @@ export interface DisplayService {
    * @param options - Display options (type is set to 'error')
    * @returns Effect that displays the message
    */
-  error: (
-    message: string,
-    options?: Omit<DisplayOptions, "type">
-  ) => Effect.Effect<void>;
+  error: (message: string, options?: Omit<DisplayOptions, 'type'>) => Effect.Effect<void>
 }

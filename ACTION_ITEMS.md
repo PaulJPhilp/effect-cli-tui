@@ -281,7 +281,7 @@ Based on the comprehensive design review, here are prioritized, actionable next 
    export function displayHighlight(message: string): Effect.Effect<void> {
      return Effect.gen(function* () {
        const theme = yield* ThemeService
-       const current = theme.getTheme()
+       const current = yield* theme.getTheme()
        const styled = applyChalkStyle(message, {
          bold: true,
          color: current.colors.highlight

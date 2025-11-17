@@ -20,11 +20,11 @@
  * ```
  */
 
-export { Input, type InputProps } from './Input'
-export { Select, type SelectProps } from './Select'
-export { MultiSelect, type MultiSelectProps } from './MultiSelect'
 export { Confirm, type ConfirmProps } from './Confirm'
-export { Password, type PasswordProps } from './Password'
-export { SpinnerComponent, type SpinnerComponentProps } from './Spinner'
-export { ProgressBar, type ProgressBarProps } from './ProgressBar'
+export { Input, type InputProps } from './Input'
 export { Message, type MessageProps } from './Message'
+export { MultiSelect, type MultiSelectProps } from './MultiSelect'
+export { Password, type PasswordProps } from './Password'
+export { ProgressBar, type ProgressBarProps } from './ProgressBar'
+export { Select, type SelectProps } from './Select'
+export { SpinnerComponent, type SpinnerComponentProps } from './Spinner'

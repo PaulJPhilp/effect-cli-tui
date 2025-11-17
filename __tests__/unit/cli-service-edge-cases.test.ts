@@ -1,14 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { Effect } from 'effect'
-import { spawn as originalSpawn } from 'child_process'
+import { describe, expect, it } from 'vitest'
 import { EffectCLI } from '../../src/cli'
-import { CLIError } from '../../src/types'
-import {
-  MockCLI,
-  MockCLIFailure,
-  MockCLITimeout,
-  createMockCLI
-} from '../fixtures/test-layers'
+import { createMockCLI, MockCLI, MockCLIFailure, MockCLITimeout } from '../fixtures/test-layers'
 
 /**
  * Extended edge case tests for EffectCLI service.
@@ -21,7 +14,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
       const customMock = createMockCLI({
         exitCode: 0,
         stdout: 'output',
-        stderr: ''
+        stderr: '',
       })
 
       const program = Effect.gen(function* () {
@@ -38,7 +31,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
       const customMock = createMockCLI({
         exitCode: 0,
         stdout: 'large'.repeat(1000),
-        stderr: ''
+        stderr: '',
       })
 
       const program = Effect.gen(function* () {
@@ -56,7 +49,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
       const customMock = createMockCLI({
         exitCode: 0,
         stdout: largeOutput,
-        stderr: ''
+        stderr: '',
       })
 
       const program = Effect.gen(function* () {
@@ -73,7 +66,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
       const customMock = createMockCLI({
         exitCode: 0,
         stdout: 'output line',
-        stderr: 'warning'
+        stderr: 'warning',
       })
 
       const program = Effect.gen(function* () {
@@ -125,9 +118,9 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
     it('should handle stream failure with non-zero exit code', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.stream('fail-cmd').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
-        )
+        return yield* cli
+          .stream('fail-cmd')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason)))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const reason = await Effect.runPromise(program)
@@ -137,9 +130,9 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
     it('should handle stream timeout', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.stream('slow-cmd').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
-        )
+        return yield* cli
+          .stream('slow-cmd')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason)))
       }).pipe(Effect.provide(MockCLITimeout))
 
       const reason = await Effect.runPromise(program)
@@ -152,7 +145,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
         yield* cli.stream('cmd', [], {
           cwd: process.cwd(),
           env: { TEST: 'value' },
-          timeout: 5000
+          timeout: 5000,
         })
         return 'done'
       }).pipe(Effect.provide(MockCLI))
@@ -198,8 +191,8 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
         yield* cli.stream('cmd', [], {
           env: {
             CUSTOM_VAR: 'custom_value',
-            ANOTHER_VAR: 'another_value'
-          }
+            ANOTHER_VAR: 'another_value',
+          },
         })
         return 'ok'
       }).pipe(Effect.provide(MockCLI))
@@ -213,9 +206,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
         return yield* Effect.gen(function* () {
           const cli = yield* EffectCLI
           yield* cli.stream('fail-cmd')
-        }).pipe(
-          Effect.catchTag('CLIError', () => Effect.succeed('recovered'))
-        )
+        }).pipe(Effect.catchTag('CLIError', () => Effect.succeed('recovered')))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const result = await Effect.runPromise(program)
@@ -253,7 +244,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
       const customMock = createMockCLI({
         exitCode: 0,
         stdout: 'stdout content',
-        stderr: 'warning message'
+        stderr: 'warning message',
       })
 
       const program = Effect.gen(function* () {
@@ -271,14 +262,14 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
       const customMock = createMockCLI({
         exitCode: 2,
         stdout: '',
-        stderr: 'Error: something went wrong'
+        stderr: 'Error: something went wrong',
       })
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('cmd').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.message))
-        )
+        return yield* cli
+          .run('cmd')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.message)))
       }).pipe(Effect.provide(customMock))
 
       const message = await Effect.runPromise(program)
@@ -289,14 +280,14 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
       const customMock = createMockCLI({
         exitCode: 255,
         stdout: '',
-        stderr: 'failed'
+        stderr: 'failed',
       })
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('cmd').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.message))
-        )
+        return yield* cli
+          .run('cmd')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.message)))
       }).pipe(Effect.provide(customMock))
 
       const message = await Effect.runPromise(program)
@@ -318,9 +309,9 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
     it('should handle cleanup on error', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('fail-cmd').pipe(
-          Effect.catchTag('CLIError', () => Effect.succeed(null))
-        )
+        return yield* cli
+          .run('fail-cmd')
+          .pipe(Effect.catchTag('CLIError', () => Effect.succeed(null)))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const result = await Effect.runPromise(program)
@@ -330,9 +321,9 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
     it('should cleanup after timeout', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('slow-cmd').pipe(
-          Effect.catchTag('CLIError', () => Effect.succeed('cleaned-up'))
-        )
+        return yield* cli
+          .run('slow-cmd')
+          .pipe(Effect.catchTag('CLIError', () => Effect.succeed('cleaned-up')))
       }).pipe(Effect.provide(MockCLITimeout))
 
       const result = await Effect.runPromise(program)
@@ -357,7 +348,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
       const customMock = createMockCLI({
         exitCode: 0,
         stdout: '',
-        stderr: ''
+        stderr: '',
       })
 
       const program = Effect.gen(function* () {
@@ -375,7 +366,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
       const customMock = createMockCLI({
         exitCode: 0,
         stdout: 'line1\nline2\nline3\nline4\n',
-        stderr: ''
+        stderr: '',
       })
 
       const program = Effect.gen(function* () {
@@ -392,7 +383,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
       const customMock = createMockCLI({
         exitCode: 0,
         stdout: Buffer.from([0, 1, 2, 3, 255]).toString(),
-        stderr: ''
+        stderr: '',
       })
 
       const program = Effect.gen(function* () {
@@ -408,11 +399,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
     it('should handle concurrent run calls', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        const results = yield* Effect.all([
-          cli.run('cmd1'),
-          cli.run('cmd2'),
-          cli.run('cmd3')
-        ])
+        const results = yield* Effect.all([cli.run('cmd1'), cli.run('cmd2'), cli.run('cmd3')])
         return results.length
       }).pipe(Effect.provide(MockCLI))
 
@@ -441,9 +428,9 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
     it('should handle timeout of exactly 1ms', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('cmd', [], { timeout: 1 }).pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
-        )
+        return yield* cli
+          .run('cmd', [], { timeout: 1 })
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason)))
       }).pipe(Effect.provide(MockCLITimeout))
 
       const reason = await Effect.runPromise(program)
@@ -511,7 +498,7 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
         const result = yield* cli.run('cmd', [], {
-          env: { CUSTOM_ENV: 'test' }
+          env: { CUSTOM_ENV: 'test' },
         })
         return result.exitCode
       }).pipe(Effect.provide(MockCLI))
@@ -531,9 +518,9 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
               isError: err instanceof Error,
               tag: err._tag,
               reason: err.reason,
-              hasMessage: typeof err.message === 'string'
-            })
-          )
+              hasMessage: typeof err.message === 'string',
+            }),
+          ),
         )
       }).pipe(Effect.provide(MockCLIFailure))
 
@@ -547,9 +534,9 @@ describe('EffectCLI Service - Edge Cases & Uncovered Paths', () => {
     it('should preserve error context through catch', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('fail').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.message))
-        )
+        return yield* cli
+          .run('fail')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.message)))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const message = await Effect.runPromise(program)

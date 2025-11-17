@@ -8,6 +8,6 @@ beforeEach(async () => {
   // Add a 1 second delay every 15 tests to allow processes to clean up
   // This helps prevent resource contention when running full test suite
   if (testCount % 15 === 0) {
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
   }
 })

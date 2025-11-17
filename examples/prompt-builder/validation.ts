@@ -5,7 +5,7 @@
  * Ensures user responses meet field requirements before prompt generation
  */
 
-import { Schema, Effect } from 'effect'
+import { Effect } from 'effect'
 import { TemplateField, UserResponses } from './types.js'
 
 /**
@@ -23,7 +23,7 @@ import { TemplateField, UserResponses } from './types.js'
  */
 export const validateField = (
   field: TemplateField,
-  value: unknown
+  value: unknown,
 ): Effect.Effect<boolean, string> =>
   Effect.gen(function* () {
     if (field.required && !value) {
@@ -37,9 +37,7 @@ export const validateField = (
 
       if (field.type === 'choice' && field.choices) {
         if (!field.choices.includes(value)) {
-          return yield* Effect.fail(
-            `${field.label} must be one of: ${field.choices.join(', ')}`
-          )
+          return yield* Effect.fail(`${field.label} must be one of: ${field.choices.join(', ')}`)
         }
       }
     }
@@ -60,7 +58,7 @@ export const validateField = (
  */
 export const validateResponses = (
   fields: TemplateField[],
-  responses: UserResponses
+  responses: UserResponses,
 ): Effect.Effect<UserResponses, string> =>
   Effect.gen(function* () {
     for (const field of fields) {
@@ -92,7 +90,7 @@ export const validateResponses = (
  * ```
  */
 export const createInputValidator = (
-  fieldDef: TemplateField
+  fieldDef: TemplateField,
 ): ((input: string) => boolean | string) => {
   return (input: string) => {
     // Required check
@@ -126,17 +124,21 @@ export const createInputValidator = (
  * @param promptText - The text to validate
  * @returns Effect with validated text or error
  */
-export const validateGeneratedPrompt = (
-  promptText: string
-): Effect.Effect<string, Error> =>
+export const validateGeneratedPrompt = (promptText: string): Effect.Effect<string, Error> =>
   Effect.gen(function* () {
     if (!promptText || promptText.length === 0) {
-      return yield* Effect.fail(new Error('Unable to generate prompt: The generated prompt is empty. Please check your template and responses.'))
+      return yield* Effect.fail(
+        new Error(
+          'Unable to generate prompt: The generated prompt is empty. Please check your template and responses.',
+        ),
+      )
     }
 
     if (promptText.length > 10000) {
       return yield* Effect.fail(
-        new Error('Unable to generate prompt: The generated prompt is too long (maximum 10,000 characters). Please simplify your inputs.')
+        new Error(
+          'Unable to generate prompt: The generated prompt is too long (maximum 10,000 characters). Please simplify your inputs.',
+        ),
       )
     }
 

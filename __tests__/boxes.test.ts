@@ -1,6 +1,6 @@
 import * as Effect from 'effect/Effect'
+import { BoxStyle, displayBox, displayPanel } from 'effect-cli-tui'
 import { describe, expect, it, vi } from 'vitest'
-import { displayBox, displayPanel, BoxStyle } from 'effect-cli-tui'
 
 describe('Box Display', () => {
   describe('displayBox', () => {
@@ -68,7 +68,12 @@ describe('Box Display', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const content = 'Test'
-      const types: ('info' | 'success' | 'error' | 'warning')[] = ['info', 'success', 'error', 'warning']
+      const types: ('info' | 'success' | 'error' | 'warning')[] = [
+        'info',
+        'success',
+        'error',
+        'warning',
+      ]
 
       for (const type of types) {
         await Effect.runPromise(displayBox(content, { type }))

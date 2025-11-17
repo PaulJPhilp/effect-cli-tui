@@ -10,18 +10,26 @@ export default defineConfig({
   esbuild: {
     target: 'node20',
     jsx: 'automatic',
-    jsxImportSource: 'react'
+    jsxImportSource: 'react',
   },
   resolve: {
     alias: {
-      'effect-cli-tui': '/Users/paul/Projects/Published/effect-cli-tui/dist/index.js'
-    }
+      'effect-cli-tui': '/Users/paul/Projects/Published/effect-cli-tui/dist/index.js',
+    },
   },
   define: {
-    'import.meta.env': '{}'
+    'import.meta.env': '{}',
   },
   optimizeDeps: {
-    include: ['effect', 'react', 'ink', 'ink-spinner', 'ink-text-input', 'ink-select-input', 'pastel', 'ink-testing-library']
-  }
+    include: [
+      'effect',
+      'react',
+      'ink',
+      'ink-spinner',
+      'ink-text-input',
+      'ink-select-input',
+      'pastel',
+      'ink-testing-library',
+    ],
+  },
 })
-

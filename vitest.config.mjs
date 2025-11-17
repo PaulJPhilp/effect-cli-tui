@@ -1,4 +1,11 @@
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const rootDir = resolve(__dirname)
+const packageEntry = resolve(rootDir, 'src/index.ts')
 
 export default defineConfig({
   test: {
@@ -16,19 +23,28 @@ export default defineConfig({
   esbuild: {
     target: 'node20',
     jsx: 'automatic',
-    jsxImportSource: 'react'
+    jsxImportSource: 'react',
   },
   resolve: {
     alias: {
-      'effect-cli-tui': '/Users/paul/Projects/Published/effect-cli-tui/dist/index.js'
-    }
+      'effect-cli-tui': packageEntry,
+    },
   },
   // Enable ESM support for tests
   define: {
-    'import.meta.env': '{}'
+    'import.meta.env': '{}',
   },
   // Configure for ESM
   optimizeDeps: {
-    include: ['effect', 'react', 'ink', 'ink-spinner', 'ink-text-input', 'ink-select-input', 'pastel', 'ink-testing-library']
-  }
+    include: [
+      'effect',
+      'react',
+      'ink',
+      'ink-spinner',
+      'ink-text-input',
+      'ink-select-input',
+      'pastel',
+      'ink-testing-library',
+    ],
+  },
 })

@@ -6,35 +6,23 @@
  * and real implementations where possible.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { Effect } from 'effect'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  EffectCLI,
-  TUIHandler,
+  applyChalkStyle,
   display,
-  displayLines,
-  displayJson,
-  displaySuccess,
+  displayBox,
   displayError,
   displayHighlight,
-  displayWarning,
+  displayJson,
+  displayLines,
+  displaySuccess,
   displayTable,
-  displayBox,
+  displayWarning,
   spinnerEffect,
   Terminal,
   TerminalTest,
-  applyChalkStyle
 } from '../src'
-import {
-  MockCLI,
-  MockCLIFailure,
-  MockCLITimeout,
-  MockTUI,
-  MockTUICancelled,
-  MockTUIValidationFailed,
-  createMockCLI,
-  createMockTUI
-} from './fixtures/test-layers'
 
 describe('Integration Tests - Comprehensive Scenarios', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>
@@ -68,7 +56,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
       expect(consoleErrorSpy).toHaveBeenCalled() // Error messages go to stderr
       const logCalls = consoleLogSpy.mock.calls.map((c) => c[0] as string).join('\n')
       const errorCalls = consoleErrorSpy.mock.calls.map((c) => c[0] as string).join('\n')
-      const allCalls = logCalls + '\n' + errorCalls
+      const allCalls = `${logCalls}\n${errorCalls}`
       expect(allCalls).toContain('✓')
       expect(allCalls).toContain('✗')
       expect(allCalls).toContain('⚠')
@@ -82,9 +70,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
       }).pipe(Effect.provide(Terminal.Default))
 
       await Effect.runPromise(program)
-      const output = consoleLogSpy.mock.calls
-        .map((c) => c[0] as string)
-        .join('\n')
+      const output = consoleLogSpy.mock.calls.map((c) => c[0] as string).join('\n')
       expect(output).toContain('test')
       expect(output).toContain('1.0.0')
     })
@@ -107,7 +93,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
       const combined = applyChalkStyle(text, {
         bold: true,
         color: 'cyan',
-        underline: true
+        underline: true,
       })
 
       expect(bold).toBeDefined()
@@ -124,22 +110,20 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
     it('should render data tables', async () => {
       const data = [
         { name: 'Alice', age: 30 },
-        { name: 'Bob', age: 25 }
+        { name: 'Bob', age: 25 },
       ]
 
       const program = Effect.gen(function* () {
         yield* displayTable(data, {
           columns: [
             { key: 'name', header: 'Name' },
-            { key: 'age', header: 'Age' }
-          ]
+            { key: 'age', header: 'Age' },
+          ],
         })
       }).pipe(Effect.provide(Terminal.Default))
 
       await Effect.runPromise(program)
-      const output = consoleLogSpy.mock.calls
-        .map((c) => c[0] as string)
-        .join('\n')
+      const output = consoleLogSpy.mock.calls.map((c) => c[0] as string).join('\n')
       expect(output).toContain('Alice')
       expect(output).toContain('Bob')
     })
@@ -147,14 +131,12 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
     it('should handle empty tables gracefully', async () => {
       const program = Effect.gen(function* () {
         yield* displayTable([], {
-          columns: [{ key: 'id', header: 'ID' }]
+          columns: [{ key: 'id', header: 'ID' }],
         })
       }).pipe(Effect.provide(Terminal.Default))
 
       await Effect.runPromise(program)
-      const output = consoleLogSpy.mock.calls
-        .map((c) => c[0] as string)
-        .join('\n')
+      const output = consoleLogSpy.mock.calls.map((c) => c[0] as string).join('\n')
       expect(output).toContain('No data')
     })
 
@@ -170,9 +152,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
     it('should work with spinner effects', async () => {
       const mockEffect = Effect.succeed({ status: 'done' })
 
-      const result = await Effect.runPromise(
-        spinnerEffect('Processing...', mockEffect)
-      )
+      const result = await Effect.runPromise(spinnerEffect('Processing...', mockEffect))
 
       expect(result.status).toBe('done')
     })
@@ -189,7 +169,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
       const result = {
         exitCode: 0,
         stdout: 'output',
-        stderr: ''
+        stderr: '',
       }
 
       expect(result.exitCode).toBe(0)
@@ -210,7 +190,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
         selectOption: 'option1',
         multiSelect: ['opt1', 'opt2'],
         confirm: true,
-        password: 'secret123'
+        password: 'secret123',
       }
 
       expect(responses.prompt).toBe('user-input')
@@ -259,7 +239,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
           const a = yield* Effect.succeed(1)
           const b = yield* Effect.succeed(2)
           return a + b
-        })
+        }),
       )
 
       expect(result).toBe(3)
@@ -267,14 +247,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
 
     it('should handle effect arrays', async () => {
       const results = await Effect.runPromise(
-        Effect.all(
-          [
-            Effect.succeed(1),
-            Effect.succeed(2),
-            Effect.succeed(3)
-          ],
-          { mode: 'validate' }
-        )
+        Effect.all([Effect.succeed(1), Effect.succeed(2), Effect.succeed(3)], { mode: 'validate' }),
       )
 
       expect(results).toEqual([1, 2, 3])
@@ -282,9 +255,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
 
     it('should map and transform effects', async () => {
       const result = await Effect.runPromise(
-        Effect.succeed({ value: 'test' }).pipe(
-          Effect.map((x) => x.value.toUpperCase())
-        )
+        Effect.succeed({ value: 'test' }).pipe(Effect.map((x) => x.value.toUpperCase())),
       )
 
       expect(result).toBe('TEST')
@@ -292,9 +263,7 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
 
     it('should chain effects with flatMap', async () => {
       const result = await Effect.runPromise(
-        Effect.succeed(5).pipe(
-          Effect.flatMap((n) => Effect.succeed(n * 2))
-        )
+        Effect.succeed(5).pipe(Effect.flatMap((n) => Effect.succeed(n * 2))),
       )
 
       expect(result).toBe(10)
@@ -310,9 +279,9 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
       const result = await Effect.runPromise(
         Effect.gen(function* () {
           return yield* Effect.fail(new Error('test')).pipe(
-            Effect.catchAll(() => Effect.succeed('recovered'))
+            Effect.catchAll(() => Effect.succeed('recovered')),
           )
-        })
+        }),
       )
 
       expect(result).toBe('recovered')
@@ -321,10 +290,10 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
     it('should handle multiple error scenarios', async () => {
       const program = Effect.gen(function* () {
         const first = yield* Effect.fail('error1').pipe(
-          Effect.catchAll(() => Effect.succeed('first_handled'))
+          Effect.catchAll(() => Effect.succeed('first_handled')),
         )
         const second = yield* Effect.fail('error2').pipe(
-          Effect.catchAll(() => Effect.succeed('second_handled'))
+          Effect.catchAll(() => Effect.succeed('second_handled')),
         )
         return { first, second }
       })
@@ -357,10 +326,9 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
     it('should execute a multi-step workflow', async () => {
       const program = Effect.gen(function* () {
         yield* displayHighlight('Starting Process')
-        yield* displayLines(
-          ['Step 1: Initialize', 'Step 2: Execute', 'Step 3: Finalize'],
-          { type: 'info' }
-        )
+        yield* displayLines(['Step 1: Initialize', 'Step 2: Execute', 'Step 3: Finalize'], {
+          type: 'info',
+        })
         yield* displaySuccess('Process complete')
         return 'done'
       }).pipe(Effect.provide(Terminal.Default))
@@ -375,8 +343,8 @@ describe('Integration Tests - Comprehensive Scenarios', () => {
         yield* displayTable([{ id: 1, name: 'Item 1' }], {
           columns: [
             { key: 'id', header: 'ID' },
-            { key: 'name', header: 'Name' }
-          ]
+            { key: 'name', header: 'Name' },
+          ],
         })
         yield* displaySuccess('Data processed')
         return 'success'

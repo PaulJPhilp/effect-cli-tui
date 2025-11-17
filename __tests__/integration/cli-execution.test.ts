@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest'
 import { Effect } from 'effect'
-import { EffectCLI } from '../../src/cli'
+import { describe, expect, it } from 'vitest'
 import {
+  createMockCLI,
   MockCLI,
   MockCLIFailure,
   MockCLITimeout,
-  createMockCLI
 } from '../../__tests__/fixtures/test-layers'
+import { EffectCLI } from '../../src/cli'
 
 /**
  * Integration tests for EffectCLI service.
@@ -37,9 +37,9 @@ describe('EffectCLI Integration Tests', () => {
     it('should handle mock command failure', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('failing-command').pipe(
-          Effect.catchTag('CLIError', (error) => Effect.succeed(error))
-        )
+        return yield* cli
+          .run('failing-command')
+          .pipe(Effect.catchTag('CLIError', (error) => Effect.succeed(error)))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const error = await Effect.runPromise(program)
@@ -50,9 +50,9 @@ describe('EffectCLI Integration Tests', () => {
     it('should handle mock timeout', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.run('slow-command').pipe(
-          Effect.catchTag('CLIError', (error) => Effect.succeed(error))
-        )
+        return yield* cli
+          .run('slow-command')
+          .pipe(Effect.catchTag('CLIError', (error) => Effect.succeed(error)))
       }).pipe(Effect.provide(MockCLITimeout))
 
       const error = await Effect.runPromise(program)
@@ -64,7 +64,7 @@ describe('EffectCLI Integration Tests', () => {
       const customMock = createMockCLI({
         exitCode: 0,
         stdout: 'Custom output from mock',
-        stderr: ''
+        stderr: '',
       })
 
       const program = Effect.gen(function* () {
@@ -87,7 +87,7 @@ describe('EffectCLI Integration Tests', () => {
         const cli = yield* EffectCLI
         return {
           hasRun: typeof cli.run === 'function',
-          hasStream: typeof cli.stream === 'function'
+          hasStream: typeof cli.stream === 'function',
         }
       }).pipe(Effect.provide(EffectCLI.Default))
 
@@ -103,7 +103,7 @@ describe('EffectCLI Integration Tests', () => {
         const streamEffect = cli.stream('echo', ['test'])
         return {
           runIsEffect: runEffect && typeof runEffect === 'object',
-          streamIsEffect: streamEffect && typeof streamEffect === 'object'
+          streamIsEffect: streamEffect && typeof streamEffect === 'object',
         }
       }).pipe(Effect.provide(EffectCLI.Default))
 

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Changed
+- Replaced the ESLint + Prettier toolchain with [Ultracite](https://www.ultracite.dev) (Biome) for linting and formatting. `bun run lint` now runs `ultracite check`, and `bun run format` applies Ultracite fixes based on `biome.json`.
+
 ## [2.0.0] - 2025-11-14
 
 ### 🎉 Major Release: Ink-Based Interactive Terminal UI

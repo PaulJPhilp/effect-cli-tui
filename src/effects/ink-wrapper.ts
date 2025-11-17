@@ -7,10 +7,10 @@
  * @deprecated Use InkService directly via dependency injection instead
  */
 
-import { Effect } from "effect";
-import type React from "react";
-import { InkService } from "../services/ink";
-import type { InkError } from "../types";
+import { Effect } from 'effect'
+import type React from 'react'
+import { InkService } from '../services/ink'
+import type { InkError } from '../types'
 
 /**
  * Wrap Ink component rendering in Effect with proper resource management
@@ -27,13 +27,11 @@ import type { InkError } from "../types";
  * yield* ink.renderComponent(<MyComponent />)
  * ```
  */
-export function renderInkComponent(
-  component: React.ReactElement
-): Effect.Effect<void, InkError> {
+export function renderInkComponent(component: React.ReactElement): Effect.Effect<void, InkError> {
   return Effect.gen(function* () {
-    const ink = yield* InkService;
-    yield* ink.renderComponent(component);
-  }).pipe(Effect.provide(InkService.Default));
+    const ink = yield* InkService
+    yield* ink.renderComponent(component)
+  }).pipe(Effect.provide(InkService.Default))
 }
 
 /**
@@ -56,10 +54,10 @@ export function renderInkComponent(
  * ```
  */
 export function renderInkWithResult<T>(
-  component: (onComplete: (value: T) => void) => React.ReactElement
+  component: (onComplete: (value: T) => void) => React.ReactElement,
 ): Effect.Effect<T, InkError> {
   return Effect.gen(function* () {
-    const ink = yield* InkService;
-    return yield* ink.renderWithResult(component);
-  }).pipe(Effect.provide(InkService.Default));
+    const ink = yield* InkService
+    return yield* ink.renderWithResult(component)
+  }).pipe(Effect.provide(InkService.Default))
 }

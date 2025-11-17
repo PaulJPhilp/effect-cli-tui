@@ -778,7 +778,7 @@ try {
 export function displayHighlight(message: string): Effect<void> {
   return Effect.gen(function* () {
     const theme = yield* ThemeService
-    const current = theme.getTheme()
+    const current = yield* theme.getTheme()
     const styledMessage = applyChalkStyle(message, {
       bold: true,
       color: current.colors.highlight
@@ -1932,7 +1932,7 @@ try {
 export function displayHighlight(message: string): Effect<void> {
   return Effect.gen(function* () {
     const theme = yield* ThemeService
-    const current = theme.getTheme()
+    const current = yield* theme.getTheme()
     // ... use current theme
   })
 }

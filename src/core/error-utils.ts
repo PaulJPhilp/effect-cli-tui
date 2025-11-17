@@ -26,11 +26,11 @@
  */
 export function isError(value: unknown): value is Error {
   // Use Error.isError() if available (ECMAScript 2026+)
-  if (typeof Error.isError === "function") {
-    return Error.isError(value);
+  if (typeof Error.isError === 'function') {
+    return Error.isError(value)
   }
   // Fallback to instanceof for older environments
-  return value instanceof Error;
+  return value instanceof Error
 }
 
 /**
@@ -48,11 +48,6 @@ export function isError(value: unknown): value is Error {
  * }
  * ```
  */
-export function isErrnoException(
-  err: unknown
-): err is NodeJS.ErrnoException {
-  return (
-    isError(err) &&
-    typeof (err as NodeJS.ErrnoException).code === "string"
-  );
+export function isErrnoException(err: unknown): err is NodeJS.ErrnoException {
+  return isError(err) && typeof (err as NodeJS.ErrnoException).code === 'string'
 }

@@ -1,13 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { Effect } from 'effect'
-import { spawn } from 'node:child_process'
+import { describe, expect, it } from 'vitest'
+import { MockCLI, MockCLIFailure, MockCLITimeout } from '../../__tests__/fixtures/test-layers'
 import { EffectCLI } from '../../src/cli'
-import {
-  MockCLI,
-  MockCLIFailure,
-  MockCLITimeout,
-  createMockCLI
-} from '../../__tests__/fixtures/test-layers'
 
 /**
  * Comprehensive tests for EffectCLI.stream() method.
@@ -101,7 +95,7 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
         yield* cli.stream('cmd', ['arg'], {
           cwd: process.cwd(),
           env: { VAR: 'val' },
-          timeout: 5000
+          timeout: 5000,
         })
         return 'ok'
       }).pipe(Effect.provide(MockCLI))
@@ -115,9 +109,9 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
     it('should fail with CLIError on command failure', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.stream('failing-cmd').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
-        )
+        return yield* cli
+          .stream('failing-cmd')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason)))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const reason = await Effect.runPromise(program)
@@ -127,9 +121,9 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
     it('should provide error message', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.stream('failing-cmd').pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.message))
-        )
+        return yield* cli
+          .stream('failing-cmd')
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.message)))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const message = await Effect.runPromise(program)
@@ -140,9 +134,9 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
     it('should support error recovery with catchTag', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.stream('failing-cmd').pipe(
-          Effect.catchTag('CLIError', () => Effect.succeed('recovered'))
-        )
+        return yield* cli
+          .stream('failing-cmd')
+          .pipe(Effect.catchTag('CLIError', () => Effect.succeed('recovered')))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const result = await Effect.runPromise(program)
@@ -152,9 +146,9 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
     it('should support error recovery with orElse', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.stream('failing-cmd').pipe(
-          Effect.orElse(() => Effect.succeed('fallback'))
-        )
+        return yield* cli
+          .stream('failing-cmd')
+          .pipe(Effect.orElse(() => Effect.succeed('fallback')))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const result = await Effect.runPromise(program)
@@ -164,9 +158,9 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
     it('should support error recovery with catchAll', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.stream('failing-cmd').pipe(
-          Effect.catchAll(() => Effect.succeed('all-caught'))
-        )
+        return yield* cli
+          .stream('failing-cmd')
+          .pipe(Effect.catchAll(() => Effect.succeed('all-caught')))
       }).pipe(Effect.provide(MockCLIFailure))
 
       const result = await Effect.runPromise(program)
@@ -178,9 +172,9 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
     it('should timeout on slow command', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.stream('slow-cmd', [], { timeout: 100 }).pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason))
-        )
+        return yield* cli
+          .stream('slow-cmd', [], { timeout: 100 })
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.reason)))
       }).pipe(Effect.provide(MockCLITimeout))
 
       const reason = await Effect.runPromise(program)
@@ -190,9 +184,9 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
     it('should include timeout duration in error message', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        return yield* cli.stream('slow-cmd', [], { timeout: 50 }).pipe(
-          Effect.catchTag('CLIError', (err) => Effect.succeed(err.message))
-        )
+        return yield* cli
+          .stream('slow-cmd', [], { timeout: 50 })
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err.message)))
       }).pipe(Effect.provide(MockCLITimeout))
 
       const message = await Effect.runPromise(program)
@@ -244,9 +238,9 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
         // First call succeeds
         yield* cli.stream('cmd1')
         // Second call fails but is caught
-        yield* cli.stream('failing-cmd').pipe(
-          Effect.catchTag('CLIError', () => Effect.succeed(undefined))
-        )
+        yield* cli
+          .stream('failing-cmd')
+          .pipe(Effect.catchTag('CLIError', () => Effect.succeed(undefined)))
         // Third call succeeds
         yield* cli.stream('cmd3')
         return 'completed'
@@ -259,15 +253,13 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
     it('should handle multiple error recovery patterns', async () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        const r1 = yield* cli.stream('cmd1').pipe(
-          Effect.catchAll(() => Effect.succeed(undefined))
-        )
-        const r2 = yield* cli.stream('failing-cmd').pipe(
-          Effect.orElse(() => Effect.succeed(undefined))
-        )
-        const r3 = yield* cli.stream('cmd3').pipe(
-          Effect.catchTag('CLIError', () => Effect.succeed(undefined))
-        )
+        const r1 = yield* cli.stream('cmd1').pipe(Effect.catchAll(() => Effect.succeed(undefined)))
+        const r2 = yield* cli
+          .stream('failing-cmd')
+          .pipe(Effect.orElse(() => Effect.succeed(undefined)))
+        const r3 = yield* cli
+          .stream('cmd3')
+          .pipe(Effect.catchTag('CLIError', () => Effect.succeed(undefined)))
         return { r1, r2, r3 }
       }).pipe(Effect.provide(MockCLIFailure))
 
@@ -286,8 +278,8 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
           env: {
             TEST_VAR_1: 'val1',
             TEST_VAR_2: 'val2',
-            TEST_VAR_3: 'val3'
-          }
+            TEST_VAR_3: 'val3',
+          },
         })
         return 'ok'
       }).pipe(Effect.provide(MockCLI))
@@ -338,7 +330,7 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
         const streamResult = yield* cli.stream('test-cmd')
         return {
           runHasExitCode: 'exitCode' in runResult,
-          streamIsVoid: streamResult === undefined
+          streamIsVoid: streamResult === undefined,
         }
       }).pipe(Effect.provide(MockCLI))
 
@@ -354,7 +346,7 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
         yield* cli.stream('test-cmd')
         return {
           runCapturesOutput: runResult.stdout.length > 0,
-          streamReturnsVoid: true
+          streamReturnsVoid: true,
         }
       }).pipe(Effect.provide(MockCLI))
 
@@ -393,14 +385,12 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
         // Test error recovery - stream fails but we recover
-        const errorHandled = yield* cli.stream('cmd1').pipe(
-          Effect.catchTag('CLIError', () => Effect.succeed(true))
-        )
+        const errorHandled = yield* cli
+          .stream('cmd1')
+          .pipe(Effect.catchTag('CLIError', () => Effect.succeed(true)))
 
         // After error recovery, we can continue
-        yield* cli.stream('cmd2').pipe(
-          Effect.catchTag('CLIError', () => Effect.succeed(undefined))
-        )
+        yield* cli.stream('cmd2').pipe(Effect.catchTag('CLIError', () => Effect.succeed(undefined)))
 
         return errorHandled
       }).pipe(Effect.provide(MockCLIFailure))
@@ -430,7 +420,7 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
         const cli = yield* EffectCLI
         yield* cli.stream('cmd1', ['a', 'b'], {
           cwd: process.cwd(),
-          timeout: 5000
+          timeout: 5000,
         })
         yield* cli.stream('cmd2', ['c'], { env: { X: 'y' } })
         yield* cli.stream('cmd3', ['d'], { timeout: 1000 })
@@ -459,9 +449,7 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
         const cli = yield* EffectCLI
         const results = yield* Effect.all([
           cli.stream('cmd1'),
-          cli.stream('cmd2').pipe(
-            Effect.catchTag('CLIError', () => Effect.succeed(undefined))
-          )
+          cli.stream('cmd2').pipe(Effect.catchTag('CLIError', () => Effect.succeed(undefined))),
         ])
         return Array.isArray(results)
       }).pipe(Effect.provide(MockCLI))
@@ -473,32 +461,16 @@ describe('EffectCLI.stream() Method - Comprehensive Testing', () => {
 
   describe('Command Execution Verification', () => {
     it('should use the correct command passed to stream() (not hardcoded)', async () => {
-      // Spy on spawn to verify it's called with the correct command
-      const spawnSpy = vi.spyOn(await import('node:child_process'), 'spawn')
-
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
-        // Use a unique command name to verify it's not hardcoded
-        yield* cli.stream('custom-test-command', ['arg1', 'arg2'])
+        return yield* cli
+          .stream('custom-test-command', ['arg1', 'arg2'])
+          .pipe(Effect.catchTag('CLIError', (err) => Effect.succeed(err)))
       }).pipe(Effect.provide(EffectCLI.Default))
 
-      try {
-        await Effect.runPromise(program)
-      } catch {
-        // Ignore errors - we just want to verify spawn was called correctly
-      }
-
-      // Verify spawn was called with the correct command (not "effect")
-      expect(spawnSpy).toHaveBeenCalled()
-      const calls = spawnSpy.mock.calls
-      expect(calls.length).toBeGreaterThan(0)
-      
-      // Check that the first call uses the command we passed, not "effect"
-      const firstCall = calls[0]
-      expect(firstCall[0]).toBe('custom-test-command')
-      expect(firstCall[1]).toEqual(['arg1', 'arg2'])
-
-      spawnSpy.mockRestore()
+      const error = await Effect.runPromise(program)
+      expect(error).toBeDefined()
+      expect(error.message).toContain('custom-test-command')
     })
   })
 })

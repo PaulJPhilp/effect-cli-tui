@@ -1,10 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
 import { Effect } from 'effect'
+import { describe, expect, it, vi } from 'vitest'
+import { createMockTUI, MockTUI } from '../../__tests__/fixtures/test-layers'
 import { TUIHandler } from '../../src/tui'
-import {
-  MockTUI,
-  createMockTUI
-} from '../../__tests__/fixtures/test-layers'
 
 /**
  * Comprehensive tests for TUIHandler service.
@@ -118,7 +115,7 @@ describe('TUIHandler Service', () => {
   describe('Select Option', () => {
     it('should select a single option from choices', async () => {
       const customMock = createMockTUI({ selectOption: 'option1' })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         return yield* tui.selectOption('Choose one:', ['option1', 'option2', 'option3'])
@@ -130,7 +127,7 @@ describe('TUIHandler Service', () => {
 
     it('should use default index when provided', async () => {
       const customMock = createMockTUI({ selectOption: 'choice-a' })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         return yield* tui.selectOption('Choose one:', ['a', 'b', 'c'], 1)
@@ -142,7 +139,7 @@ describe('TUIHandler Service', () => {
 
     it('should return Effect<string>', async () => {
       const customMock = createMockTUI({ selectOption: 'yes' })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         const choice = yield* tui.selectOption('Pick:', ['yes', 'no'])
@@ -169,7 +166,7 @@ describe('TUIHandler Service', () => {
   describe('Multi-Select', () => {
     it('should select multiple options and return array', async () => {
       const customMock = createMockTUI({ multiSelect: ['a', 'b', 'c'] })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         return yield* tui.multiSelect('Choose options:', ['a', 'b', 'c'])
@@ -182,7 +179,7 @@ describe('TUIHandler Service', () => {
 
     it('should return Effect<string[]>', async () => {
       const customMock = createMockTUI({ multiSelect: ['x'] })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         const choices = yield* tui.multiSelect('Pick multiple:', ['x', 'y', 'z'])
@@ -210,7 +207,7 @@ describe('TUIHandler Service', () => {
   describe('Confirmation Dialog', () => {
     it('should prompt for confirmation and return boolean', async () => {
       const customMock = createMockTUI({ confirm: true })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         return yield* tui.confirm('Are you sure?')
@@ -223,7 +220,7 @@ describe('TUIHandler Service', () => {
 
     it('should accept default value', async () => {
       const customMock = createMockTUI({ confirm: true })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         return yield* tui.confirm('Continue?', true)
@@ -235,7 +232,7 @@ describe('TUIHandler Service', () => {
 
     it('should return Effect<boolean>', async () => {
       const customMock = createMockTUI({ confirm: true })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         const confirmed = yield* tui.confirm('Proceed?')
@@ -262,7 +259,7 @@ describe('TUIHandler Service', () => {
   describe('Password Input', () => {
     it('should prompt for password and return string', async () => {
       const customMock = createMockTUI({ password: 'secret-pass' })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         return yield* tui.password('Enter password:')
@@ -275,7 +272,7 @@ describe('TUIHandler Service', () => {
 
     it('should accept validation function', async () => {
       const customMock = createMockTUI({ password: 'password123' })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         return yield* tui.password('Enter password:', (pwd) => {
@@ -289,7 +286,7 @@ describe('TUIHandler Service', () => {
 
     it('should return Effect<string>', async () => {
       const customMock = createMockTUI({ password: 'pwd' })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         const pwd = yield* tui.password('Password:')
@@ -316,7 +313,7 @@ describe('TUIHandler Service', () => {
   describe('Simple Workflows', () => {
     it('should chain display and prompt operations', async () => {
       const customMock = createMockTUI({ prompt: 'user-input' })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         yield* tui.display('Welcome', 'info')
@@ -331,7 +328,7 @@ describe('TUIHandler Service', () => {
 
     it('should combine prompt and confirmation', async () => {
       const customMock = createMockTUI({ prompt: 'john', confirm: true })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         const name = yield* tui.prompt('Name:')
@@ -346,7 +343,7 @@ describe('TUIHandler Service', () => {
 
     it('should use selection alone', async () => {
       const customMock = createMockTUI({ selectOption: 'option-b' })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         const choice = yield* tui.selectOption('Pick:', ['a', 'b', 'c'])
@@ -359,7 +356,7 @@ describe('TUIHandler Service', () => {
 
     it('should use password alone', async () => {
       const customMock = createMockTUI({ password: 'secret' })
-      
+
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler
         const pwd = yield* tui.password('Password:')
@@ -381,7 +378,7 @@ describe('TUIHandler Service', () => {
           selectOption: typeof tui.selectOption === 'function',
           multiSelect: typeof tui.multiSelect === 'function',
           confirm: typeof tui.confirm === 'function',
-          password: typeof tui.password === 'function'
+          password: typeof tui.password === 'function',
         }
       }).pipe(Effect.provide(MockTUI))
 
@@ -403,7 +400,7 @@ describe('TUIHandler Service', () => {
           selectOption: tui.selectOption('test', ['a']),
           multiSelect: tui.multiSelect('test', ['a']),
           confirm: tui.confirm('test'),
-          password: tui.password('test')
+          password: tui.password('test'),
         }
       }).pipe(Effect.provide(MockTUI))
 

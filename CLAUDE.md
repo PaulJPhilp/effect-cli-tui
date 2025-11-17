@@ -21,8 +21,8 @@ bun test                   # Run all tests once
 bun test:watch            # Run tests in watch mode
 bun test:ui               # Run tests with interactive UI
 bun test:coverage         # Run tests with coverage report
-bun run lint              # Run ESLint
-bun run format            # Format code with Prettier
+bun run lint              # Run Ultracite check (lint + format validation)
+bun run format            # Apply Ultracite formatting
 bun run type-check        # Run TypeScript type checking (non-emitting)
 ```
 
@@ -674,7 +674,7 @@ export class MyService extends Effect.Service<MyService>()('app/MyService', {
 - Consistent with the rest of the codebase architecture
 
 **Validation:**
-- ESLint rule will reject `Context.Tag` and `Context.GenericTag` imports
+- Ultracite (Biome) linting will fail if `Context.Tag` or `Context.GenericTag` are imported
 - Code review will catch direct service instantiation with `new`
 - All services must extend `Effect.Service<ServiceName>()`
 
@@ -683,7 +683,7 @@ export class MyService extends Effect.Service<MyService>()('app/MyService', {
 ## No Configuration Currently Used
 
 - No `.cursorrules` or `.github/copilot-instructions.md` exist
-- ESLint and Prettier run with defaults
+- Ultracite (Biome) handles linting and formatting with the default project config (`biome.json`)
 - No custom path aliases configured
 
 ## Typical Workflow

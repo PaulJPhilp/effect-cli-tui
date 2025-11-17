@@ -7,8 +7,8 @@
  * - Windows: clip
  */
 
+import { execSync, spawn } from 'node:child_process'
 import { Effect } from 'effect'
-import { execSync, spawn } from 'child_process'
 
 /**
  * Detect which clipboard command is available on this platform
@@ -40,7 +40,10 @@ const detectClipboardCommand = (): 'pbcopy' | 'xclip' | 'xsel' | 'clip' | null =
 
   // Try Windows clip
   try {
-    execSync('where clip', { stdio: 'ignore', shell: process.platform === 'win32' ? 'cmd.exe' : undefined })
+    execSync('where clip', {
+      stdio: 'ignore',
+      shell: process.platform === 'win32' ? 'cmd.exe' : undefined,
+    })
     return 'clip'
   } catch {
     // All failed
@@ -67,37 +70,42 @@ export const copyToClipboard = (text: string): Effect.Effect<void, Error> =>
       return yield* Effect.fail(
         new Error(
           'Unable to copy to clipboard: No clipboard tool found on your system.\n\n' +
-          'To enable clipboard support, please install one of these tools:\n' +
-          '  • macOS: pbcopy (usually pre-installed)\n' +
-          '  • Linux: xclip or xsel (install with: sudo apt install xclip)\n' +
-          '  • Windows: clip (usually pre-installed)\n\n' +
-          'You can still manually copy the prompt text shown above.'
-        )
+            'To enable clipboard support, please install one of these tools:\n' +
+            '  • macOS: pbcopy (usually pre-installed)\n' +
+            '  • Linux: xclip or xsel (install with: sudo apt install xclip)\n' +
+            '  • Windows: clip (usually pre-installed)\n\n' +
+            'You can still manually copy the prompt text shown above.',
+        ),
       )
     }
 
-    yield* Effect.tryPromise(() =>
-      new Promise<void>((resolve, reject) => {
-        let args: string[] = []
-        if (command === 'xclip') {
-          args = ['-selection', 'clipboard']
-        } else if (command === 'xsel') {
-          args = ['--clipboard', '--input']
-        }
-
-        const proc = spawn(command, args)
-
-        proc.stdin.write(text)
-        proc.stdin.end()
-
-        proc.on('error', reject)
-        proc.on('close', (code: number) => {
-          if (code === 0) {
-            resolve()
-          } else {
-            reject(new Error(`Unable to copy to clipboard: The ${command} command failed (exit code ${code}).\n\nYou can still manually copy the prompt text shown above.`))
+    yield* Effect.tryPromise(
+      () =>
+        new Promise<void>((resolve, reject) => {
+          let args: string[] = []
+          if (command === 'xclip') {
+            args = ['-selection', 'clipboard']
+          } else if (command === 'xsel') {
+            args = ['--clipboard', '--input']
           }
-        })
-      })
+
+          const proc = spawn(command, args)
+
+          proc.stdin.write(text)
+          proc.stdin.end()
+
+          proc.on('error', reject)
+          proc.on('close', (code: number) => {
+            if (code === 0) {
+              resolve()
+            } else {
+              reject(
+                new Error(
+                  `Unable to copy to clipboard: The ${command} command failed (exit code ${code}).\n\nYou can still manually copy the prompt text shown above.`,
+                ),
+              )
+            }
+          })
+        }),
     )
   })

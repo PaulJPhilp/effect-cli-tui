@@ -1,13 +1,13 @@
 import { Effect } from 'effect'
-import { describe, expect, it, vi } from 'vitest'
 import {
   applyChalkStyle,
   displayHighlight,
+  displayInfo,
+  displayListItem,
   displayMuted,
   displayWarning,
-  displayInfo,
-  displayListItem
 } from 'effect-cli-tui'
+import { describe, expect, it, vi } from 'vitest'
 
 describe('applyChalkStyle', () => {
   it('should return text unchanged when no options provided', () => {
@@ -31,7 +31,7 @@ describe('applyChalkStyle', () => {
   it('should apply text styles', () => {
     const styles = ['bold', 'dim', 'italic', 'underline', 'inverse', 'strikethrough'] as const
 
-    styles.forEach(style => {
+    styles.forEach((style) => {
       const result = applyChalkStyle('test', { [style]: true })
       expect(result).toContain('test')
       // Note: In non-TTY environments (tests), chalk may not apply styles
@@ -44,7 +44,7 @@ describe('applyChalkStyle', () => {
     const result = applyChalkStyle('test', {
       color: 'green',
       bold: true,
-      underline: true
+      underline: true,
     })
     expect(result).toContain('test')
   })

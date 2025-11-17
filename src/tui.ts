@@ -14,16 +14,16 @@
  * ```
  */
 
-import { Console, Effect } from "effect";
-import React from "react";
-import { Confirm } from "./components/Confirm";
-import { Input } from "./components/Input";
-import { MultiSelect } from "./components/MultiSelect";
-import { Password } from "./components/Password";
-import { Select } from "./components/Select";
-import { DEFAULT_DISPLAY_TYPE, getDisplayIcon } from "./core/icons";
-import { InkService } from "./services/ink";
-import { InkError, TUIError, type DisplayType, type SelectOption } from "./types";
+import { Console, Effect } from 'effect'
+import React from 'react'
+import { Confirm } from './components/Confirm'
+import { Input } from './components/Input'
+import { MultiSelect } from './components/MultiSelect'
+import { Password } from './components/Password'
+import { Select } from './components/Select'
+import { DEFAULT_DISPLAY_TYPE, getDisplayIcon } from './core/icons'
+import { InkService } from './services/ink'
+import { type DisplayType, InkError, type SelectOption, TUIError } from './types'
 
 /**
  * TUI Handler Service
@@ -37,9 +37,9 @@ import { InkError, TUIError, type DisplayType, type SelectOption } from "./types
  * const result = yield* tui.prompt('Question?')
  * ```
  */
-export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
+export class TUIHandler extends Effect.Service<TUIHandler>()('app/TUIHandler', {
   effect: Effect.gen(function* () {
-    const ink = yield* InkService;
+    const ink = yield* InkService
 
     return {
       /**
@@ -54,13 +54,10 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
        * yield* tui.display('Operation complete!', 'success')
        * ```
        */
-      display: (
-        message: string,
-        type: DisplayType = DEFAULT_DISPLAY_TYPE
-      ): Effect.Effect<void> =>
+      display: (message: string, type: DisplayType = DEFAULT_DISPLAY_TYPE): Effect.Effect<void> =>
         Effect.gen(function* () {
-          const prefix = getDisplayIcon(type);
-          yield* Console.log(`\n${prefix} ${message}`);
+          const prefix = getDisplayIcon(type)
+          yield* Console.log(`\n${prefix} ${message}`)
         }),
 
       /**
@@ -78,9 +75,9 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
       prompt: (
         message: string,
         options?: {
-          default?: string;
-          validate?: (input: string) => boolean | string;
-        }
+          default?: string
+          validate?: (input: string) => boolean | string
+        },
       ): Effect.Effect<string, TUIError> =>
         ink
           .renderWithResult<string>((onComplete) =>
@@ -89,22 +86,22 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
               defaultValue: options?.default,
               validate: options?.validate,
               onSubmit: onComplete,
-            })
+            }),
           )
           .pipe(
             Effect.mapError((err) => {
               if (err instanceof InkError) {
                 // Map cancellation to TUIError with Cancelled reason
                 if (
-                  err.reason === "TerminalError" &&
-                  err.message.toLowerCase().includes("cancelled")
+                  err.reason === 'TerminalError' &&
+                  err.message.toLowerCase().includes('cancelled')
                 ) {
-                  return new TUIError("Cancelled", err.message);
+                  return new TUIError('Cancelled', err.message)
                 }
-                return new TUIError("RenderError", err.message);
+                return new TUIError('RenderError', err.message)
               }
-              return new TUIError("RenderError", String(err));
-            })
+              return new TUIError('RenderError', String(err))
+            }),
           ),
 
       /**
@@ -134,7 +131,7 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
        */
       selectOption: (
         message: string,
-        choices: string[] | SelectOption[]
+        choices: string[] | SelectOption[],
       ): Effect.Effect<string, TUIError> =>
         ink
           .renderWithResult<string>((onComplete) =>
@@ -142,22 +139,22 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
               message,
               choices,
               onSubmit: onComplete,
-            })
+            }),
           )
           .pipe(
             Effect.mapError((err) => {
               if (err instanceof InkError) {
                 // Map cancellation to TUIError with Cancelled reason
                 if (
-                  err.reason === "TerminalError" &&
-                  err.message.toLowerCase().includes("cancelled")
+                  err.reason === 'TerminalError' &&
+                  err.message.toLowerCase().includes('cancelled')
                 ) {
-                  return new TUIError("Cancelled", err.message);
+                  return new TUIError('Cancelled', err.message)
                 }
-                return new TUIError("RenderError", err.message);
+                return new TUIError('RenderError', err.message)
               }
-              return new TUIError("RenderError", String(err));
-            })
+              return new TUIError('RenderError', String(err))
+            }),
           ),
 
       /**
@@ -180,14 +177,14 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
        *   'Choose features:',
        *   [
        *     { label: 'Testing', value: 'test', description: 'Unit and integration tests' },
-       *     { label: 'Linting', value: 'lint', description: 'ESLint configuration' }
+       *     { label: 'Linting', value: 'lint', description: 'Ultracite configuration' }
        *   ]
        * )
        * ```
        */
       multiSelect: (
         message: string,
-        choices: string[] | SelectOption[]
+        choices: string[] | SelectOption[],
       ): Effect.Effect<string[], TUIError> =>
         ink
           .renderWithResult<string[]>((onComplete) =>
@@ -195,22 +192,22 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
               message,
               choices,
               onSubmit: onComplete,
-            })
+            }),
           )
           .pipe(
             Effect.mapError((err) => {
               if (err instanceof InkError) {
                 // Map cancellation to TUIError with Cancelled reason
                 if (
-                  err.reason === "TerminalError" &&
-                  err.message.toLowerCase().includes("cancelled")
+                  err.reason === 'TerminalError' &&
+                  err.message.toLowerCase().includes('cancelled')
                 ) {
-                  return new TUIError("Cancelled", err.message);
+                  return new TUIError('Cancelled', err.message)
                 }
-                return new TUIError("RenderError", err.message);
+                return new TUIError('RenderError', err.message)
               }
-              return new TUIError("RenderError", String(err));
-            })
+              return new TUIError('RenderError', String(err))
+            }),
           ),
 
       /**
@@ -227,7 +224,7 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
        */
       confirm: (
         message: string,
-        options?: { default?: boolean }
+        options?: { default?: boolean },
       ): Effect.Effect<boolean, TUIError> =>
         ink
           .renderWithResult<boolean>((onComplete) =>
@@ -235,22 +232,22 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
               message,
               default: options?.default,
               onSubmit: onComplete,
-            })
+            }),
           )
           .pipe(
             Effect.mapError((err) => {
               if (err instanceof InkError) {
                 // Map cancellation to TUIError with Cancelled reason
                 if (
-                  err.reason === "TerminalError" &&
-                  err.message.toLowerCase().includes("cancelled")
+                  err.reason === 'TerminalError' &&
+                  err.message.toLowerCase().includes('cancelled')
                 ) {
-                  return new TUIError("Cancelled", err.message);
+                  return new TUIError('Cancelled', err.message)
                 }
-                return new TUIError("RenderError", err.message);
+                return new TUIError('RenderError', err.message)
               }
-              return new TUIError("RenderError", String(err));
-            })
+              return new TUIError('RenderError', String(err))
+            }),
           ),
 
       /**
@@ -270,8 +267,8 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
       password: (
         message: string,
         options?: {
-          validate?: (input: string) => boolean | string;
-        }
+          validate?: (input: string) => boolean | string
+        },
       ): Effect.Effect<string, TUIError> =>
         ink
           .renderWithResult<string>((onComplete) =>
@@ -279,24 +276,24 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
               message,
               validate: options?.validate,
               onSubmit: onComplete,
-            })
+            }),
           )
           .pipe(
             Effect.mapError((err) => {
               if (err instanceof InkError) {
                 // Map cancellation to TUIError with Cancelled reason
                 if (
-                  err.reason === "TerminalError" &&
-                  err.message.toLowerCase().includes("cancelled")
+                  err.reason === 'TerminalError' &&
+                  err.message.toLowerCase().includes('cancelled')
                 ) {
-                  return new TUIError("Cancelled", err.message);
+                  return new TUIError('Cancelled', err.message)
                 }
-                return new TUIError("RenderError", err.message);
+                return new TUIError('RenderError', err.message)
               }
-              return new TUIError("RenderError", String(err));
-            })
+              return new TUIError('RenderError', String(err))
+            }),
           ),
-    } as const;
+    } as const
   }),
   dependencies: [InkService.Default],
 }) {}

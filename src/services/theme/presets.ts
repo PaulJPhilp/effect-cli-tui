@@ -1,4 +1,3 @@
-import type { Theme } from "./types";
 import {
   COLOR_ERROR,
   COLOR_HIGHLIGHT,
@@ -9,7 +8,8 @@ import {
   ICON_INFO,
   ICON_SUCCESS,
   ICON_WARNING,
-} from "../../core/icons";
+} from '../../core/icons'
+import type { Theme } from './types'
 
 /**
  * Default theme matching current behavior
@@ -30,7 +30,7 @@ export const defaultTheme: Theme = {
     info: COLOR_INFO,
     highlight: COLOR_HIGHLIGHT,
   },
-};
+}
 
 /**
  * Minimal theme with no icons and simple colors
@@ -39,19 +39,19 @@ export const defaultTheme: Theme = {
  */
 export const minimalTheme: Theme = {
   icons: {
-    success: "",
-    error: "",
-    warning: "",
-    info: "",
+    success: '',
+    error: '',
+    warning: '',
+    info: '',
   },
   colors: {
-    success: "green",
-    error: "red",
-    warning: "yellow",
-    info: "blue",
-    highlight: "cyan",
+    success: 'green',
+    error: 'red',
+    warning: 'yellow',
+    info: 'blue',
+    highlight: 'cyan',
   },
-};
+}
 
 /**
  * Dark theme optimized for dark terminal backgrounds
@@ -66,13 +66,13 @@ export const darkTheme: Theme = {
     info: ICON_INFO,
   },
   colors: {
-    success: "green",
-    error: "red",
-    warning: "yellow",
-    info: "cyan", // Changed from blue for better visibility
-    highlight: "cyan",
+    success: 'green',
+    error: 'red',
+    warning: 'yellow',
+    info: 'cyan', // Changed from blue for better visibility
+    highlight: 'cyan',
   },
-};
+}
 
 /**
  * Emoji theme using emoji icons
@@ -81,19 +81,19 @@ export const darkTheme: Theme = {
  */
 export const emojiTheme: Theme = {
   icons: {
-    success: "✅",
-    error: "❌",
-    warning: "⚠️",
-    info: "ℹ️",
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️',
   },
   colors: {
-    success: "green",
-    error: "red",
-    warning: "yellow",
-    info: "blue",
-    highlight: "cyan",
+    success: 'green',
+    error: 'red',
+    warning: 'yellow',
+    info: 'blue',
+    highlight: 'cyan',
   },
-};
+}
 
 /**
  * Preset themes collection
@@ -105,5 +105,4 @@ export const themes = {
   minimal: minimalTheme,
   dark: darkTheme,
   emoji: emojiTheme,
-} as const;
-
+} as const

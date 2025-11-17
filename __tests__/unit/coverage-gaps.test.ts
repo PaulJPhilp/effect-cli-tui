@@ -1,58 +1,59 @@
-import { Effect } from "effect";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { applyChalkStyle } from "../../src/core/colors";
+import { Effect } from 'effect'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { applyChalkStyle } from '../../src/core/colors'
 import {
   clearCleanupHandlers,
   getCleanupHandlerCount,
   registerCleanupHandler,
-} from "../../src/core/signal-handler";
-import { startSpinner, stopSpinner } from "../../src/progress/spinner";
-import { displayTable } from "../../src/tables/table";
-import type { ChalkStyleOptions } from "../../src/types";
+} from '../../src/core/signal-handler'
+import { SpinnerService, startSpinner, stopSpinner } from '../../src/progress/spinner'
+import { displayTable } from '../../src/tables/table'
+import type { ChalkStyleOptions } from '../../src/types'
 
 /**
  * Coverage gaps test - fills in remaining uncovered lines
  */
 
-describe("Coverage Gaps - Fill Missing Lines", () => {
+const runWithSpinnerService = <A, E = never>(
+  program: Effect.Effect<A, E, SpinnerService>,
+) => Effect.runPromise(program.pipe(Effect.provide(SpinnerService.Default)))
+
+describe('Coverage Gaps - Fill Missing Lines', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    clearCleanupHandlers();
-  });
+    vi.clearAllMocks()
+    clearCleanupHandlers()
+  })
 
   afterEach(async () => {
-    clearCleanupHandlers();
+    clearCleanupHandlers()
     // Ensure any running spinner is stopped
     try {
-      await Effect.runPromise(stopSpinner());
+      await Effect.runPromise(stopSpinner().pipe(Effect.provide(SpinnerService.Default)))
     } catch {
       // Ignore errors if no spinner is running
     }
-  });
+  })
 
-  describe("applyChalkStyle - null options", () => {
-    it("should return text unchanged when options are null", () => {
-      const result = applyChalkStyle(
-        "test",
-        null as unknown as ChalkStyleOptions
-      );
-      expect(result).toBe("test");
-    });
+  describe('applyChalkStyle - null options', () => {
+    it('should return text unchanged when options are null', () => {
+      const result = applyChalkStyle('test', null as unknown as ChalkStyleOptions)
+      expect(result).toBe('test')
+    })
 
-    it("should return text unchanged when options are undefined", () => {
-      const result = applyChalkStyle("test", undefined);
-      expect(result).toBe("test");
-    });
+    it('should return text unchanged when options are undefined', () => {
+      const result = applyChalkStyle('test', undefined)
+      expect(result).toBe('test')
+    })
 
-    it("should apply style when options provided", () => {
-      const result = applyChalkStyle("test", { bold: true });
-      expect(result).toContain("test");
-    });
-  });
+    it('should apply style when options provided', () => {
+      const result = applyChalkStyle('test', { bold: true })
+      expect(result).toContain('test')
+    })
+  })
 
-  describe("displayTable - column formatters", () => {
-    it("should apply column formatter to cell values", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+  describe('displayTable - column formatters', () => {
+    it('should apply column formatter to cell values', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const program = displayTable(
         [
@@ -61,377 +62,355 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
         ],
         {
           columns: [
-            { key: "id", header: "ID" },
+            { key: 'id', header: 'ID' },
             {
-              key: "value",
-              header: "Value",
+              key: 'value',
+              header: 'Value',
               formatter: (val) => `$${val}`, // Formatter with $ prefix
             },
           ],
-        }
-      );
+        },
+      )
 
-      await Effect.runPromise(program);
+      await runWithSpinnerService(program)
 
-      expect(consoleSpy).toHaveBeenCalled();
-      const output = consoleSpy.mock.calls[0][0];
-      expect(output).toContain("$100");
-      expect(output).toContain("$200");
+      expect(consoleSpy).toHaveBeenCalled()
+      const output = consoleSpy.mock.calls[0][0]
+      expect(output).toContain('$100')
+      expect(output).toContain('$200')
 
-      consoleSpy.mockRestore();
-    });
+      consoleSpy.mockRestore()
+    })
 
-    it("should apply formatter to nested object property", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    it('should apply formatter to nested object property', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const program = displayTable([{ item: { count: 5 } }], {
         columns: [
           {
-            key: "item",
-            header: "Item",
+            key: 'item',
+            header: 'Item',
             formatter: (val: unknown) => {
-              const item = val as { count?: number } | null | undefined;
-              return `Count: ${item?.count || 0}`;
+              const item = val as { count?: number } | null | undefined
+              return `Count: ${item?.count || 0}`
             },
           },
         ],
-      });
+      })
 
-      await Effect.runPromise(program);
-      expect(consoleSpy).toHaveBeenCalled();
+      await runWithSpinnerService(program)
+      expect(consoleSpy).toHaveBeenCalled()
 
-      consoleSpy.mockRestore();
-    });
+      consoleSpy.mockRestore()
+    })
 
-    it("should handle formatter returning null or undefined", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    it('should handle formatter returning null or undefined', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const program = displayTable([{ id: 1 }, { id: 2 }], {
         columns: [
           {
-            key: "id",
-            header: "ID",
+            key: 'id',
+            header: 'ID',
             formatter: () => String(null),
           },
         ],
-      });
+      })
 
-      await Effect.runPromise(program);
-      expect(consoleSpy).toHaveBeenCalled();
+      await runWithSpinnerService(program)
+      expect(consoleSpy).toHaveBeenCalled()
 
-      consoleSpy.mockRestore();
-    });
+      consoleSpy.mockRestore()
+    })
 
-    it("should apply multiple formatters to different columns", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    it('should apply multiple formatters to different columns', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-      const program = displayTable([{ name: "test", count: 5 }], {
+      const program = displayTable([{ name: 'test', count: 5 }], {
         columns: [
           {
-            key: "name",
-            header: "Name",
+            key: 'name',
+            header: 'Name',
             formatter: (val) => String(val).toUpperCase(),
           },
           {
-            key: "count",
-            header: "Count",
+            key: 'count',
+            header: 'Count',
             formatter: (val) => `x${val}`,
           },
         ],
-      });
+      })
 
-      await Effect.runPromise(program);
-      expect(consoleSpy).toHaveBeenCalled();
-      const output = consoleSpy.mock.calls[0][0];
-      expect(output).toContain("TEST");
-      expect(output).toContain("x5");
+      await runWithSpinnerService(program)
+      expect(consoleSpy).toHaveBeenCalled()
+      const output = consoleSpy.mock.calls[0][0]
+      expect(output).toContain('TEST')
+      expect(output).toContain('x5')
 
-      consoleSpy.mockRestore();
-    });
-  });
+      consoleSpy.mockRestore()
+    })
+  })
 
-  describe("startSpinner - cursor hidden condition", () => {
-    it.skip("should write show cursor in cleanup when cursor was hidden", async () => {
+  describe('startSpinner - cursor hidden condition', () => {
+    it.skip('should write show cursor in cleanup when cursor was hidden', async () => {
       // Skipped: Spinner doesn't integrate with Effect.scoped cleanup
       // Spinner requires explicit stopSpinner() call, not automatic cleanup
-      const stdoutSpy = vi
-        .spyOn(process.stdout, "write")
-        .mockImplementation(() => true);
+      const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
       const program = Effect.scoped(
         Effect.gen(function* () {
-          yield* startSpinner("Processing...", { hideCursor: true });
+          yield* startSpinner('Processing...', { hideCursor: true })
           // Wait briefly to let animation start
-          yield* Effect.sleep(50);
-        })
-      );
+          yield* Effect.sleep(50)
+        }),
+      )
 
-      await Effect.runPromise(program);
+      await runWithSpinnerService(program)
 
       // Check that cursor show sequence was written during cleanup
       const cursorShowCalls = stdoutSpy.mock.calls.filter((call) =>
-        call[0]?.toString().includes("\x1B[?25h")
-      );
-      expect(cursorShowCalls.length).toBeGreaterThan(0);
+        call[0]?.toString().includes('\x1B[?25h'),
+      )
+      expect(cursorShowCalls.length).toBeGreaterThan(0)
 
-      stdoutSpy.mockRestore();
-    });
+      stdoutSpy.mockRestore()
+    })
 
-    it("should not write show cursor in cleanup when cursor was not hidden", async () => {
-      const stdoutSpy = vi
-        .spyOn(process.stdout, "write")
-        .mockImplementation(() => true);
+    it('should not write show cursor in cleanup when cursor was not hidden', async () => {
+      const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
       const program = Effect.scoped(
         Effect.gen(function* () {
-          yield* startSpinner("Processing...", { hideCursor: false });
-          yield* Effect.sleep(50);
-        })
-      );
+          yield* startSpinner('Processing...', { hideCursor: false })
+          yield* Effect.sleep(50)
+        }),
+      )
 
-      await Effect.runPromise(program);
+      await runWithSpinnerService(program)
 
       // Cleanup handler still runs but doesn't write show cursor sequence
-      stdoutSpy.mockRestore();
-    });
+      stdoutSpy.mockRestore()
+    })
 
-    it.skip("should clear line in cleanup for spinners", async () => {
+    it.skip('should clear line in cleanup for spinners', async () => {
       // Skipped: Spinner doesn't integrate with Effect.scoped cleanup
       // Spinner requires explicit stopSpinner() call, not automatic cleanup
-      const stdoutSpy = vi
-        .spyOn(process.stdout, "write")
-        .mockImplementation(() => true);
+      const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
       const program = Effect.scoped(
         Effect.gen(function* () {
-          yield* startSpinner("Loading...");
-          yield* Effect.sleep(50);
-        })
-      );
+          yield* startSpinner('Loading...')
+          yield* Effect.sleep(50)
+        }),
+      )
 
-      await Effect.runPromise(program);
+      await runWithSpinnerService(program)
 
       // Check that clear line sequence was written
       const clearLineCalls = stdoutSpy.mock.calls.filter((call) =>
-        call[0]?.toString().includes("\r\x1B[K")
-      );
-      expect(clearLineCalls.length).toBeGreaterThan(0);
+        call[0]?.toString().includes('\r\x1B[K'),
+      )
+      expect(clearLineCalls.length).toBeGreaterThan(0)
 
-      stdoutSpy.mockRestore();
-    });
+      stdoutSpy.mockRestore()
+    })
 
-    it("should animate spinner frames", async () => {
-      const stdoutSpy = vi
-        .spyOn(process.stdout, "write")
-        .mockImplementation(() => true);
+    it('should animate spinner frames', async () => {
+      const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
       const program = Effect.scoped(
         Effect.gen(function* () {
-          yield* startSpinner("Spinning...", { type: "dots" });
+          yield* startSpinner('Spinning...', { type: 'dots' })
           // Wait for multiple animation frames
-          yield* Effect.sleep(300);
-        })
-      );
+          yield* Effect.sleep(300)
+        }),
+      )
 
-      await Effect.runPromise(program);
+      await runWithSpinnerService(program)
 
       // Check that multiple frames were written (animation happened)
       const frameWrites = stdoutSpy.mock.calls.filter((call) => {
-        const str = call[0]?.toString() || "";
-        return str.includes("Spinning...");
-      });
-      expect(frameWrites.length).toBeGreaterThan(1);
+        const str = call[0]?.toString() || ''
+        return str.includes('Spinning...')
+      })
+      expect(frameWrites.length).toBeGreaterThan(1)
 
-      stdoutSpy.mockRestore();
-    });
-  });
+      stdoutSpy.mockRestore()
+    })
+  })
 
-  describe("Signal Handler - cleanup execution", () => {
-    it("should register handlers that execute during cleanup", async () => {
-      const handler1 = vi.fn();
-      const handler2 = vi.fn();
-      const handler3 = vi.fn();
+  describe('Signal Handler - cleanup execution', () => {
+    it('should register handlers that execute during cleanup', async () => {
+      const handler1 = vi.fn()
+      const handler2 = vi.fn()
+      const handler3 = vi.fn()
 
-      await Effect.runPromise(registerCleanupHandler(handler1));
-      await Effect.runPromise(registerCleanupHandler(handler2));
-      await Effect.runPromise(registerCleanupHandler(handler3));
+      await runWithSpinnerService(registerCleanupHandler(handler1))
+      await runWithSpinnerService(registerCleanupHandler(handler2))
+      await runWithSpinnerService(registerCleanupHandler(handler3))
 
-      expect(getCleanupHandlerCount()).toBe(3);
-    });
+      expect(getCleanupHandlerCount()).toBe(3)
+    })
 
-    it("should handle multiple registered handlers", async () => {
-      const handlers = [vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn()];
+    it('should handle multiple registered handlers', async () => {
+      const handlers = [vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn()]
 
       await Promise.all(
-        handlers.map((handler) =>
-          Effect.runPromise(registerCleanupHandler(handler))
-        )
-      );
+        handlers.map((handler) => runWithSpinnerService(registerCleanupHandler(handler))),
+      )
 
-      expect(getCleanupHandlerCount()).toBe(5);
-    });
+      expect(getCleanupHandlerCount()).toBe(5)
+    })
 
-    it("should deregister handler without affecting others", async () => {
-      const handler1 = vi.fn();
-      const handler2 = vi.fn();
-      const handler3 = vi.fn();
+    it('should deregister handler without affecting others', async () => {
+      const handler1 = vi.fn()
+      const handler2 = vi.fn()
+      const handler3 = vi.fn()
 
-      const deregister2 = await Effect.runPromise(
-        registerCleanupHandler(handler2)
-      );
-      await Effect.runPromise(registerCleanupHandler(handler1));
-      await Effect.runPromise(registerCleanupHandler(handler3));
+      const deregister2 = await runWithSpinnerService(registerCleanupHandler(handler2))
+      await runWithSpinnerService(registerCleanupHandler(handler1))
+      await runWithSpinnerService(registerCleanupHandler(handler3))
 
-      expect(getCleanupHandlerCount()).toBe(3);
+      expect(getCleanupHandlerCount()).toBe(3)
 
-      deregister2();
+      deregister2()
 
-      expect(getCleanupHandlerCount()).toBe(2);
-    });
+      expect(getCleanupHandlerCount()).toBe(2)
+    })
 
-    it("should handle async cleanup handlers", async () => {
+    it('should handle async cleanup handlers', async () => {
       const asyncHandler = vi.fn(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 10));
-      });
+        await new Promise((resolve) => setTimeout(resolve, 10))
+      })
 
-      await Effect.runPromise(registerCleanupHandler(asyncHandler));
-      expect(getCleanupHandlerCount()).toBe(1);
-    });
+      await runWithSpinnerService(registerCleanupHandler(asyncHandler))
+      expect(getCleanupHandlerCount()).toBe(1)
+    })
 
-    it("should handle handlers that throw errors", async () => {
+    it('should handle handlers that throw errors', async () => {
       const throwingHandler = vi.fn(() => {
-        throw new Error("Handler error");
-      });
-      const normalHandler = vi.fn();
+        throw new Error('Handler error')
+      })
+      const normalHandler = vi.fn()
 
-      await Effect.runPromise(
+      await runWithSpinnerService(
         Effect.gen(function* () {
-          yield* registerCleanupHandler(throwingHandler);
-          yield* registerCleanupHandler(normalHandler);
-        })
-      );
+          yield* registerCleanupHandler(throwingHandler)
+          yield* registerCleanupHandler(normalHandler)
+        }),
+      )
 
-      expect(getCleanupHandlerCount()).toBe(2);
-    });
+      expect(getCleanupHandlerCount()).toBe(2)
+    })
 
-    it("should track cleanup handler lifecycle", async () => {
-      const handler = vi.fn();
+    it('should track cleanup handler lifecycle', async () => {
+      const handler = vi.fn()
 
-      expect(getCleanupHandlerCount()).toBe(0);
+      expect(getCleanupHandlerCount()).toBe(0)
 
-      const deregister = await Effect.runPromise(
-        registerCleanupHandler(handler)
-      );
-      expect(getCleanupHandlerCount()).toBe(1);
+      const deregister = await runWithSpinnerService(registerCleanupHandler(handler))
+      expect(getCleanupHandlerCount()).toBe(1)
 
-      deregister();
-      expect(getCleanupHandlerCount()).toBe(0);
-    });
-  });
+      deregister()
+      expect(getCleanupHandlerCount()).toBe(0)
+    })
+  })
 
-  describe("Spinner animation frame cycling", () => {
-    it("should cycle through spinner frames with animation", async () => {
-      const stdoutSpy = vi
-        .spyOn(process.stdout, "write")
-        .mockImplementation(() => true);
+  describe('Spinner animation frame cycling', () => {
+    it('should cycle through spinner frames with animation', async () => {
+      const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
       const program = Effect.scoped(
         Effect.gen(function* () {
-          yield* startSpinner("Animating...", { type: "simpleDots" });
+          yield* startSpinner('Animating...', { type: 'simpleDots' })
           // Wait long enough for multiple frame cycles
-          yield* Effect.sleep(400);
-        })
-      );
+          yield* Effect.sleep(400)
+        }),
+      )
 
-      await Effect.runPromise(program);
+      await runWithSpinnerService(program)
 
       // Verify writes occurred (indicating animation happened)
-      expect(stdoutSpy.mock.calls.length).toBeGreaterThan(0);
+      expect(stdoutSpy.mock.calls.length).toBeGreaterThan(0)
       // At least some writes should contain carriage return (for frame animation)
-      const frameWrites = stdoutSpy.mock.calls.filter((call) =>
-        call[0]?.toString().includes("\r")
-      );
-      expect(frameWrites.length).toBeGreaterThan(0);
+      const frameWrites = stdoutSpy.mock.calls.filter((call) => call[0]?.toString().includes('\r'))
+      expect(frameWrites.length).toBeGreaterThan(0)
 
-      stdoutSpy.mockRestore();
-    });
+      stdoutSpy.mockRestore()
+    })
 
-    it("should update frame counter correctly", async () => {
-      const stdoutSpy = vi
-        .spyOn(process.stdout, "write")
-        .mockImplementation(() => true);
+    it('should update frame counter correctly', async () => {
+      const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
       const program = Effect.scoped(
         Effect.gen(function* () {
-          yield* startSpinner("Counting frames...", { type: "dots" });
-          yield* Effect.sleep(200);
-        })
-      );
+          yield* startSpinner('Counting frames...', { type: 'dots' })
+          yield* Effect.sleep(200)
+        }),
+      )
 
-      await Effect.runPromise(program);
+      await runWithSpinnerService(program)
 
       // Verify animation writes occurred
-      expect(stdoutSpy.mock.calls.length).toBeGreaterThan(0);
+      expect(stdoutSpy.mock.calls.length).toBeGreaterThan(0)
       // Check for carriage returns indicating frame updates
-      const writes = stdoutSpy.mock.calls.map(
-        (call) => call[0]?.toString() || ""
-      );
-      const carriageReturnWrites = writes.filter((w) => w.includes("\r"));
-      expect(carriageReturnWrites.length).toBeGreaterThan(0);
+      const writes = stdoutSpy.mock.calls.map((call) => call[0]?.toString() || '')
+      const carriageReturnWrites = writes.filter((w) => w.includes('\r'))
+      expect(carriageReturnWrites.length).toBeGreaterThan(0)
 
-      stdoutSpy.mockRestore();
-    });
-  });
+      stdoutSpy.mockRestore()
+    })
+  })
 
-  describe("Table with all column features", () => {
-    it("should handle table with formatter and style together", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+  describe('Table with all column features', () => {
+    it('should handle table with formatter and style together', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const program = displayTable(
         [
-          { status: "active", count: 10 },
-          { status: "inactive", count: 5 },
+          { status: 'active', count: 10 },
+          { status: 'inactive', count: 5 },
         ],
         {
           columns: [
             {
-              key: "status",
-              header: "Status",
+              key: 'status',
+              header: 'Status',
               formatter: (val) => String(val).toUpperCase(),
             },
             {
-              key: "count",
-              header: "Count",
+              key: 'count',
+              header: 'Count',
               formatter: (val) => String((val as number) * 100),
             },
           ],
           style: { bold: true },
-        }
-      );
+        },
+      )
 
-      await Effect.runPromise(program);
-      expect(consoleSpy).toHaveBeenCalled();
+      await runWithSpinnerService(program)
+      expect(consoleSpy).toHaveBeenCalled()
 
-      consoleSpy.mockRestore();
-    });
+      consoleSpy.mockRestore()
+    })
 
-    it("should handle empty data with formatters", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    it('should handle empty data with formatters', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       const program = displayTable([], {
         columns: [
           {
-            key: "id",
-            header: "ID",
+            key: 'id',
+            header: 'ID',
             formatter: (val) => `ID:${val}`,
           },
         ],
-      });
+      })
 
-      await Effect.runPromise(program);
-      expect(consoleSpy).toHaveBeenCalled();
+      await runWithSpinnerService(program)
+      expect(consoleSpy).toHaveBeenCalled()
 
-      consoleSpy.mockRestore();
-    });
-  });
-});
+      consoleSpy.mockRestore()
+    })
+  })
+})

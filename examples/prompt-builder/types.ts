@@ -17,7 +17,7 @@ export class TemplateField extends Schema.Class<TemplateField>('TemplateField')(
   required: Schema.Boolean,
   choices: Schema.optional(Schema.Array(Schema.String)),
   placeholder: Schema.optional(Schema.String),
-  validation: Schema.optional(Schema.String.pipe(Schema.minLength(1)))
+  validation: Schema.optional(Schema.String.pipe(Schema.minLength(1))),
 }) {}
 
 /**
@@ -27,9 +27,15 @@ export class PromptTemplate extends Schema.Class<PromptTemplate>('PromptTemplate
   id: Schema.String.pipe(Schema.minLength(1)),
   name: Schema.String.pipe(Schema.minLength(1)),
   description: Schema.String.pipe(Schema.minLength(1)),
-  category: Schema.Literal('zero-shot', 'one-shot', 'instruction-first', 'contract-first', 'chain-of-thought'),
+  category: Schema.Literal(
+    'zero-shot',
+    'one-shot',
+    'instruction-first',
+    'contract-first',
+    'chain-of-thought',
+  ),
   fields: Schema.Array(TemplateField),
-  generatePrompt: Schema.Function
+  generatePrompt: Schema.Function,
 }) {}
 
 /**

@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { EventEmitter } from 'node:events'
 import { Effect } from 'effect'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { EffectCLI } from '../../src/cli'
 import { CLIError } from '../../src/types'
-import { EventEmitter } from 'events'
 
 /**
  * Comprehensive tests for EffectCLI service
@@ -10,11 +10,14 @@ import { EventEmitter } from 'events'
  */
 
 // Mock child_process
-vi.mock('child_process', () => ({
-  spawn: vi.fn()
+vi.mock('node:child_process', () => ({
+  spawn: vi.fn(),
 }))
 
-import { spawn } from 'child_process'
+import { spawn } from 'node:child_process'
+
+const spawnMock = spawn as unknown as vi.Mock
+type NodeErrorWithCode = Error & { code?: string }
 
 describe('EffectCLI - Comprehensive Coverage', () => {
   beforeEach(() => {
@@ -33,7 +36,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -60,7 +63,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -86,7 +89,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -111,7 +114,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -137,7 +140,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -166,7 +169,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -181,7 +184,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       })
 
       await Effect.runPromise(program)
-      expect((spawn as any)).toHaveBeenCalledWith('pwd', [], expect.objectContaining({ cwd: '/tmp' }))
+      expect(spawnMock).toHaveBeenCalledWith('pwd', [], expect.objectContaining({ cwd: '/tmp' }))
     })
 
     it('should use custom environment variables', async () => {
@@ -191,7 +194,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -206,12 +209,12 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       })
 
       await Effect.runPromise(program)
-      expect((spawn as any)).toHaveBeenCalledWith(
+      expect(spawnMock).toHaveBeenCalledWith(
         'echo',
         [],
         expect.objectContaining({
-          env: expect.objectContaining({ CUSTOM: 'value' })
-        })
+          env: expect.objectContaining({ CUSTOM: 'value' }),
+        }),
       )
     })
 
@@ -222,7 +225,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -237,13 +240,13 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       })
 
       await Effect.runPromise(program)
-      expect((spawn as any)).toHaveBeenCalledWith(
+      expect(spawnMock).toHaveBeenCalledWith(
         'cmd',
         [],
         expect.objectContaining({
           cwd: '/home',
-          env: expect.objectContaining({ VAR: 'val' })
-        })
+          env: expect.objectContaining({ VAR: 'val' }),
+        }),
       )
     })
   })
@@ -256,7 +259,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -264,7 +267,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
         return result
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', (err) => Effect.succeed(err))
+        Effect.catchTag('CLIError', (err) => Effect.succeed(err)),
       )
 
       setImmediate(() => {
@@ -285,7 +288,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -293,12 +296,12 @@ describe('EffectCLI - Comprehensive Coverage', () => {
         return result
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', (err) => Effect.succeed(err))
+        Effect.catchTag('CLIError', (err) => Effect.succeed(err)),
       )
 
       setImmediate(() => {
-        const err = new Error('Command not found')
-        ;(err as any).code = 'ENOENT'
+        const err = new Error('Command not found') as NodeErrorWithCode
+        err.code = 'ENOENT'
         mockChild.emit('error', err)
       })
 
@@ -315,7 +318,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -323,12 +326,12 @@ describe('EffectCLI - Comprehensive Coverage', () => {
         return result
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', (err) => Effect.succeed(err))
+        Effect.catchTag('CLIError', (err) => Effect.succeed(err)),
       )
 
       setImmediate(() => {
-        const err = new Error('Spawn error')
-        ;(err as any).code = 'EACCES'
+        const err = new Error('Spawn error') as NodeErrorWithCode
+        err.code = 'EACCES'
         mockChild.emit('error', err)
       })
 
@@ -344,7 +347,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -352,7 +355,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
         return result
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', (err) => Effect.succeed(err))
+        Effect.catchTag('CLIError', (err) => Effect.succeed(err)),
       )
 
       await new Promise((resolve) => setTimeout(resolve, 150))
@@ -370,7 +373,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -378,7 +381,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
         return result
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', (err) => Effect.succeed(err))
+        Effect.catchTag('CLIError', (err) => Effect.succeed(err)),
       )
 
       setImmediate(() => {
@@ -398,7 +401,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -423,7 +426,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -442,13 +445,13 @@ describe('EffectCLI - Comprehensive Coverage', () => {
     })
 
     it('should handle missing stdout gracefully', async () => {
-      const mockChild = new (EventEmitter.EventEmitter as any)()
+      const mockChild = new EventEmitter()
       mockChild.stdout = null
-      mockChild.stderr = new (EventEmitter.EventEmitter as any)()
+      mockChild.stderr = new EventEmitter()
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -456,7 +459,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
         return result
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', (err) => Effect.succeed(err))
+        Effect.catchTag('CLIError', (err) => Effect.succeed(err)),
       )
 
       setImmediate(() => {
@@ -475,7 +478,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -487,10 +490,10 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       })
 
       await Effect.runPromise(program)
-      expect((spawn as any)).toHaveBeenCalledWith(
+      expect(spawnMock).toHaveBeenCalledWith(
         'test-command',
         [],
-        expect.objectContaining({ stdio: 'inherit' })
+        expect.objectContaining({ stdio: 'inherit' }),
       )
     })
 
@@ -499,7 +502,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -511,10 +514,10 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       })
 
       await Effect.runPromise(program)
-      expect((spawn as any)).toHaveBeenCalledWith(
+      expect(spawnMock).toHaveBeenCalledWith(
         'build',
         ['--release'],
-        expect.objectContaining({ stdio: 'inherit' })
+        expect.objectContaining({ stdio: 'inherit' }),
       )
     })
 
@@ -523,7 +526,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -535,10 +538,10 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       })
 
       await Effect.runPromise(program)
-      expect((spawn as any)).toHaveBeenCalledWith(
+      expect(spawnMock).toHaveBeenCalledWith(
         'command',
         [],
-        expect.objectContaining({ cwd: '/workspace', stdio: 'inherit' })
+        expect.objectContaining({ cwd: '/workspace', stdio: 'inherit' }),
       )
     })
 
@@ -547,14 +550,14 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
         yield* cli.stream('failing-cmd')
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', (err) => Effect.succeed(err))
+        Effect.catchTag('CLIError', (err) => Effect.succeed(err)),
       )
 
       setImmediate(() => {
@@ -571,19 +574,19 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
         yield* cli.stream('nonexistent')
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', (err) => Effect.succeed(err))
+        Effect.catchTag('CLIError', (err) => Effect.succeed(err)),
       )
 
       setImmediate(() => {
-        const err = new Error('Not found')
-        ;(err as any).code = 'ENOENT'
+        const err = new Error('Not found') as NodeErrorWithCode
+        err.code = 'ENOENT'
         mockChild.emit('error', err)
       })
 
@@ -597,14 +600,14 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
         yield* cli.stream('slow', [], { timeout: 50 })
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', (err) => Effect.succeed(err))
+        Effect.catchTag('CLIError', (err) => Effect.succeed(err)),
       )
 
       await new Promise((resolve) => setTimeout(resolve, 100))
@@ -623,14 +626,14 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
         yield* cli.run('command', [], { timeout: 50 })
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', () => Effect.succeed(undefined))
+        Effect.catchTag('CLIError', () => Effect.succeed(undefined)),
       )
 
       await new Promise((resolve) => setTimeout(resolve, 100))
@@ -646,14 +649,14 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
         yield* cli.run('command', [], { maxBuffer: 5 })
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', () => Effect.succeed(undefined))
+        Effect.catchTag('CLIError', () => Effect.succeed(undefined)),
       )
 
       setImmediate(() => {
@@ -671,7 +674,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -697,7 +700,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -730,7 +733,9 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild2.killed = false
       mockChild2.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValueOnce(mockChild1 as any).mockReturnValueOnce(mockChild2 as any)
+      spawnMock
+        .mockReturnValueOnce(mockChild1 as unknown as ReturnType<typeof spawn>)
+        .mockReturnValueOnce(mockChild2 as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -763,7 +768,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -789,7 +794,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -815,7 +820,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
       mockChild.killed = false
       mockChild.kill = vi.fn()
 
-      ;(spawn as any).mockReturnValue(mockChild as any)
+      spawnMock.mockReturnValue(mockChild as unknown as ReturnType<typeof spawn>)
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI
@@ -823,7 +828,7 @@ describe('EffectCLI - Comprehensive Coverage', () => {
         return result
       }).pipe(
         Effect.provide(EffectCLI.Default),
-        Effect.catchTag('CLIError', (err) => Effect.succeed({ error: err.reason }))
+        Effect.catchTag('CLIError', (err) => Effect.succeed({ error: err.reason })),
       )
 
       setImmediate(() => {

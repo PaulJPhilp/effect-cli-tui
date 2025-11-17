@@ -1,10 +1,5 @@
-import { Effect, Layer } from "effect";
-import {
-  ANSI_CARRIAGE_RETURN,
-  ANSI_CLEAR_LINE,
-  ANSI_HIDE_CURSOR,
-  ANSI_SHOW_CURSOR,
-} from "./icons";
+import { Effect, Layer } from 'effect'
+import { ANSI_CARRIAGE_RETURN, ANSI_CLEAR_LINE, ANSI_HIDE_CURSOR, ANSI_SHOW_CURSOR } from './icons'
 
 /**
  * Terminal service for writing to stdout/stderr.
@@ -21,7 +16,7 @@ import {
  * await Effect.runPromise(program)
  * ```
  */
-export class Terminal extends Effect.Service<Terminal>()("app/Terminal", {
+export class Terminal extends Effect.Service<Terminal>()('app/Terminal', {
   effect: Effect.sync(
     () =>
       ({
@@ -30,7 +25,7 @@ export class Terminal extends Effect.Service<Terminal>()("app/Terminal", {
          */
         stdout: (text: string): Effect.Effect<void> =>
           Effect.sync(() => {
-            process.stdout.write(text);
+            process.stdout.write(text)
           }),
 
         /**
@@ -38,7 +33,7 @@ export class Terminal extends Effect.Service<Terminal>()("app/Terminal", {
          */
         stderr: (text: string): Effect.Effect<void> =>
           Effect.sync(() => {
-            process.stderr.write(text);
+            process.stderr.write(text)
           }),
 
         /**
@@ -46,7 +41,7 @@ export class Terminal extends Effect.Service<Terminal>()("app/Terminal", {
          */
         line: (text: string): Effect.Effect<void> =>
           Effect.sync(() => {
-            console.log(text);
+            console.log(text)
           }),
 
         /**
@@ -54,7 +49,7 @@ export class Terminal extends Effect.Service<Terminal>()("app/Terminal", {
          */
         clearLine: (): Effect.Effect<void> =>
           Effect.sync(() => {
-            process.stdout.write(ANSI_CLEAR_LINE);
+            process.stdout.write(ANSI_CLEAR_LINE)
           }),
 
         /**
@@ -62,7 +57,7 @@ export class Terminal extends Effect.Service<Terminal>()("app/Terminal", {
          */
         carriageReturn: (): Effect.Effect<void> =>
           Effect.sync(() => {
-            process.stdout.write(ANSI_CARRIAGE_RETURN);
+            process.stdout.write(ANSI_CARRIAGE_RETURN)
           }),
 
         /**
@@ -70,7 +65,7 @@ export class Terminal extends Effect.Service<Terminal>()("app/Terminal", {
          */
         hideCursor: (): Effect.Effect<void> =>
           Effect.sync(() => {
-            process.stdout.write(ANSI_HIDE_CURSOR);
+            process.stdout.write(ANSI_HIDE_CURSOR)
           }),
 
         /**
@@ -78,9 +73,9 @@ export class Terminal extends Effect.Service<Terminal>()("app/Terminal", {
          */
         showCursor: (): Effect.Effect<void> =>
           Effect.sync(() => {
-            process.stdout.write(ANSI_SHOW_CURSOR);
+            process.stdout.write(ANSI_SHOW_CURSOR)
           }),
-      }) as const
+      }) as const,
   ),
 }) {}
 
@@ -138,9 +133,9 @@ export const TerminalTest: Layer.Layer<Terminal> = Layer.effect(
           Effect.sync(() => {
             // No-op for tests
           }),
-      })
-  )
-);
+      }),
+  ),
+)
 
 /**
  * Create a custom terminal service that writes to a provided stream
@@ -169,7 +164,7 @@ export const TerminalTest: Layer.Layer<Terminal> = Layer.effect(
  */
 export function createCustomTerminal(
   stdoutFn: (text: string) => void,
-  stderrFn?: (text: string) => void
+  stderrFn?: (text: string) => void,
 ): Layer.Layer<Terminal> {
   return Layer.effect(
     Terminal,
@@ -178,45 +173,45 @@ export function createCustomTerminal(
         new Terminal({
           stdout: (text: string): Effect.Effect<void> =>
             Effect.sync(() => {
-              stdoutFn(text);
+              stdoutFn(text)
             }),
 
           stderr: (text: string): Effect.Effect<void> =>
             Effect.sync(() => {
               if (stderrFn) {
-                stderrFn(text);
+                stderrFn(text)
               } else {
-                stdoutFn(text);
+                stdoutFn(text)
               }
             }),
 
           line: (text: string): Effect.Effect<void> =>
             Effect.sync(() => {
-              stdoutFn(`${text}\n`);
+              stdoutFn(`${text}\n`)
             }),
 
           clearLine: (): Effect.Effect<void> =>
             Effect.sync(() => {
-              stdoutFn(ANSI_CLEAR_LINE);
+              stdoutFn(ANSI_CLEAR_LINE)
             }),
 
           carriageReturn: (): Effect.Effect<void> =>
             Effect.sync(() => {
-              stdoutFn(ANSI_CARRIAGE_RETURN);
+              stdoutFn(ANSI_CARRIAGE_RETURN)
             }),
 
           hideCursor: (): Effect.Effect<void> =>
             Effect.sync(() => {
-              stdoutFn(ANSI_HIDE_CURSOR);
+              stdoutFn(ANSI_HIDE_CURSOR)
             }),
 
           showCursor: (): Effect.Effect<void> =>
             Effect.sync(() => {
-              stdoutFn(ANSI_SHOW_CURSOR);
+              stdoutFn(ANSI_SHOW_CURSOR)
             }),
-        })
-    )
-  );
+        }),
+    ),
+  )
 }
 
 /**
@@ -237,11 +232,9 @@ export function createCustomTerminal(
  * console.log(logs) // ['Line 1\n', 'Line 2\n']
  * ```
  */
-export function getCapturedTerminal(
-  _effect: Effect.Effect<void, never, Terminal>
-): string[] {
+export function getCapturedTerminal(_effect: Effect.Effect<void, never, Terminal>): string[] {
   // This would require access to the test service's internal logs
   // Implementation would depend on how the effect is structured
   // For now, return empty array (this is a convenience helper)
-  return [];
+  return []
 }

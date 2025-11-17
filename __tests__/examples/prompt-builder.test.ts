@@ -10,26 +10,28 @@
  * - Error handling
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Effect } from 'effect'
-import { displayPanel, displaySuccess, displayError, displayLines, displayTable } from '../../src/index'
-import { zeroShotTemplate, templates, getTemplate } from '../../examples/prompt-builder/templates'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { getTemplate, templates, zeroShotTemplate } from '../../examples/prompt-builder/templates'
+import { BuiltPrompt, TemplateField, UserResponses } from '../../examples/prompt-builder/types'
 import {
+  createInputValidator,
   validateField,
-  validateResponses,
   validateGeneratedPrompt,
-  createInputValidator
+  validateResponses,
 } from '../../examples/prompt-builder/validation'
-import { TemplateField, UserResponses, BuiltPrompt } from '../../examples/prompt-builder/types'
+import {
+  displayError,
+  displayLines,
+  displayPanel,
+  displaySuccess,
+  displayTable,
+} from '../../src/index'
 import { MockCLI } from '../fixtures/test-layers'
 
 // Mock renderInkWithResult to avoid actual Ink rendering in tests
 vi.mock('../../src/effects/ink-wrapper', () => ({
-  renderInkWithResult: vi.fn((componentFn: (onComplete: (value: any) => void) => any) => {
-    // Extract the component and call onComplete with a mock value
-    // This is a simplified mock - in real tests you'd want more control
-    return Effect.succeed('mock-value')
-  })
+  renderInkWithResult: vi.fn(() => Effect.succeed('mock-value')),
 }))
 
 describe('Prompt Builder Example - Workflow Tests', () => {
@@ -51,11 +53,11 @@ describe('Prompt Builder Example - Workflow Tests', () => {
         '  • Contract-first: Input/output specs',
         '  • Chain-of-thought: Step-by-step reasoning',
         '',
-        'Build, review, and copy your prompts to clipboard!'
+        'Build, review, and copy your prompts to clipboard!',
       ].join('\n')
 
       await Effect.runPromise(
-        displayPanel(welcomeContent, 'Welcome to Prompt Builder', { type: 'info' })
+        displayPanel(welcomeContent, 'Welcome to Prompt Builder', { type: 'info' }),
       )
 
       expect(consoleSpy).toHaveBeenCalled()
@@ -66,11 +68,11 @@ describe('Prompt Builder Example - Workflow Tests', () => {
   describe('Template System', () => {
     it('should have all 5 templates available', () => {
       expect(templates).toHaveLength(5)
-      expect(templates.map(t => t.name)).toContain('Zero-Shot')
-      expect(templates.map(t => t.name)).toContain('One-Shot')
-      expect(templates.map(t => t.name)).toContain('Instruction-First')
-      expect(templates.map(t => t.name)).toContain('Contract-First')
-      expect(templates.map(t => t.name)).toContain('Chain-of-Thought')
+      expect(templates.map((t) => t.name)).toContain('Zero-Shot')
+      expect(templates.map((t) => t.name)).toContain('One-Shot')
+      expect(templates.map((t) => t.name)).toContain('Instruction-First')
+      expect(templates.map((t) => t.name)).toContain('Contract-First')
+      expect(templates.map((t) => t.name)).toContain('Chain-of-Thought')
     })
 
     it('should get template by ID', () => {
@@ -88,7 +90,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
       const responses: UserResponses = {
         task: 'Summarize the text',
         format: 'Bullet points',
-        style: 'Professional'
+        style: 'Professional',
       }
 
       const prompt = zeroShotTemplate.generatePrompt(responses)
@@ -106,13 +108,11 @@ describe('Prompt Builder Example - Workflow Tests', () => {
           label: 'Task',
           description: 'What to do',
           type: 'text',
-          required: true
+          required: true,
         }
 
         const result = await Effect.runPromise(
-          validateField(field, 'test value').pipe(
-            Effect.catchAll((err) => Effect.succeed(err))
-          )
+          validateField(field, 'test value').pipe(Effect.catchAll((err) => Effect.succeed(err))),
         )
 
         expect(result).toBe(true)
@@ -124,13 +124,11 @@ describe('Prompt Builder Example - Workflow Tests', () => {
           label: 'Task',
           description: 'What to do',
           type: 'text',
-          required: true
+          required: true,
         }
 
         const result = await Effect.runPromise(
-          validateField(field, '').pipe(
-            Effect.catchAll((err) => Effect.succeed(err))
-          )
+          validateField(field, '').pipe(Effect.catchAll((err) => Effect.succeed(err))),
         )
 
         // Empty string is caught by the !value check first
@@ -143,15 +141,13 @@ describe('Prompt Builder Example - Workflow Tests', () => {
           label: 'Task',
           description: 'What to do',
           type: 'text',
-          required: true
+          required: true,
         }
 
         // Note: validateField does not trim, so whitespace passes
         // createInputValidator does trim and would catch this
         const result = await Effect.runPromise(
-          validateField(field, '   ').pipe(
-            Effect.catchAll((err) => Effect.succeed(err))
-          )
+          validateField(field, '   ').pipe(Effect.catchAll((err) => Effect.succeed(err))),
         )
 
         expect(result).toBe(true) // Whitespace passes because !value is false and length > 0
@@ -164,20 +160,16 @@ describe('Prompt Builder Example - Workflow Tests', () => {
           description: 'Select style',
           type: 'choice',
           required: false,
-          choices: ['Professional', 'Casual', 'Technical']
+          choices: ['Professional', 'Casual', 'Technical'],
         }
 
         const validResult = await Effect.runPromise(
-          validateField(field, 'Professional').pipe(
-            Effect.catchAll((err) => Effect.succeed(err))
-          )
+          validateField(field, 'Professional').pipe(Effect.catchAll((err) => Effect.succeed(err))),
         )
         expect(validResult).toBe(true)
 
         const invalidResult = await Effect.runPromise(
-          validateField(field, 'Invalid').pipe(
-            Effect.catchAll((err) => Effect.succeed(err))
-          )
+          validateField(field, 'Invalid').pipe(Effect.catchAll((err) => Effect.succeed(err))),
         )
         expect(invalidResult).toContain('must be one of')
       })
@@ -188,20 +180,16 @@ describe('Prompt Builder Example - Workflow Tests', () => {
           label: 'Confirm',
           description: 'Confirm action',
           type: 'boolean',
-          required: true
+          required: true,
         }
 
         const validResult = await Effect.runPromise(
-          validateField(field, true).pipe(
-            Effect.catchAll((err) => Effect.succeed(err))
-          )
+          validateField(field, true).pipe(Effect.catchAll((err) => Effect.succeed(err))),
         )
         expect(validResult).toBe(true)
 
         const invalidResult = await Effect.runPromise(
-          validateField(field, 'yes').pipe(
-            Effect.catchAll((err) => Effect.succeed(err))
-          )
+          validateField(field, 'yes').pipe(Effect.catchAll((err) => Effect.succeed(err))),
         )
         expect(invalidResult).toContain('must be answered with yes (y) or no (n)')
       })
@@ -215,26 +203,24 @@ describe('Prompt Builder Example - Workflow Tests', () => {
             label: 'Task',
             description: 'What to do',
             type: 'text',
-            required: true
+            required: true,
           },
           {
             name: 'format',
             label: 'Format',
             description: 'Output format',
             type: 'text',
-            required: false
-          }
+            required: false,
+          },
         ]
 
         const responses: UserResponses = {
           task: 'Test task',
-          format: 'JSON'
+          format: 'JSON',
         }
 
         const result = await Effect.runPromise(
-          validateResponses(fields, responses).pipe(
-            Effect.catchAll((err) => Effect.fail(err))
-          )
+          validateResponses(fields, responses).pipe(Effect.catchAll((err) => Effect.fail(err))),
         )
 
         expect(result).toEqual(responses)
@@ -247,16 +233,14 @@ describe('Prompt Builder Example - Workflow Tests', () => {
             label: 'Task',
             description: 'What to do',
             type: 'text',
-            required: true
-          }
+            required: true,
+          },
         ]
 
         const responses: UserResponses = {}
 
         const result = await Effect.runPromise(
-          validateResponses(fields, responses).pipe(
-            Effect.catchAll((err) => Effect.succeed(err))
-          )
+          validateResponses(fields, responses).pipe(Effect.catchAll((err) => Effect.succeed(err))),
         )
 
         expect(result).toBe('Task is required')
@@ -270,7 +254,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
           label: 'Task',
           description: 'What to do',
           type: 'text',
-          required: true
+          required: true,
         }
 
         const validator = createInputValidator(field)
@@ -286,7 +270,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
           description: 'Select style',
           type: 'choice',
           required: false,
-          choices: ['Professional', 'Casual']
+          choices: ['Professional', 'Casual'],
         }
 
         const validator = createInputValidator(field)
@@ -300,7 +284,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
           label: 'Task',
           description: 'What to do',
           type: 'text',
-          required: false
+          required: false,
         }
 
         const validator = createInputValidator(field)
@@ -314,8 +298,8 @@ describe('Prompt Builder Example - Workflow Tests', () => {
       it('should validate non-empty prompt', async () => {
         const result = await Effect.runPromise(
           validateGeneratedPrompt('Valid prompt text').pipe(
-            Effect.catchAll((err) => Effect.fail(err))
-          )
+            Effect.catchAll((err) => Effect.fail(err)),
+          ),
         )
 
         expect(result).toBe('Valid prompt text')
@@ -323,9 +307,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
 
       it('should fail validation for empty prompt', async () => {
         const result = await Effect.runPromise(
-          validateGeneratedPrompt('').pipe(
-            Effect.catchAll((err) => Effect.succeed(err.message))
-          )
+          validateGeneratedPrompt('').pipe(Effect.catchAll((err) => Effect.succeed(err.message))),
         )
 
         expect(result).toContain('empty')
@@ -335,8 +317,8 @@ describe('Prompt Builder Example - Workflow Tests', () => {
         const longPrompt = 'a'.repeat(10001)
         const result = await Effect.runPromise(
           validateGeneratedPrompt(longPrompt).pipe(
-            Effect.catchAll((err) => Effect.succeed(err.message))
-          )
+            Effect.catchAll((err) => Effect.succeed(err.message)),
+          ),
         )
 
         expect(result).toContain('too long')
@@ -349,7 +331,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
       const responses: UserResponses = {
         task: 'Summarize the following article',
         format: 'Bullet points',
-        style: 'Professional'
+        style: 'Professional',
       }
 
       const prompt = zeroShotTemplate.generatePrompt(responses)
@@ -361,7 +343,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
     it('should handle optional fields in prompt generation', () => {
       const responses: UserResponses = {
         task: 'Translate text',
-        format: 'JSON'
+        format: 'JSON',
         // style is optional and missing
       }
 
@@ -408,16 +390,16 @@ describe('Prompt Builder Example - Workflow Tests', () => {
 
       const reviewData = [
         { field: 'Task', value: 'Summarize text' },
-        { field: 'Format', value: 'Bullet points' }
+        { field: 'Format', value: 'Bullet points' },
       ]
 
       await Effect.runPromise(
         displayTable(reviewData, {
           columns: [
             { key: 'field', header: 'Field', width: 20 },
-            { key: 'value', header: 'Value', width: 50 }
-          ]
-        })
+            { key: 'value', header: 'Value', width: 50 },
+          ],
+        }),
       )
 
       expect(consoleSpy).toHaveBeenCalled()
@@ -429,14 +411,14 @@ describe('Prompt Builder Example - Workflow Tests', () => {
     it('should create valid BuiltPrompt object', () => {
       const responses: UserResponses = {
         task: 'Test task',
-        format: 'JSON'
+        format: 'JSON',
       }
 
       const promptText = zeroShotTemplate.generatePrompt(responses)
       const builtPrompt: BuiltPrompt = {
         template: zeroShotTemplate,
         responses,
-        promptText
+        promptText,
       }
 
       expect(builtPrompt.template).toBe(zeroShotTemplate)
@@ -453,7 +435,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
         label: 'Task',
         description: 'What to do',
         type: 'text',
-        required: true
+        required: true,
       }
 
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -465,10 +447,10 @@ describe('Prompt Builder Example - Workflow Tests', () => {
               Effect.gen(function* () {
                 yield* displayError(`Validation error: ${err}`)
                 return yield* Effect.fail(new Error(err))
-              })
-            )
+              }),
+            ),
           )
-        }).pipe(Effect.catchAll(() => Effect.succeed('handled')))
+        }).pipe(Effect.catchAll(() => Effect.succeed('handled'))),
       )
 
       expect(result).toBe('handled')
@@ -487,7 +469,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
             return yield* Effect.fail(new Error('Invalid template'))
           }
           return selectedTemplate
-        }).pipe(Effect.catchAll(() => Effect.succeed('handled')))
+        }).pipe(Effect.catchAll(() => Effect.succeed('handled'))),
       )
 
       expect(result).toBe('handled')
@@ -503,11 +485,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
       // Simulate the workflow steps
       const workflow = Effect.gen(function* () {
         // 1. Welcome screen
-        yield* displayPanel(
-          'Test content',
-          'Welcome to Prompt Builder',
-          { type: 'info' }
-        )
+        yield* displayPanel('Test content', 'Welcome to Prompt Builder', { type: 'info' })
 
         // 2. Select template (mocked)
         const template = zeroShotTemplate
@@ -517,12 +495,12 @@ describe('Prompt Builder Example - Workflow Tests', () => {
         const responses: UserResponses = {
           task: 'Test task',
           format: 'JSON',
-          style: 'Professional'
+          style: 'Professional',
         }
 
         // 4. Validate responses
         yield* validateResponses(template.fields, responses).pipe(
-          Effect.catchAll(() => Effect.fail(new Error('Validation failed')))
+          Effect.catchAll(() => Effect.fail(new Error('Validation failed'))),
         )
 
         yield* displaySuccess('All responses validated!')
@@ -532,7 +510,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
 
         // 6. Validate generated prompt
         yield* validateGeneratedPrompt(promptText).pipe(
-          Effect.catchAll(() => Effect.fail(new Error('Prompt validation failed')))
+          Effect.catchAll(() => Effect.fail(new Error('Prompt validation failed'))),
         )
 
         // 7. Display prompt
@@ -543,15 +521,15 @@ describe('Prompt Builder Example - Workflow Tests', () => {
           .filter((f) => responses[f.name] !== undefined)
           .map((f) => ({
             field: f.label,
-            value: String(responses[f.name]).substring(0, 50)
+            value: String(responses[f.name]).substring(0, 50),
           }))
 
         if (reviewData.length > 0) {
           yield* displayTable(reviewData, {
             columns: [
               { key: 'field', header: 'Field', width: 20 },
-              { key: 'value', header: 'Value', width: 50 }
-            ]
+              { key: 'value', header: 'Value', width: 50 },
+            ],
           })
         }
 
@@ -564,7 +542,7 @@ describe('Prompt Builder Example - Workflow Tests', () => {
       expect(result.responses).toEqual({
         task: 'Test task',
         format: 'JSON',
-        style: 'Professional'
+        style: 'Professional',
       })
       expect(result.promptText).toContain('Test task')
 
@@ -572,4 +550,3 @@ describe('Prompt Builder Example - Workflow Tests', () => {
     })
   })
 })
-
