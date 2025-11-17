@@ -159,13 +159,13 @@ await Effect.runPromise(program)
 - Converted from plain class to `Effect.Service<TUIHandler>()`
 - **Enhanced API with all documented methods:**
   - `display(message, type)` - Display styled messages
-  - `prompt(message, default?, validate?)` - Text input
+  - `prompt(message, options?)` - Text input
   - `selectOption(choices)` - Single selection
   - `multiSelect(choices)` - Multiple selection
   - `confirm(message)` - Yes/No confirmation
   - `password(message, validate?)` - Masked password
-- Integrated prompt functions from `interactive/prompt.ts`
-- Error mapping from `PromptError` to `TUIError`
+- Removed legacy `@inquirer/prompts` helpers in favor of Ink components
+- Error mapping from legacy prompt errors to `TUIError`
 
 **New Pattern:**
 ```typescript
@@ -178,7 +178,6 @@ const program = Effect.gen(function* () {
 
 **Files:**
 - `src/tui.ts` - Complete refactoring with all methods
-- `src/interactive/prompt.ts` - Proper export of PromptError
 - `src/types.ts` - Added JSDoc to CLIError and TUIError
 
 #### Documentation Created
@@ -301,7 +300,7 @@ Refactored spinner module to use `Effect.acquireRelease` with `Scope`:
 4. `src/tui.ts` - Effect.Service refactor + integrated prompts
 5. `src/types.ts` - JSDoc for error classes
 6. `src/progress/spinner.ts` - acquireRelease + Scope
-7. `src/interactive/prompt.ts` - PromptError export
+7. _(Removed)_ `src/interactive/prompt.ts` - Deprecated prompt helpers deleted
 8. (implicit) `src/index.ts` - Already exports new services
 
 ### Files Created
@@ -436,7 +435,6 @@ See `ISSUES.md` for complete P1/P2 issue list.
 - `src/tui.ts` - TUIHandler service with all methods
 - `src/progress/spinner.ts` - Spinner with acquireRelease + Scope
 - `src/types.ts` - Enhanced error documentation
-- `src/interactive/prompt.ts` - PromptError properly exported
 - `.eslintrc.json` - ESLint configuration
 - `tsconfig.json` - TypeScript strict mode + noUncheckedIndexedAccess
 - `package.json` - Dependencies, type field, exports map

@@ -159,7 +159,6 @@
 | `src/tui.ts` | Effect.Service + all methods | ✅ |
 | `src/types.ts` | JSDoc for errors | ✅ |
 | `src/progress/spinner.ts` | acquireRelease + Scope | ✅ |
-| `src/interactive/prompt.ts` | PromptError export | ✅ |
 
 ---
 

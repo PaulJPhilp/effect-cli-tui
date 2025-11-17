@@ -6,27 +6,18 @@ Generated from comprehensive code review. Use these templates to create GitHub i
 
 ## P0 BLOCKERS
 
-### Issue 1: Add Missing Dependencies (@inquirer/prompts, @effect/schema)
+### Issue 1: Add Missing Dependency (@effect/schema)
 **Priority:** CRITICAL
 **Severity:** Blocks type-checking and validation
 
 **Description:**
-Two critical dependencies are missing from `package.json`:
-- `@inquirer/prompts` - Used in `src/interactive/prompt.ts` but not declared
-- `@effect/schema` - Required per CLAUDE.md for all input validation
-
-**Current Status:**
-```bash
-$ pnpm type-check
-error TS2307: Cannot find module '@inquirer/prompts'
-```
+`@effect/schema` is required per CLAUDE.md for all input validation but is not declared in `package.json`.
 
 **Fix Required:**
 ```json
 {
   "dependencies": {
     "@effect/schema": "^0.75.0",
-    "@inquirer/prompts": "^5.0.0",
     "chalk": "^5.3.0",
     "cli-spinners": "^3.0.0",
     "cli-table3": "^0.6.3",
@@ -40,7 +31,6 @@ error TS2307: Cannot find module '@inquirer/prompts'
 - `package.json`
 
 **Related Files:**
-- `src/interactive/prompt.ts:8` - imports from @inquirer/prompts
 - `CLAUDE.md` - validation section requires @effect/schema
 
 ---
@@ -469,32 +459,6 @@ alias: {
 
 **Files Affected:**
 - `vitest.config.mjs`
-
----
-
-### Issue 17: Fix Naming Convention (Single-letter Parameter)
-**Priority:** LOW
-**Severity:** Code clarity
-
-**Description:**
-Single-letter parameter name violates naming conventions.
-
-**Location:**
-```typescript
-// src/interactive/prompt.ts:35
-validate: validate ? (v) => {  // ❌ Should be 'input' or 'value'
-```
-
-**Fix:**
-```typescript
-validate: validate ? (input) => {
-  const result = validate(input);
-  return result === true ? true : String(result);
-} : undefined,
-```
-
-**Files Affected:**
-- `src/interactive/prompt.ts`
 
 ---
 
