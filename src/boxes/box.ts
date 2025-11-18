@@ -1,12 +1,12 @@
 import chalk from "chalk";
 import { Effect } from "effect";
+import stringWidth from "string-width";
 import { applyChalkStyle } from "../core/colors";
 import {
-  COLOR_ERROR,
-  COLOR_INFO,
-  COLOR_SUCCESS,
-  COLOR_WARNING,
-  DEFAULT_DISPLAY_TYPE,
+    COLOR_ERROR,
+    COLOR_SUCCESS,
+    COLOR_WARNING,
+    DEFAULT_DISPLAY_TYPE
 } from "../core/icons";
 import type { BorderStyle, DisplayType } from "../types";
 
@@ -96,9 +96,9 @@ function getTypeColor(type?: "info" | "success" | "error" | "warning"): string {
     case "warning":
       return COLOR_WARNING;
     case "info":
-      return COLOR_INFO;
+      return "cyan"; // Use cyan for brighter, more visible title
     default:
-      return COLOR_INFO;
+      return "cyan";
   }
 }
 
@@ -127,10 +127,11 @@ export function displayBox(
       | "gray";
 
     const lines = content.split("\n");
-    const maxWidth =
-      Math.max(...lines.map((l) => l.length), title?.length || 0) +
-      padding * 2 +
-      2;
+    const maxContentWidth = Math.max(
+      ...lines.map((l) => stringWidth(l)), 
+      title ? stringWidth(title) : 0
+    );
+    const maxWidth = maxContentWidth + padding * 2 + 4; // +4 for two borders and two spaces
 
     let box = "";
 
@@ -138,15 +139,16 @@ export function displayBox(
     if (title) {
       const borderLeft = style.topLeft + style.horizontal.repeat(2);
       const titleSpace = ` ${title} `;
-      // Calculate borderRight: maxWidth - borderLeft (3) - titleSpace (title.length + 2) - topRight (1)
+      const titleSpaceWidth = stringWidth(titleSpace);
+      // Calculate borderRight: maxWidth - borderLeft (3) - titleSpaceWidth - topRight (1)
       const borderRightLength =
-        maxWidth - borderLeft.length - titleSpace.length - 1;
+        maxWidth - borderLeft.length - titleSpaceWidth - 1;
       const borderRight =
         style.horizontal.repeat(Math.max(0, borderRightLength)) +
         style.topRight;
       const topLine =
         borderLeft +
-        applyChalkStyle(titleSpace, { color: typeColor }) +
+        applyChalkStyle(titleSpace, { color: typeColor, bold: true }) +
         borderRight;
       box += chalk.dim(`${topLine}\n`);
     } else {
@@ -158,24 +160,23 @@ export function displayBox(
     // Top padding
     for (let i = 0; i < padding; i++) {
       box += chalk.dim(
-        `${style.vertical} ${" ".repeat(maxWidth - 2)} ${style.vertical}\n`
+        `${style.vertical} ${" ".repeat(maxContentWidth)} ${style.vertical}\n`
       );
-      " ".repeat(maxWidth - 2) + chalk.dim(`${style.vertical}\n`);
     }
 
     // Content lines
     for (const line of lines) {
-      const contentLength = line.length;
-      const paddedLine = `${line} ${" ".repeat(maxWidth - contentLength - 2)}`;
+      const contentLength = stringWidth(line);
+      const spacesNeeded = maxContentWidth - contentLength;
+      const paddedLine = `${line}${" ".repeat(spacesNeeded)}`;
       box += chalk.dim(`${style.vertical} ${paddedLine} ${style.vertical}\n`);
     }
 
     // Bottom padding
     for (let i = 0; i < padding; i++) {
       box += chalk.dim(
-        `${style.vertical} ${" ".repeat(maxWidth - 2)} ${style.vertical}\n`
+        `${style.vertical} ${" ".repeat(maxContentWidth)} ${style.vertical}\n`
       );
-      " ".repeat(maxWidth - 2) + chalk.dim(`${style.vertical}\n`);
     }
 
     // Bottom border

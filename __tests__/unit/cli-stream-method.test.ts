@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   MockCLI,
   MockCLIFailure,
@@ -136,7 +136,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
 
       const message = await Effect.runPromise(program);
       expect(typeof message).toBe("string");
-      expect(message.length).toBeGreaterThan(0);
+      expect((message as string).length).toBeGreaterThan(0);
     });
 
     it("should support error recovery with catchTag", async () => {
@@ -478,38 +478,39 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
   });
 
   describe("Command Execution Verification", () => {
-    it.skip("should use the correct command passed to stream() (not hardcoded)", async () => {
-      // Skip: Cannot spy on ESM exports in Node.js ESM modules
-      // The spawn function cannot be spied on when using node:child_process import in ESM
-      // This test would verify the command parameter is used correctly, but ESM limitations prevent it
-      // Manual verification: The stream() method uses the command parameter correctly
-
-      // Spy on spawn to verify it's called with the correct command
-      const spawnSpy = vi.spyOn(await import("node:child_process"), "spawn");
-
+    it("should use the correct command passed to stream() (not hardcoded)", async () => {
+      // Test with echo command (available on all systems) to verify command parameter is used
+      // If the command was hardcoded, this would fail or use wrong command
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI;
-        // Use a unique command name to verify it's not hardcoded
-        yield* cli.stream("custom-test-command", ["arg1", "arg2"]);
+        // Use echo with a unique test string to verify it executes the correct command
+        yield* cli.stream("echo", ["test-command-verification"]);
+        return "success";
       }).pipe(Effect.provide(EffectCLI.Default));
 
-      try {
-        await Effect.runPromise(program);
-      } catch {
-        // Ignore errors - we just want to verify spawn was called correctly
-      }
+      // If command parameter is used correctly, echo will execute successfully
+      const result = await Effect.runPromise(program);
+      expect(result).toBe("success");
+    });
 
-      // Verify spawn was called with the correct command (not "effect")
-      expect(spawnSpy).toHaveBeenCalled();
-      const calls = spawnSpy.mock.calls;
-      expect(calls.length).toBeGreaterThan(0);
+    it("should fail with correct error when non-existent command is used", async () => {
+      // Verify that a non-existent command fails, proving the command parameter is used
+      const program = Effect.gen(function* () {
+        const cli = yield* EffectCLI;
+        yield* cli.stream("non-existent-command-xyz123", []);
+        return "should-not-reach";
+      }).pipe(
+        Effect.provide(EffectCLI.Default),
+        Effect.catchTag("CLIError", (error) => {
+          // Verify error indicates command not found (proves command parameter was used)
+          expect(error.reason).toBe("NotFound");
+          expect(error.message).toContain("non-existent-command-xyz123");
+          return Effect.succeed("correct-error");
+        })
+      );
 
-      // Check that the first call uses the command we passed, not "effect"
-      const firstCall = calls[0];
-      expect(firstCall[0]).toBe("custom-test-command");
-      expect(firstCall[1]).toEqual(["arg1", "arg2"]);
-
-      spawnSpy.mockRestore();
+      const result = await Effect.runPromise(program);
+      expect(result).toBe("correct-error");
     });
   });
 });

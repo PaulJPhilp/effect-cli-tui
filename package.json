@@ -56,11 +56,12 @@
     "effect-cli": "^1.0.0",
     "highlight.js": "^11.11.1",
     "ink": "^4.4.1",
+    "ink-select-input": "^6.2.0",
     "ink-spinner": "^5.0.0",
-    "ink-text-input": "^5.0.0",
-    "ink-select-input": "^6.0.0",
+    "ink-text-input": "^5.0.1",
     "pastel": "^3.0.0",
-    "react": "^18.3.1"
+    "react": "^18.3.1",
+    "string-width": "^8.1.0"
   },
   "peerDependencies": {
     "effect": "^3.19.0"
@@ -68,19 +69,19 @@
   "devDependencies": {
     "@types/ink-select-input": "^3.0.5",
     "@types/node": "^20.19.25",
-    "@types/react": "^18.3.26",
+    "@types/react": "^18.3.27",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
-    "@vitest/coverage-v8": "^4.0.8",
-    "@vitest/ui": "^4.0.8",
-    "effect": "^3.19.3",
+    "@vitest/coverage-v8": "^4.0.10",
+    "@vitest/ui": "^4.0.10",
+    "effect": "^3.19.4",
     "eslint": "^8.57.1",
-    "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-react": "^7.37.5",
     "ink-testing-library": "^4.0.0",
     "prettier": "^3.6.2",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.8"
+    "vitest": "^4.0.10"
   },
   "engines": {
     "node": ">=20"

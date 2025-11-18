@@ -5,9 +5,9 @@ import { display, displayError, displaySuccess } from "../../src/core/display";
 import { createTheme, mergeTheme } from "../../src/services/theme/helpers";
 import { themes } from "../../src/services/theme/presets";
 import {
+  ThemeService,
   getCurrentTheme,
   setTheme,
-  ThemeService,
   withTheme,
 } from "../../src/services/theme/service";
 
@@ -118,7 +118,7 @@ describe("ThemeService", () => {
       const partial = {
         icons: { success: "✅" },
         colors: { info: "cyan" },
-      };
+      } as const;
 
       const merged = mergeTheme(base, partial);
 
@@ -165,15 +165,15 @@ describe("ThemeService", () => {
 });
 
 describe("Theme Integration with Display Functions", () => {
-  it.skip("should use theme icons in display functions", async () => {
+  it("should use theme icons in display functions", async () => {
     // Skip: Theme icons are accessed synchronously via require() in getDisplayIcon(),
     // but the theme is set asynchronously via Effect. The console spy might not
     // capture the icons correctly due to timing/chalk styling issues.
     // Manual verification: Theme icons work correctly in real usage.
-    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(vi.fn());
     const consoleErrorSpy = vi
       .spyOn(console, "error")
-      .mockImplementation(() => {});
+      .mockImplementation(vi.fn());
 
     const program = Effect.gen(function* () {
       const theme = yield* ThemeService;
@@ -202,7 +202,7 @@ describe("Theme Integration with Display Functions", () => {
   });
 
   it("should use theme colors in display functions", async () => {
-    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(vi.fn());
 
     const customTheme = createTheme({
       colors: {
@@ -230,7 +230,7 @@ describe("Theme Integration with Display Functions", () => {
   });
 
   it("should fallback to default theme when ThemeService not provided", async () => {
-    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(vi.fn());
 
     // Run display without ThemeService - should use defaults
     const program = displaySuccess("Success!");

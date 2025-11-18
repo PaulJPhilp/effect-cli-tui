@@ -26,31 +26,32 @@
  * ```
  */
 
+import chalk from "chalk";
 import { Effect } from "effect";
 import {
-  Confirm,
-  display,
-  displayError,
-  displayPanel,
-  displaySuccess,
-  displayTable,
-  EffectCLI,
-  Input,
-  renderInkWithResult,
-  Select,
+    Confirm,
+    display,
+    displayError,
+    displayPanel,
+    displaySuccess,
+    displayTable,
+    EffectCLI,
+    Input,
+    renderInkWithResult,
+    Select,
 } from "../src/index.js";
 import { copyToClipboard } from "./prompt-builder/clipboard.js";
 import { templates } from "./prompt-builder/templates.js";
 import type {
-  BuiltPrompt,
-  PromptTemplate,
-  UserResponses,
+    BuiltPrompt,
+    PromptTemplate,
+    UserResponses,
 } from "./prompt-builder/types.js";
 import {
-  createInputValidator,
-  validateField,
-  validateGeneratedPrompt,
-  validateResponses,
+    createInputValidator,
+    validateField,
+    validateGeneratedPrompt,
+    validateResponses,
 } from "./prompt-builder/validation.js";
 
 /**
@@ -58,20 +59,28 @@ import {
  */
 const showWelcome = (): Effect.Effect<void> =>
   Effect.gen(function* () {
+    // Create content without color first - let the box handle layout
+    const lines = [
+      "Interactive CLI tool for crafting",
+      "effective LLM prompts",
+      "",
+      "Choose from 5 proven strategies:",
+      "  • Zero-shot: Direct instruction",
+      "  • One-shot: With example",
+      "  • Instruction-first",
+      "  • Contract-first",
+      "  • Chain-of-thought",
+      "",
+      "Build, review, and copy!",
+    ];
+    
+    // Apply bright orange color with bold to each line individually
+    const coloredLines = lines.map(line => chalk.bold.rgb(255, 180, 50)(line));
+    const welcomeContent = coloredLines.join("\n");
+    
     yield* displayPanel(
-      [
-        "Interactive CLI tool for crafting effective LLM prompts",
-        "",
-        "Choose from 5 proven prompting strategies:",
-        "  • Zero-shot: Direct instruction",
-        "  • One-shot: With example",
-        "  • Instruction-first: Goal & constraints",
-        "  • Contract-first: Input/output specs",
-        "  • Chain-of-thought: Step-by-step reasoning",
-        "",
-        "Build, review, and copy your prompts to clipboard!",
-      ].join("\n"),
-      "Welcome to Prompt Builder",
+      welcomeContent,
+      "Prompt Builder",
       { type: "info" }
     );
   });
