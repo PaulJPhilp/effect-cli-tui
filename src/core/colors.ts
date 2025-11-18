@@ -3,11 +3,11 @@ import { Effect } from "effect";
 import type { ChalkBgColor, ChalkColor } from "../types";
 import { display } from "./display";
 import {
-  COLOR_HIGHLIGHT,
-  DEFAULT_DISPLAY_TYPE,
-  getDisplayColor,
-  getDisplayIcon,
-  SYMBOL_BULLET,
+    COLOR_HIGHLIGHT,
+    DEFAULT_DISPLAY_TYPE,
+    getDisplayColor,
+    getDisplayIcon,
+    SYMBOL_BULLET,
 } from "./icons";
 
 /**
@@ -55,28 +55,12 @@ export function applyChalkStyle(
  * Uses theme highlight color if available.
  */
 export function displayHighlight(message: string): Effect.Effect<void> {
-  // Try to get theme highlight color, fallback to default
-  let highlightColor: ChalkColor = COLOR_HIGHLIGHT;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-    const themeModule: {
-      getCurrentThemeSync?: () => { colors: { highlight: ChalkColor } };
-    } = require("../services/theme/service");
-    if (themeModule?.getCurrentThemeSync) {
-      const theme = themeModule.getCurrentThemeSync();
-      if (theme?.colors?.highlight) {
-        highlightColor = theme.colors.highlight;
-      }
-    }
-  } catch {
-    // Fallback to default
-  }
-
   const styledMessage = applyChalkStyle(message, {
     bold: true,
-    color: highlightColor,
+    color: COLOR_HIGHLIGHT,
   });
-  return display(styledMessage, { type: DEFAULT_DISPLAY_TYPE });
+  console.log(`\nℹ ${styledMessage}`);
+  return Effect.succeed(undefined);
 }
 
 /**

@@ -1,9 +1,4 @@
-/**
- * Display icons/symbols used throughout the CLI TUI
- *
- * These constants provide consistent, meaningful names for display symbols
- * used in messages, prompts, and UI components.
- */
+import type { Theme } from "../services/theme/types";
 
 /** Success/checkmark icon (✓) */
 export const ICON_SUCCESS = "✓";
@@ -105,33 +100,52 @@ interface ThemeModule {
 }
 
 /**
- * Get the appropriate icon for a display type
+ * Get the display icon for a given type
  *
- * Uses the current theme if available, otherwise falls back to default icons.
+ * Uses the provided theme if available, otherwise uses the current theme if available,
+ * otherwise falls back to default icons.
  *
  * @param type - The display type
+ * @param theme - Optional theme to use
  * @returns The corresponding icon symbol
  */
 export function getDisplayIcon(
-  type: "info" | "success" | "error" | "warning"
+  type: "info" | "success" | "error" | "warning",
+  theme?: Theme
 ): string {
+  // Use provided theme first
+  if (theme?.icons) {
+    switch (type) {
+      case "success":
+        return theme.icons.success;
+      case "error":
+        return theme.icons.error;
+      case "warning":
+        return theme.icons.warning;
+      case "info":
+        return theme.icons.info;
+      default:
+        return ICON_INFO;
+    }
+  }
+
   // Try to get theme, fallback to defaults if not available
   // Using dynamic import to avoid circular dependencies
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
     const themeModule: ThemeModule = require("../services/theme/service");
     if (themeModule?.getCurrentThemeSync) {
-      const theme = themeModule.getCurrentThemeSync();
-      if (theme?.icons) {
+      const currentTheme = themeModule.getCurrentThemeSync();
+      if (currentTheme?.icons) {
         switch (type) {
           case "success":
-            return theme.icons.success;
+            return currentTheme.icons.success;
           case "error":
-            return theme.icons.error;
+            return currentTheme.icons.error;
           case "warning":
-            return theme.icons.warning;
+            return currentTheme.icons.warning;
           case "info":
-            return theme.icons.info;
+            return currentTheme.icons.info;
           default:
             return ICON_INFO;
         }
@@ -157,32 +171,51 @@ export function getDisplayIcon(
 }
 
 /**
- * Get the appropriate color for a display type
+ * Get the display color for a given type
  *
- * Uses the current theme if available, otherwise falls back to default colors.
+ * Uses the provided theme if available, otherwise uses the current theme if available,
+ * otherwise falls back to default colors.
  *
  * @param type - The display type
+ * @param theme - Optional theme to use
  * @returns The corresponding color
  */
 export function getDisplayColor(
-  type: "info" | "success" | "error" | "warning"
+  type: "info" | "success" | "error" | "warning",
+  theme?: Theme
 ): string {
+  // Use provided theme first
+  if (theme?.colors) {
+    switch (type) {
+      case "success":
+        return theme.colors.success;
+      case "error":
+        return theme.colors.error;
+      case "warning":
+        return theme.colors.warning;
+      case "info":
+        return theme.colors.info;
+      default:
+        return COLOR_INFO;
+    }
+  }
+
   // Try to get theme, fallback to defaults if not available
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
     const themeModule: ThemeModule = require("../services/theme/service");
     if (themeModule?.getCurrentThemeSync) {
-      const theme = themeModule.getCurrentThemeSync();
-      if (theme?.colors) {
+      const currentTheme = themeModule.getCurrentThemeSync();
+      if (currentTheme?.colors) {
         switch (type) {
           case "success":
-            return theme.colors.success;
+            return currentTheme.colors.success;
           case "error":
-            return theme.colors.error;
+            return currentTheme.colors.error;
           case "warning":
-            return theme.colors.warning;
+            return currentTheme.colors.warning;
           case "info":
-            return theme.colors.info;
+            return currentTheme.colors.info;
           default:
             return COLOR_INFO;
         }

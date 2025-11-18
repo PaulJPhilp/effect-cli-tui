@@ -59,7 +59,7 @@ describe("Table Display", () => {
       await Effect.runPromise(displayTable(data, { columns }));
 
       const output = consoleSpy.mock.calls.map((call) => call[0]).join("");
-      expect(output).toContain("Very Long Name Here");
+      expect(output).toMatch(/Very Long Name Here\s*/);
       consoleSpy.mockRestore();
     });
 
@@ -90,7 +90,7 @@ describe("Table Display", () => {
         {
           key: "name",
           header: "Name",
-          formatter: (value: string) => value.toUpperCase(),
+          formatter: (value: unknown) => typeof value === "string" ? value.toUpperCase() : "",
         },
         { key: "age", header: "Age" },
       ];

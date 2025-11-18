@@ -1,6 +1,7 @@
 import { Console, Effect } from "effect";
 import { applyChalkStyle } from "../../core/colors";
 import { DEFAULT_DISPLAY_TYPE, getDisplayIcon } from "../../core/icons";
+import { ThemeService } from "../theme/service";
 import type { DisplayService as DisplayServiceApi } from "./api";
 import { formatDisplayOutput } from "./helpers";
 import type { DisplayOptions, JsonDisplayOptions } from "./types";
@@ -31,11 +32,15 @@ export class DisplayService extends Effect.Service<DisplayService>()(
             options: DisplayOptions = {}
           ): Effect.Effect<void> => {
             const { type = DEFAULT_DISPLAY_TYPE, ...restOptions } = options;
-            const output = formatDisplayOutput(message, type, restOptions);
-            // Route error messages to stderr for better CLI practices
-            return type === "error"
-              ? Console.error(output)
-              : Console.log(output);
+            return Effect.gen(function* () {
+              const themeOption = yield* Effect.serviceOption(ThemeService);
+              const theme = themeOption._tag === "Some" ? themeOption.value.getTheme() : undefined;
+              const output = formatDisplayOutput(message, type, restOptions, theme);
+              // Route error messages to stderr for better CLI practices
+              yield* type === "error"
+                ? Console.error(output)
+                : Console.log(output);
+            });
           },
 
           lines: (
@@ -46,11 +51,13 @@ export class DisplayService extends Effect.Service<DisplayService>()(
             const useStderr = type === "error";
 
             return Effect.gen(function* () {
+              const themeOption = yield* Effect.serviceOption(ThemeService);
+              const theme = themeOption._tag === "Some" ? themeOption.value.getTheme() : undefined;
               for (const line of lines) {
                 const output = formatDisplayOutput(line, type, {
                   ...restOptions,
                   newline: true,
-                });
+                }, theme);
                 yield* useStderr ? Console.error(output) : Console.log(output);
               }
             });
@@ -68,6 +75,8 @@ export class DisplayService extends Effect.Service<DisplayService>()(
             } = options;
 
             return Effect.gen(function* () {
+              const themeOption = yield* Effect.serviceOption(ThemeService);
+              const theme = themeOption._tag === "Some" ? themeOption.value.getTheme() : undefined;
               const jsonString = JSON.stringify(data, null, spaces);
 
               if (!(showPrefix || customPrefix)) {
@@ -78,7 +87,7 @@ export class DisplayService extends Effect.Service<DisplayService>()(
               }
 
               const prefix =
-                customPrefix ?? (showPrefix ? getDisplayIcon(type) : "");
+                customPrefix ?? (showPrefix ? getDisplayIcon(type, theme) : "");
               const styledPrefix =
                 options.style && prefix
                   ? applyChalkStyle(prefix, options.style)
@@ -103,17 +112,25 @@ export class DisplayService extends Effect.Service<DisplayService>()(
             message: string,
             options: Omit<DisplayOptions, "type"> = {}
           ): Effect.Effect<void> => {
-            const output = formatDisplayOutput(message, "success", options);
-            return Console.log(output);
+            return Effect.gen(function* () {
+              const themeOption = yield* Effect.serviceOption(ThemeService);
+              const theme = themeOption._tag === "Some" ? themeOption.value.getTheme() : undefined;
+              const output = formatDisplayOutput(message, "success", options, theme);
+              yield* Console.log(output);
+            });
           },
 
           error: (
             message: string,
             options: Omit<DisplayOptions, "type"> = {}
           ): Effect.Effect<void> => {
-            const output = formatDisplayOutput(message, "error", options);
-            // Route error messages to stderr for better CLI practices
-            return Console.error(output);
+            return Effect.gen(function* () {
+              const themeOption = yield* Effect.serviceOption(ThemeService);
+              const theme = themeOption._tag === "Some" ? themeOption.value.getTheme() : undefined;
+              const output = formatDisplayOutput(message, "error", options, theme);
+              // Route error messages to stderr for better CLI practices
+              yield* Console.error(output);
+            });
           },
         }) as const
     ),

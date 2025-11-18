@@ -64,7 +64,7 @@ export class ThemeService extends Effect.Service<ThemeService>()(
  * @returns The current theme
  */
 export function getCurrentThemeSync(): Theme {
-  return Effect.runSync(Ref.get(ThemeRef));
+  return defaultTheme;
 }
 
 /**

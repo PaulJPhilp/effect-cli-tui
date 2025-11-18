@@ -1,6 +1,6 @@
 import chalk from "chalk";
-import Table from "cli-table3";
 import { Effect } from "effect";
+import { table } from "table";
 import { applyChalkStyle } from "../core/colors";
 import type { ChalkColor, DisplayType, TableAlignment } from "../types";
 
@@ -41,25 +41,17 @@ export function displayTable<T>(
       return;
     }
 
-    const table = new Table({
-      head: options.columns.map((col) => {
-        const header = col.header;
-        return options.head
-          ? applyChalkStyle(header, options.head)
-          : chalk.bold(header);
-      }),
-      colWidths: options.columns.map((col) => col.width || 20),
-      style: {
-        head: [],
-        border: options.bordered ? ["cyan"] : [],
-        compact: true,
-      },
-      wordWrap: true,
+    // Prepare headers
+    const headers = options.columns.map((col) => {
+      const header = col.header;
+      return options.head
+        ? applyChalkStyle(header, options.head)
+        : chalk.bold(header);
     });
 
-    // Add rows
-    for (const row of data) {
-      const rowData = options.columns.map((col) => {
+    // Prepare rows
+    const rows = data.map((row) =>
+      options.columns.map((col) => {
         let value = (row as Record<string, unknown>)[col.key as string];
 
         // Apply formatter if provided
@@ -72,11 +64,50 @@ export function displayTable<T>(
         return options.style
           ? applyChalkStyle(stringValue, options.style)
           : stringValue;
-      });
+      })
+    );
 
-      table.push(rowData);
+    // Combine headers and rows
+    const tableData = [headers, ...rows];
+
+    // Table options
+    const tableConfig: any = {
+      drawHorizontalLine: options.bordered ? () => true : () => false,
+    };
+
+    if (options.bordered) {
+      tableConfig.border = {
+        topBody: `─`,
+        topJoin: `┬`,
+        topLeft: `┌`,
+        topRight: `┐`,
+        bottomBody: `─`,
+        bottomJoin: `┴`,
+        bottomLeft: `└`,
+        bottomRight: `┘`,
+        bodyLeft: `│`,
+        bodyRight: `│`,
+        bodyJoin: `│`,
+        joinBody: `─`,
+        joinLeft: `├`,
+        joinRight: `┤`,
+        joinJoin: `┼`,
+      };
     }
 
-    console.log(`\n${table.toString()}\n`);
+    // Add column configs
+    if (options.columns.some(col => col.width || col.align || col.truncate)) {
+      tableConfig.columns = {};
+      options.columns.forEach((col, index) => {
+        tableConfig.columns[index] = {
+          // width: col.width,
+          alignment: col.align === "right" ? "right" : col.align === "center" ? "center" : "left",
+          // truncate: col.truncate ? 100 : undefined,
+        };
+      });
+    }
+
+    const output = table(tableData, tableConfig);
+    console.log(`\n${output}\n`);
   });
 }
