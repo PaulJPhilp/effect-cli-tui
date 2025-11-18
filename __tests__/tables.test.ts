@@ -90,7 +90,8 @@ describe("Table Display", () => {
         {
           key: "name",
           header: "Name",
-          formatter: (value: unknown) => typeof value === "string" ? value.toUpperCase() : "",
+          formatter: (value: unknown) =>
+            typeof value === "string" ? value.toUpperCase() : "",
         },
         { key: "age", header: "Age" },
       ];

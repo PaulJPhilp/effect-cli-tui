@@ -43,8 +43,8 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:real-cli": "vitest run --config vitest.real-cli.config.mjs",
-    "lint": "eslint src __tests__",
-    "format": "prettier --write src __tests__ docs",
+    "lint": "biome check src __tests__",
+    "format": "biome format src __tests__ docs",
     "type-check": "tsc --noEmit",
     "prepublishOnly": "bun run build && bun run test"
   },
@@ -68,20 +68,17 @@
     "effect": "^3.19.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.6",
     "@types/ink-select-input": "^3.0.5",
     "@types/node": "^20.19.25",
     "@types/react": "^18.3.27",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
     "@vitest/coverage-v8": "^4.0.10",
     "@vitest/ui": "^4.0.10",
     "effect": "^3.19.4",
-    "eslint": "^8.57.1",
-    "eslint-plugin-react": "^7.37.5",
     "ink-testing-library": "^4.0.0",
-    "prettier": "^3.6.2",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
+    "ultracite": "^6.3.4",
     "vitest": "^4.0.10"
   },
   "engines": {

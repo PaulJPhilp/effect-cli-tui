@@ -3,11 +3,11 @@ import { Effect } from "effect";
 import type { ChalkBgColor, ChalkColor } from "../types";
 import { display } from "./display";
 import {
-    COLOR_HIGHLIGHT,
-    DEFAULT_DISPLAY_TYPE,
-    getDisplayColor,
-    getDisplayIcon,
-    SYMBOL_BULLET,
+  COLOR_HIGHLIGHT,
+  DEFAULT_DISPLAY_TYPE,
+  getDisplayColor,
+  getDisplayIcon,
+  SYMBOL_BULLET,
 } from "./icons";
 
 /**

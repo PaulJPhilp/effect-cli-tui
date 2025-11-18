@@ -1,9 +1,8 @@
 import { applyChalkStyle } from "../../core/colors";
 import { getDisplayColor, getDisplayIcon } from "../../core/icons";
 import type { ChalkColor } from "../../types";
-import type { DisplayOptions, DisplayType } from "./types";
-
 import type { Theme } from "../theme/types";
+import type { DisplayOptions, DisplayType } from "./types";
 
 /**
  * Format display output with optional theme

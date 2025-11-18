@@ -3,10 +3,10 @@ import { Effect } from "effect";
 import stringWidth from "string-width";
 import { applyChalkStyle } from "../core/colors";
 import {
-    COLOR_ERROR,
-    COLOR_SUCCESS,
-    COLOR_WARNING,
-    DEFAULT_DISPLAY_TYPE
+  COLOR_ERROR,
+  COLOR_SUCCESS,
+  COLOR_WARNING,
+  DEFAULT_DISPLAY_TYPE,
 } from "../core/icons";
 import type { BorderStyle, DisplayType } from "../types";
 
@@ -128,7 +128,7 @@ export function displayBox(
 
     const lines = content.split("\n");
     const maxContentWidth = Math.max(
-      ...lines.map((l) => stringWidth(l)), 
+      ...lines.map((l) => stringWidth(l)),
       title ? stringWidth(title) : 0
     );
     const maxWidth = maxContentWidth + padding * 2 + 4; // +4 for two borders and two spaces

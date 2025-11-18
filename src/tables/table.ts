@@ -77,31 +77,36 @@ export function displayTable<T>(
 
     if (options.bordered) {
       tableConfig.border = {
-        topBody: `─`,
-        topJoin: `┬`,
-        topLeft: `┌`,
-        topRight: `┐`,
-        bottomBody: `─`,
-        bottomJoin: `┴`,
-        bottomLeft: `└`,
-        bottomRight: `┘`,
-        bodyLeft: `│`,
-        bodyRight: `│`,
-        bodyJoin: `│`,
-        joinBody: `─`,
-        joinLeft: `├`,
-        joinRight: `┤`,
-        joinJoin: `┼`,
+        topBody: "─",
+        topJoin: "┬",
+        topLeft: "┌",
+        topRight: "┐",
+        bottomBody: "─",
+        bottomJoin: "┴",
+        bottomLeft: "└",
+        bottomRight: "┘",
+        bodyLeft: "│",
+        bodyRight: "│",
+        bodyJoin: "│",
+        joinBody: "─",
+        joinLeft: "├",
+        joinRight: "┤",
+        joinJoin: "┼",
       };
     }
 
     // Add column configs
-    if (options.columns.some(col => col.width || col.align || col.truncate)) {
+    if (options.columns.some((col) => col.width || col.align || col.truncate)) {
       tableConfig.columns = {};
       options.columns.forEach((col, index) => {
         tableConfig.columns[index] = {
           // width: col.width,
-          alignment: col.align === "right" ? "right" : col.align === "center" ? "center" : "left",
+          alignment:
+            col.align === "right"
+              ? "right"
+              : col.align === "center"
+                ? "center"
+                : "left",
           // truncate: col.truncate ? 100 : undefined,
         };
       });

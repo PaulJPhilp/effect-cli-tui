@@ -1,11 +1,11 @@
 import { Effect } from "effect";
 import {
-    applyChalkStyle,
-    displayHighlight,
-    displayInfo,
-    displayListItem,
-    displayMuted,
-    displayWarning,
+  applyChalkStyle,
+  displayHighlight,
+  displayInfo,
+  displayListItem,
+  displayMuted,
+  displayWarning,
 } from "effect-cli-tui";
 import { describe, expect, it, vi } from "vitest";
 

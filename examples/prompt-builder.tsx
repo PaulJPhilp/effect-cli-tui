@@ -29,29 +29,29 @@
 import chalk from "chalk";
 import { Effect } from "effect";
 import {
-    Confirm,
-    display,
-    displayError,
-    displayPanel,
-    displaySuccess,
-    displayTable,
-    EffectCLI,
-    Input,
-    renderInkWithResult,
-    Select,
+  Confirm,
+  display,
+  displayError,
+  displayPanel,
+  displaySuccess,
+  displayTable,
+  EffectCLI,
+  Input,
+  renderInkWithResult,
+  Select,
 } from "../src/index.js";
 import { copyToClipboard } from "./prompt-builder/clipboard.js";
 import { templates } from "./prompt-builder/templates.js";
 import type {
-    BuiltPrompt,
-    PromptTemplate,
-    UserResponses,
+  BuiltPrompt,
+  PromptTemplate,
+  UserResponses,
 } from "./prompt-builder/types.js";
 import {
-    createInputValidator,
-    validateField,
-    validateGeneratedPrompt,
-    validateResponses,
+  createInputValidator,
+  validateField,
+  validateGeneratedPrompt,
+  validateResponses,
 } from "./prompt-builder/validation.js";
 
 /**
@@ -73,16 +73,14 @@ const showWelcome = (): Effect.Effect<void> =>
       "",
       "Build, review, and copy!",
     ];
-    
+
     // Apply bright orange color with bold to each line individually
-    const coloredLines = lines.map(line => chalk.bold.rgb(255, 180, 50)(line));
-    const welcomeContent = coloredLines.join("\n");
-    
-    yield* displayPanel(
-      welcomeContent,
-      "Prompt Builder",
-      { type: "info" }
+    const coloredLines = lines.map((line) =>
+      chalk.bold.rgb(255, 180, 50)(line)
     );
+    const welcomeContent = coloredLines.join("\n");
+
+    yield* displayPanel(welcomeContent, "Prompt Builder", { type: "info" });
   });
 
 /**

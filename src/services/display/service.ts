@@ -34,8 +34,16 @@ export class DisplayService extends Effect.Service<DisplayService>()(
             const { type = DEFAULT_DISPLAY_TYPE, ...restOptions } = options;
             return Effect.gen(function* () {
               const themeOption = yield* Effect.serviceOption(ThemeService);
-              const theme = themeOption._tag === "Some" ? themeOption.value.getTheme() : undefined;
-              const output = formatDisplayOutput(message, type, restOptions, theme);
+              const theme =
+                themeOption._tag === "Some"
+                  ? themeOption.value.getTheme()
+                  : undefined;
+              const output = formatDisplayOutput(
+                message,
+                type,
+                restOptions,
+                theme
+              );
               // Route error messages to stderr for better CLI practices
               yield* type === "error"
                 ? Console.error(output)
@@ -52,12 +60,20 @@ export class DisplayService extends Effect.Service<DisplayService>()(
 
             return Effect.gen(function* () {
               const themeOption = yield* Effect.serviceOption(ThemeService);
-              const theme = themeOption._tag === "Some" ? themeOption.value.getTheme() : undefined;
+              const theme =
+                themeOption._tag === "Some"
+                  ? themeOption.value.getTheme()
+                  : undefined;
               for (const line of lines) {
-                const output = formatDisplayOutput(line, type, {
-                  ...restOptions,
-                  newline: true,
-                }, theme);
+                const output = formatDisplayOutput(
+                  line,
+                  type,
+                  {
+                    ...restOptions,
+                    newline: true,
+                  },
+                  theme
+                );
                 yield* useStderr ? Console.error(output) : Console.log(output);
               }
             });
@@ -76,7 +92,10 @@ export class DisplayService extends Effect.Service<DisplayService>()(
 
             return Effect.gen(function* () {
               const themeOption = yield* Effect.serviceOption(ThemeService);
-              const theme = themeOption._tag === "Some" ? themeOption.value.getTheme() : undefined;
+              const theme =
+                themeOption._tag === "Some"
+                  ? themeOption.value.getTheme()
+                  : undefined;
               const jsonString = JSON.stringify(data, null, spaces);
 
               if (!(showPrefix || customPrefix)) {
@@ -111,14 +130,21 @@ export class DisplayService extends Effect.Service<DisplayService>()(
           success: (
             message: string,
             options: Omit<DisplayOptions, "type"> = {}
-          ): Effect.Effect<void> => {
-            return Effect.gen(function* () {
+          ): Effect.Effect<void> =>
+            Effect.gen(function* () {
               const themeOption = yield* Effect.serviceOption(ThemeService);
-              const theme = themeOption._tag === "Some" ? themeOption.value.getTheme() : undefined;
-              const output = formatDisplayOutput(message, "success", options, theme);
+              const theme =
+                themeOption._tag === "Some"
+                  ? themeOption.value.getTheme()
+                  : undefined;
+              const output = formatDisplayOutput(
+                message,
+                "success",
+                options,
+                theme
+              );
               yield* Console.log(output);
-            });
-          },
+            }),
 
           error: (
             message: string,
@@ -126,8 +152,16 @@ export class DisplayService extends Effect.Service<DisplayService>()(
           ): Effect.Effect<void> => {
             return Effect.gen(function* () {
               const themeOption = yield* Effect.serviceOption(ThemeService);
-              const theme = themeOption._tag === "Some" ? themeOption.value.getTheme() : undefined;
-              const output = formatDisplayOutput(message, "error", options, theme);
+              const theme =
+                themeOption._tag === "Some"
+                  ? themeOption.value.getTheme()
+                  : undefined;
+              const output = formatDisplayOutput(
+                message,
+                "error",
+                options,
+                theme
+              );
               // Route error messages to stderr for better CLI practices
               yield* Console.error(output);
             });

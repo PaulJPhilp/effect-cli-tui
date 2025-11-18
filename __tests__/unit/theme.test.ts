@@ -6,9 +6,9 @@ import { DisplayService } from "../../src/services/display";
 import { createTheme, mergeTheme } from "../../src/services/theme/helpers";
 import { themes } from "../../src/services/theme/presets";
 import {
-  ThemeService,
   getCurrentTheme,
   setTheme,
+  ThemeService,
   withTheme,
 } from "../../src/services/theme/service";
 
@@ -180,7 +180,10 @@ describe("Theme Integration with Display Functions", () => {
       yield* displayError("Error!");
       yield* displayWarning("Warning!");
       yield* displayInfo("Info!");
-    }).pipe(Effect.provide(ThemeService.Default), Effect.provide(DisplayService.Default));
+    }).pipe(
+      Effect.provide(ThemeService.Default),
+      Effect.provide(DisplayService.Default)
+    );
 
     await Effect.runPromise(program);
 
@@ -193,10 +196,18 @@ describe("Theme Integration with Display Functions", () => {
     const errorCalls = consoleErrorSpy.mock.calls;
     const allCalls = [...logCalls, ...errorCalls];
 
-    expect(allCalls.some((call) => JSON.stringify(call).includes("Success!"))).toBe(true);
-    expect(allCalls.some((call) => JSON.stringify(call).includes("Error!"))).toBe(true);
-    expect(allCalls.some((call) => JSON.stringify(call).includes("Warning!"))).toBe(true);
-    expect(allCalls.some((call) => JSON.stringify(call).includes("Info!"))).toBe(true);
+    expect(
+      allCalls.some((call) => JSON.stringify(call).includes("Success!"))
+    ).toBe(true);
+    expect(
+      allCalls.some((call) => JSON.stringify(call).includes("Error!"))
+    ).toBe(true);
+    expect(
+      allCalls.some((call) => JSON.stringify(call).includes("Warning!"))
+    ).toBe(true);
+    expect(
+      allCalls.some((call) => JSON.stringify(call).includes("Info!"))
+    ).toBe(true);
 
     consoleLogSpy.mockRestore();
     consoleErrorSpy.mockRestore();
@@ -219,7 +230,10 @@ describe("Theme Integration with Display Functions", () => {
       yield* theme.setTheme(customTheme);
 
       yield* display("Test", { type: "success" });
-    }).pipe(Effect.provide(ThemeService.Default), Effect.provide(DisplayService.Default));
+    }).pipe(
+      Effect.provide(ThemeService.Default),
+      Effect.provide(DisplayService.Default)
+    );
 
     await Effect.runPromise(program);
 
