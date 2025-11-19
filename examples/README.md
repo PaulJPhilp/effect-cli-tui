@@ -3,6 +3,7 @@
 ## Quick Test
 
 Verify examples work:
+
 ```bash
 bun run examples/test-example.ts
 ```
@@ -13,9 +14,22 @@ bun run examples/test-example.ts
 - **`multi-step-wizard.tsx`** - Complex multi-step workflow with validation
 - **`error-handling.ts`** - Comprehensive error handling patterns (reference/documentation - examples are commented out)
 - **`progress-demo.tsx`** - Spinner and progress bar demonstrations
-- **`prompt-builder.tsx`** - Advanced prompt builder with templates
+- **`prompt-builder.tsx`** - **🏆 Teaching Example**: Advanced prompt builder demonstrating all major library features
 
-## Running Examples
+## The Prompt Builder - Comprehensive Teaching Example
+
+The **`prompt-builder.tsx`** example serves as the primary educational resource for learning how to use **effect-cli-tui**. It demonstrates:
+
+- ✅ **Template-based Architecture** - How to structure complex CLI applications
+- ✅ **Interactive Components** - Input, Select, Confirm with validation
+- ✅ **Display Utilities** - Panels, boxes, tables, and colored output
+- ✅ **Effect.Service Pattern** - Dependency injection and service composition
+- ✅ **Schema Validation** - Type-safe data validation with Effect Schema
+- ✅ **Error Handling** - Comprehensive error patterns with catchTag
+- ✅ **Clipboard Integration** - Cross-platform clipboard operations
+- ✅ **Iterative Workflows** - Edit/regenerate patterns for refinement
+
+**Start here** to understand the full capabilities of effect-cli-tui!
 
 ### Using `bun` (Recommended)
 
@@ -49,6 +63,7 @@ bun run examples/basic-prompts.tsx
 ```
 
 This will start an interactive prompt session asking for:
+
 - Your name
 - Your role (Admin/User/Guest)
 - Confirmation to create account
@@ -59,6 +74,7 @@ This will start an interactive prompt session asking for:
 The `error-handling.ts` file is a **reference/documentation file** with examples that are commented out. It demonstrates error handling patterns but isn't meant to be run directly.
 
 To use the examples:
+
 1. Open `examples/error-handling.ts`
 2. Uncomment the example you want to test
 3. The examples use `Effect.gen` with `yield*` which requires proper TypeScript compilation
@@ -69,6 +85,7 @@ To use the examples:
 ### "Cannot find module" errors
 
 Make sure you've installed dependencies:
+
 ```bash
 bun install
 ```
@@ -76,6 +93,7 @@ bun install
 ### Type errors
 
 Ensure the project is built:
+
 ```bash
 bun run build
 ```
@@ -83,6 +101,7 @@ bun run build
 ### Interactive examples not working
 
 Interactive examples require a TTY (terminal). They won't work in:
+
 - CI/CD pipelines without TTY
 - Non-interactive shells
 - Some IDEs' integrated terminals

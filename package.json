@@ -50,7 +50,9 @@
   },
   "type": "module",
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.68",
     "@effect/schema": "^0.75.5",
+    "ai": "^5.0.95",
     "chalk": "^5.6.2",
     "cli-spinners": "^3.3.0",
     "effect-cli": "^1.0.0",
