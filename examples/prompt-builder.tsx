@@ -41,33 +41,33 @@ import chalk from "chalk";
 import { Effect } from "effect";
 import { Box } from "ink";
 import {
-    Confirm,
-    display,
-    displayError,
-    displayInfo,
-    displayPanel,
-    displaySuccess,
-    displayTable,
-    EffectCLI,
-    Input,
-    Password,
-    renderInkWithResult,
-    Select,
-    startSpinner,
-    stopSpinner
+  Confirm,
+  display,
+  displayError,
+  displayInfo,
+  displayPanel,
+  displaySuccess,
+  displayTable,
+  EffectCLI,
+  Input,
+  Password,
+  renderInkWithResult,
+  Select,
+  startSpinner,
+  stopSpinner,
 } from "../src/index.js";
 import { copyToClipboard } from "./prompt-builder/clipboard.js";
 import { templates } from "./prompt-builder/templates.js";
 import type {
-    BuiltPrompt,
-    PromptTemplate,
-    UserResponses,
+  BuiltPrompt,
+  PromptTemplate,
+  UserResponses,
 } from "./prompt-builder/types.js";
 import {
-    createInputValidator,
-    validateField,
-    validateGeneratedPrompt,
-    validateResponses,
+  createInputValidator,
+  validateField,
+  validateGeneratedPrompt,
+  validateResponses,
 } from "./prompt-builder/validation.js";
 
 /**
@@ -351,12 +351,12 @@ const promptBuilderApp = (): Effect.Effect<void> =>
     const nextAction = yield* renderInkWithResult<string>((onComplete) => (
       <Box borderStyle="round" padding={1}>
         <Select
-          message="What would you like to do?"
           choices={[
             { label: "📋 Copy to clipboard", value: "copy" },
             { label: "✏️  Edit prompt", value: "edit" },
             { label: "🚀 Run prompt with AI", value: "run" },
           ]}
+          message="What would you like to do?"
           onSubmit={onComplete}
         />
       </Box>
@@ -382,10 +382,7 @@ const runPromptWithAI = (builtPrompt: BuiltPrompt): Effect.Effect<void> =>
     // Get API key
     const apiKey = yield* renderInkWithResult<string>((onComplete) => (
       <Box borderStyle="round" padding={1}>
-        <Password
-          message="Enter your OpenAI API key:"
-          onSubmit={onComplete}
-        />
+        <Password message="Enter your OpenAI API key:" onSubmit={onComplete} />
       </Box>
     ));
 
@@ -400,13 +397,12 @@ const runPromptWithAI = (builtPrompt: BuiltPrompt): Effect.Effect<void> =>
     try {
       // Make API call using Vercel AI SDK
       const result = yield* Effect.tryPromise({
-        try: async () => {
-          return await generateText({
+        try: async () =>
+          await generateText({
             model: openai("gpt-4o-mini"),
             prompt: builtPrompt.promptText,
             apiKey,
-          });
-        },
+          }),
         catch: (error) => new Error(`AI API call failed: ${error.message}`),
       });
 
@@ -417,7 +413,6 @@ const runPromptWithAI = (builtPrompt: BuiltPrompt): Effect.Effect<void> =>
       yield* displaySuccess("🎉 AI Response:");
       yield* display("");
       yield* displayPanel(result.text, "AI Response", { type: "success" });
-
     } catch (error) {
       yield* stopSpinner(spinnerId);
       yield* displayError(`Failed to run prompt: ${error.message}`);
