@@ -15,6 +15,8 @@ import type { Theme } from "./types";
  * Default theme matching current behavior
  *
  * Uses the existing icon and color constants.
+ * This is the global default theme used throughout the application.
+ * Exported from src/theme.ts for public API access.
  */
 export const defaultTheme: Theme = {
   icons: {
@@ -45,11 +47,11 @@ export const minimalTheme: Theme = {
     info: "",
   },
   colors: {
-    success: "green",
-    error: "red",
-    warning: "yellow",
-    info: "blue",
-    highlight: "cyan",
+    success: COLOR_SUCCESS,
+    error: COLOR_ERROR,
+    warning: COLOR_WARNING,
+    info: COLOR_INFO,
+    highlight: COLOR_HIGHLIGHT,
   },
 };
 

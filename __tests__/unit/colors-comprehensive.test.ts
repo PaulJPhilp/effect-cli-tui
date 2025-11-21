@@ -266,7 +266,7 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
 
     it("should display long message", async () => {
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      const longMsg = "Important: " + "a".repeat(100);
+      const longMsg = `Important: ${"a".repeat(100)}`;
       await Effect.runPromise(displayHighlight(longMsg));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -297,7 +297,7 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
 
     it("should display long muted message", async () => {
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      const longMsg = "Detail: " + "x".repeat(100);
+      const longMsg = `Detail: ${"x".repeat(100)}`;
       await Effect.runPromise(displayMuted(longMsg));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -334,7 +334,7 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
 
     it("should display long warning", async () => {
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      const longMsg = "Warning: " + "w".repeat(100);
+      const longMsg = `Warning: ${"w".repeat(100)}`;
       await Effect.runPromise(displayWarning(longMsg));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -365,7 +365,7 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
 
     it("should display long info message", async () => {
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      const longMsg = "Information: " + "i".repeat(100);
+      const longMsg = `Information: ${"i".repeat(100)}`;
       await Effect.runPromise(displayInfo(longMsg));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -470,7 +470,7 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
 
     it("should display long list item text", async () => {
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      const longItem = "Item: " + "a".repeat(150);
+      const longItem = `Item: ${"a".repeat(150)}`;
       await Effect.runPromise(displayListItem(longItem));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();

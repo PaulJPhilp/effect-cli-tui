@@ -7,9 +7,9 @@
  * Run with: bun run examples/multi-step-wizard.tsx
  */
 
-import * as Effect from "effect/Effect";
+import { Effect } from "effect";
 import { Confirm, Input, MultiSelect, Select } from "../src/components";
-import { renderInkWithResult } from "../src/effects/ink-wrapper";
+import { InkService } from "../src/services/ink";
 
 interface SetupConfig {
   projectName: string;
@@ -22,7 +22,8 @@ interface SetupConfig {
  * Step 1: Collect project name
  */
 const step1ProjectName = Effect.gen(function* () {
-  return yield* renderInkWithResult<string>((onComplete) => (
+  const ink = yield* InkService;
+  return yield* ink.renderWithResult<string>((onComplete) => (
     <Input
       defaultValue="my-app"
       message="Project name:"
@@ -38,40 +39,43 @@ const step1ProjectName = Effect.gen(function* () {
       }}
     />
   ));
-});
+}).pipe(Effect.provide(InkService.Default));
 
 /**
  * Step 2: Choose programming language
  */
 const step2Language = Effect.gen(function* () {
-  return yield* renderInkWithResult<string>((onComplete) => (
+  const ink = yield* InkService;
+  return yield* ink.renderWithResult<string>((onComplete) => (
     <Select
       choices={["TypeScript", "JavaScript", "Python", "Go"]}
       message="Choose a language:"
       onSubmit={onComplete}
     />
   ));
-});
+}).pipe(Effect.provide(InkService.Default));
 
 /**
  * Step 3: Select features
  */
 const step3Features = Effect.gen(function* () {
-  return yield* renderInkWithResult<string[]>((onComplete) => (
+  const ink = yield* InkService;
+  return yield* ink.renderWithResult<string[]>((onComplete) => (
     <MultiSelect
       choices={["ESLint", "Prettier", "Testing", "Docker", "CI/CD"]}
       message="Select features:"
       onSubmit={onComplete}
     />
   ));
-});
+}).pipe(Effect.provide(InkService.Default));
 
 /**
  * Step 4: Confirm setup
  */
 const step4Confirm = (config: Partial<SetupConfig>) =>
   Effect.gen(function* () {
-    const confirmed = yield* renderInkWithResult<boolean>((onComplete) => (
+    const ink = yield* InkService;
+    const confirmed = yield* ink.renderWithResult<boolean>((onComplete) => (
       <Confirm
         default={true}
         message={`Create project '${config.projectName}'?`}
@@ -79,20 +83,21 @@ const step4Confirm = (config: Partial<SetupConfig>) =>
       />
     ));
     return confirmed;
-  });
+  }).pipe(Effect.provide(InkService.Default));
 
 /**
  * Step 5: Install dependencies
  */
 const step5InstallDeps = Effect.gen(function* () {
-  return yield* renderInkWithResult<boolean>((onComplete) => (
+  const ink = yield* InkService;
+  return yield* ink.renderWithResult<boolean>((onComplete) => (
     <Confirm
       default={true}
       message="Install dependencies now?"
       onSubmit={onComplete}
     />
   ));
-});
+}).pipe(Effect.provide(InkService.Default));
 
 /**
  * Main wizard workflow

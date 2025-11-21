@@ -1,4 +1,22 @@
+import { Effect, Match } from "effect";
 import type { Theme } from "../services/theme/types";
+import type { ChalkColor } from "../types";
+
+// Lazy import to avoid circular dependency with ThemeService
+let ThemeServiceModule: typeof import("../services/theme/service") | null =
+  null;
+function getThemeService(): typeof import("../services/theme/service").ThemeService {
+  if (!ThemeServiceModule) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    ThemeServiceModule = require("../services/theme/service");
+  }
+  // TypeScript doesn't narrow the type after assignment, so we assert the module exists
+  // This is safe because we just assigned it above if it was null
+  if (!ThemeServiceModule) {
+    throw new Error("Failed to load ThemeService module");
+  }
+  return ThemeServiceModule.ThemeService;
+}
 
 /** Success/checkmark icon (✓) */
 export const ICON_SUCCESS = "✓";
@@ -65,39 +83,14 @@ export const SPINNER_MESSAGE_FAILED = "Failed!";
 export const SYMBOL_BULLET = "•";
 
 /**
- * Default display type
- */
-export const DEFAULT_DISPLAY_TYPE = "info" as const;
-
-/**
  * Display type color mappings
  */
-export const COLOR_SUCCESS = "green" as const;
-export const COLOR_ERROR = "red" as const;
-export const COLOR_WARNING = "yellow" as const;
-export const COLOR_INFO = "blue" as const;
-export const COLOR_HIGHLIGHT = "cyan" as const;
-export const COLOR_DEFAULT = COLOR_INFO;
-
-/**
- * Type for theme module exports
- */
-interface ThemeModule {
-  getCurrentThemeSync?: () => {
-    icons: {
-      success: string;
-      error: string;
-      warning: string;
-      info: string;
-    };
-    colors: {
-      success: string;
-      error: string;
-      warning: string;
-      info: string;
-    };
-  };
-}
+export const COLOR_SUCCESS = "green" satisfies ChalkColor;
+export const COLOR_ERROR = "red" satisfies ChalkColor;
+export const COLOR_WARNING = "yellow" satisfies ChalkColor;
+export const COLOR_INFO = "blue" satisfies ChalkColor;
+export const COLOR_HIGHLIGHT = "cyan" satisfies ChalkColor;
+export const COLOR_DEFAULT = COLOR_INFO satisfies ChalkColor;
 
 /**
  * Get the display icon for a given type
@@ -115,59 +108,44 @@ export function getDisplayIcon(
 ): string {
   // Use provided theme first
   if (theme?.icons) {
-    switch (type) {
-      case "success":
-        return theme.icons.success;
-      case "error":
-        return theme.icons.error;
-      case "warning":
-        return theme.icons.warning;
-      case "info":
-        return theme.icons.info;
-      default:
-        return ICON_INFO;
-    }
+    return Match.value(type).pipe(
+      Match.when("success", () => theme.icons.success),
+      Match.when("error", () => theme.icons.error),
+      Match.when("warning", () => theme.icons.warning),
+      Match.when("info", () => theme.icons.info),
+      Match.exhaustive
+    );
   }
 
-  // Try to get theme, fallback to defaults if not available
-  // Using dynamic import to avoid circular dependencies
+  // Try to get theme from ThemeService, fallback to defaults if not available
+  // Use lazy import to avoid circular dependency
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-    const themeModule: ThemeModule = require("../services/theme/service");
-    if (themeModule?.getCurrentThemeSync) {
-      const currentTheme = themeModule.getCurrentThemeSync();
+    const ThemeService = getThemeService();
+    const themeOption = Effect.runSync(Effect.serviceOption(ThemeService));
+    if (themeOption._tag === "Some") {
+      const currentTheme = themeOption.value.getTheme();
       if (currentTheme?.icons) {
-        switch (type) {
-          case "success":
-            return currentTheme.icons.success;
-          case "error":
-            return currentTheme.icons.error;
-          case "warning":
-            return currentTheme.icons.warning;
-          case "info":
-            return currentTheme.icons.info;
-          default:
-            return ICON_INFO;
-        }
+        return Match.value(type).pipe(
+          Match.when("success", () => currentTheme.icons.success),
+          Match.when("error", () => currentTheme.icons.error),
+          Match.when("warning", () => currentTheme.icons.warning),
+          Match.when("info", () => currentTheme.icons.info),
+          Match.exhaustive
+        );
       }
     }
   } catch {
-    // Fallback to default icons if theme not available
+    // ThemeService not available, fall through to defaults
   }
 
   // Fallback to default icons
-  switch (type) {
-    case "success":
-      return ICON_SUCCESS;
-    case "error":
-      return ICON_ERROR;
-    case "warning":
-      return ICON_WARNING;
-    case "info":
-      return ICON_INFO;
-    default:
-      return ICON_INFO;
-  }
+  return Match.value(type).pipe(
+    Match.when("success", () => ICON_SUCCESS),
+    Match.when("error", () => ICON_ERROR),
+    Match.when("warning", () => ICON_WARNING),
+    Match.when("info", () => ICON_INFO),
+    Match.exhaustive
+  );
 }
 
 /**
@@ -186,56 +164,42 @@ export function getDisplayColor(
 ): string {
   // Use provided theme first
   if (theme?.colors) {
-    switch (type) {
-      case "success":
-        return theme.colors.success;
-      case "error":
-        return theme.colors.error;
-      case "warning":
-        return theme.colors.warning;
-      case "info":
-        return theme.colors.info;
-      default:
-        return COLOR_INFO;
-    }
+    return Match.value(type).pipe(
+      Match.when("success", () => theme.colors.success),
+      Match.when("error", () => theme.colors.error),
+      Match.when("warning", () => theme.colors.warning),
+      Match.when("info", () => theme.colors.info),
+      Match.exhaustive
+    );
   }
 
-  // Try to get theme, fallback to defaults if not available
+  // Try to get theme from ThemeService, fallback to defaults if not available
+  // Use lazy import to avoid circular dependency
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-    const themeModule: ThemeModule = require("../services/theme/service");
-    if (themeModule?.getCurrentThemeSync) {
-      const currentTheme = themeModule.getCurrentThemeSync();
+    const ThemeService = getThemeService();
+    const themeOption = Effect.runSync(Effect.serviceOption(ThemeService));
+    if (themeOption._tag === "Some") {
+      const currentTheme = themeOption.value.getTheme();
       if (currentTheme?.colors) {
-        switch (type) {
-          case "success":
-            return currentTheme.colors.success;
-          case "error":
-            return currentTheme.colors.error;
-          case "warning":
-            return currentTheme.colors.warning;
-          case "info":
-            return currentTheme.colors.info;
-          default:
-            return COLOR_INFO;
-        }
+        return Match.value(type).pipe(
+          Match.when("success", () => currentTheme.colors.success),
+          Match.when("error", () => currentTheme.colors.error),
+          Match.when("warning", () => currentTheme.colors.warning),
+          Match.when("info", () => currentTheme.colors.info),
+          Match.exhaustive
+        );
       }
     }
   } catch {
-    // Fallback to default colors if theme not available
+    // ThemeService not available, fall through to defaults
   }
 
   // Fallback to default colors
-  switch (type) {
-    case "success":
-      return COLOR_SUCCESS;
-    case "error":
-      return COLOR_ERROR;
-    case "warning":
-      return COLOR_WARNING;
-    case "info":
-      return COLOR_INFO;
-    default:
-      return COLOR_INFO;
-  }
+  return Match.value(type).pipe(
+    Match.when("success", () => COLOR_SUCCESS),
+    Match.when("error", () => COLOR_ERROR),
+    Match.when("warning", () => COLOR_WARNING),
+    Match.when("info", () => COLOR_INFO),
+    Match.exhaustive
+  );
 }

@@ -54,7 +54,7 @@ describe("SM-CLI Integration Patterns", () => {
       await Effect.runPromise(displayJson(apiResponse));
 
       // displayJson formats with prefix on first line and indentation on subsequent lines
-      const expectedJson = JSON.stringify(apiResponse, null, 2);
+      const _expectedJson = JSON.stringify(apiResponse, null, 2);
       const output = consoleSpy.mock.calls[0][0] as string;
       expect(output).toContain("ℹ");
       expect(output).toContain('"status": "success"');

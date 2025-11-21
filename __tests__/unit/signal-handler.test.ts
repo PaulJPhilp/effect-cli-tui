@@ -348,9 +348,9 @@ describe("Signal Handler Utilities", () => {
     });
 
     it("should return accurate count with mixed operations", async () => {
-      const d1 = await Effect.runPromise(registerCleanupHandler(() => {}));
+      const _d1 = await Effect.runPromise(registerCleanupHandler(() => {}));
       const d2 = await Effect.runPromise(registerCleanupHandler(() => {}));
-      const d3 = await Effect.runPromise(registerCleanupHandler(() => {}));
+      const _d3 = await Effect.runPromise(registerCleanupHandler(() => {}));
       expect(getCleanupHandlerCount()).toBe(3);
 
       d2();

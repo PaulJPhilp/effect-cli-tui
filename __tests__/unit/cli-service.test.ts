@@ -238,7 +238,6 @@ describe("EffectCLI Service", () => {
       expect(reason).toBe("Timeout");
     });
 
-
     it("should have error message", async () => {
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI;
@@ -407,7 +406,7 @@ describe("EffectCLI Service", () => {
 
   describe("Edge Cases", () => {
     it("should handle very long command", async () => {
-      const longCmd = "cmd-" + "A".repeat(10_000);
+      const longCmd = `cmd-${"A".repeat(10_000)}`;
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI;
         yield* cli

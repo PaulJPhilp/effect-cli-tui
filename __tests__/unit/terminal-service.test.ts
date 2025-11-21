@@ -391,7 +391,7 @@ describe("Output Service Abstraction", () => {
 
     it("should handle mixed error and success", async () => {
       let callCount = 0;
-      const customTerminal = createCustomTerminal((text) => {
+      const customTerminal = createCustomTerminal((_text) => {
         callCount++;
         if (callCount === 2) {
           throw new Error("Error on second call");

@@ -1,10 +1,65 @@
 import { Console, Effect } from "effect";
+import { DEFAULT_DISPLAY_TYPE } from "../../constants";
 import { applyChalkStyle } from "../../core/colors";
-import { DEFAULT_DISPLAY_TYPE, getDisplayIcon } from "../../core/icons";
+import { getDisplayIcon } from "../../core/icons";
+import type { ChalkStyleOptions } from "../../types";
 import { ThemeService } from "../theme/service";
+import type { Theme } from "../theme/types";
 import type { DisplayService as DisplayServiceApi } from "./api";
 import { formatDisplayOutput } from "./helpers";
 import type { DisplayOptions, JsonDisplayOptions } from "./types";
+
+/**
+ * Get theme from ThemeService if available
+ */
+function getThemeFromService(): Effect.Effect<Theme | undefined> {
+  return Effect.gen(function* () {
+    const themeOption = yield* Effect.serviceOption(ThemeService);
+    return themeOption._tag === "Some"
+      ? themeOption.value.getTheme()
+      : undefined;
+  });
+}
+
+/**
+ * Format JSON prefix with styling
+ */
+function formatJsonPrefix(
+  type: "info" | "success" | "error" | "warning",
+  theme: Theme | undefined,
+  options: {
+    showPrefix: boolean;
+    customPrefix?: string;
+    style?: ChalkStyleOptions;
+  }
+): string {
+  const prefix =
+    options.customPrefix ??
+    (options.showPrefix ? getDisplayIcon(type, theme) : "");
+  return options.style && prefix
+    ? applyChalkStyle(prefix, options.style)
+    : prefix;
+}
+
+/**
+ * Format JSON string with prefix and indentation
+ */
+function formatJsonWithPrefix(
+  jsonString: string,
+  prefix: string,
+  newline: boolean
+): string {
+  const prefixedJson = jsonString
+    .split("\n")
+    .map((line, index) =>
+      index === 0
+        ? `${prefix} ${line}`
+        : `${" ".repeat(String(prefix).length + 1)}${line}`
+    )
+    .join("\n");
+
+  return newline !== false ? `\n${prefixedJson}` : prefixedJson;
+}
 
 /**
  * Display service for terminal output
@@ -33,11 +88,7 @@ export class DisplayService extends Effect.Service<DisplayService>()(
           ): Effect.Effect<void> => {
             const { type = DEFAULT_DISPLAY_TYPE, ...restOptions } = options;
             return Effect.gen(function* () {
-              const themeOption = yield* Effect.serviceOption(ThemeService);
-              const theme =
-                themeOption._tag === "Some"
-                  ? themeOption.value.getTheme()
-                  : undefined;
+              const theme = yield* getThemeFromService();
               const output = formatDisplayOutput(
                 message,
                 type,
@@ -59,11 +110,7 @@ export class DisplayService extends Effect.Service<DisplayService>()(
             const useStderr = type === "error";
 
             return Effect.gen(function* () {
-              const themeOption = yield* Effect.serviceOption(ThemeService);
-              const theme =
-                themeOption._tag === "Some"
-                  ? themeOption.value.getTheme()
-                  : undefined;
+              const theme = yield* getThemeFromService();
               for (const line of lines) {
                 const output = formatDisplayOutput(
                   line,
@@ -91,11 +138,7 @@ export class DisplayService extends Effect.Service<DisplayService>()(
             } = options;
 
             return Effect.gen(function* () {
-              const themeOption = yield* Effect.serviceOption(ThemeService);
-              const theme =
-                themeOption._tag === "Some"
-                  ? themeOption.value.getTheme()
-                  : undefined;
+              const theme = yield* getThemeFromService();
               const jsonString = JSON.stringify(data, null, spaces);
 
               if (!(showPrefix || customPrefix)) {
@@ -105,24 +148,16 @@ export class DisplayService extends Effect.Service<DisplayService>()(
                 return;
               }
 
-              const prefix =
-                customPrefix ?? (showPrefix ? getDisplayIcon(type, theme) : "");
-              const styledPrefix =
-                options.style && prefix
-                  ? applyChalkStyle(prefix, options.style)
-                  : prefix;
-
-              const prefixedJson = jsonString
-                .split("\n")
-                .map((line, index) =>
-                  index === 0
-                    ? `${styledPrefix} ${line}`
-                    : `${" ".repeat(String(styledPrefix).length + 1)}${line}`
-                )
-                .join("\n");
-
-              const output =
-                options.newline !== false ? `\n${prefixedJson}` : prefixedJson;
+              const prefix = formatJsonPrefix(type, theme, {
+                showPrefix,
+                customPrefix,
+                style: options.style,
+              });
+              const output = formatJsonWithPrefix(
+                jsonString,
+                prefix,
+                options.newline !== false
+              );
               yield* Console.log(output);
             });
           },
@@ -132,11 +167,7 @@ export class DisplayService extends Effect.Service<DisplayService>()(
             options: Omit<DisplayOptions, "type"> = {}
           ): Effect.Effect<void> =>
             Effect.gen(function* () {
-              const themeOption = yield* Effect.serviceOption(ThemeService);
-              const theme =
-                themeOption._tag === "Some"
-                  ? themeOption.value.getTheme()
-                  : undefined;
+              const theme = yield* getThemeFromService();
               const output = formatDisplayOutput(
                 message,
                 "success",
@@ -151,11 +182,7 @@ export class DisplayService extends Effect.Service<DisplayService>()(
             options: Omit<DisplayOptions, "type"> = {}
           ): Effect.Effect<void> => {
             return Effect.gen(function* () {
-              const themeOption = yield* Effect.serviceOption(ThemeService);
-              const theme =
-                themeOption._tag === "Some"
-                  ? themeOption.value.getTheme()
-                  : undefined;
+              const theme = yield* getThemeFromService();
               const output = formatDisplayOutput(
                 message,
                 "error",

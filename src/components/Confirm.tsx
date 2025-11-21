@@ -71,7 +71,9 @@ export const Confirm: React.FC<ConfirmProps> = ({
         <TextInput
           onChange={(val) => {
             setInput(val);
-            if (error) setError(null);
+            if (error) {
+              setError(null);
+            }
           }}
           onSubmit={handleSubmit}
           value={input}

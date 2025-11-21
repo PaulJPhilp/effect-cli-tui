@@ -74,32 +74,41 @@ function setupSignalHandlers(): void {
   const handleSignal = async (signal: string) => {
     // Run all cleanup handlers in reverse order
     for (let i = cleanupHandlers.length - 1; i >= 0; i--) {
-      try {
-        const handler = cleanupHandlers[i];
-        if (handler) {
-          await handler();
-        }
-      } catch (error) {
-        // Silently ignore cleanup errors to avoid masking the actual error
+      const handler = cleanupHandlers[i];
+      if (handler) {
+        await Effect.runPromise(
+          Effect.tryPromise({
+            try: () => {
+              const result = handler();
+              return result instanceof Promise ? result : Promise.resolve();
+            },
+            catch: () => null, // Silently ignore cleanup errors to avoid masking the actual error
+          })
+        );
       }
     }
 
     // Ensure cursor is visible as final fallback
-    try {
-      process.stdout.write(ANSI_SHOW_CURSOR);
-    } catch {
-      // Ignore
-    }
+    await Effect.runPromise(
+      Effect.try({
+        try: () => process.stdout.write(ANSI_SHOW_CURSOR),
+        catch: () => null, // Ignore
+      })
+    );
 
     // Exit with standard exit codes
     process.exit(signal === "SIGINT" ? EXIT_CODE_SIGINT : EXIT_CODE_SIGTERM);
   };
 
   process.on("SIGINT", () => {
-    void handleSignal("SIGINT");
+    handleSignal("SIGINT").catch(() => {
+      // Ignore errors in signal handler
+    });
   });
   process.on("SIGTERM", () => {
-    void handleSignal("SIGTERM");
+    handleSignal("SIGTERM").catch(() => {
+      // Ignore errors in signal handler
+    });
   });
 }
 

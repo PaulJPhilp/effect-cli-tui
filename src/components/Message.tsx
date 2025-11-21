@@ -6,13 +6,13 @@
 
 import { Box, Text } from "ink";
 import type React from "react";
+import { DEFAULT_DISPLAY_TYPE } from "../constants";
 import {
   COLOR_DEFAULT,
   COLOR_ERROR,
   COLOR_INFO,
   COLOR_SUCCESS,
   COLOR_WARNING,
-  DEFAULT_DISPLAY_TYPE,
   ICON_ERROR,
   ICON_INFO,
   ICON_SUCCESS,

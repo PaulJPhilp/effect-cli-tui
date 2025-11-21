@@ -7,8 +7,8 @@ import { describe, expect, it, vi } from "vitest";
 import { Password } from "../../src/components/Password";
 
 // Helper to wait for async conditions
-async function waitFor(
-  condition: () => boolean | void,
+async function _waitFor(
+  condition: () => boolean | undefined,
   timeout = 1000
 ): Promise<void> {
   const start = Date.now();
@@ -17,7 +17,7 @@ async function waitFor(
       if (condition()) {
         return;
       }
-    } catch (e) {
+    } catch (_e) {
       // Continue waiting
     }
     await new Promise((resolve) => setTimeout(resolve, 10));

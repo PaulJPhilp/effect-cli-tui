@@ -6,9 +6,9 @@ import {
   getCleanupHandlerCount,
   registerCleanupHandler,
 } from "../../src/core/signal-handler";
-import { startSpinner, stopSpinner } from "../../src/progress/spinner";
-import { displayTable } from "../../src/tables/table";
 import type { ChalkStyleOptions } from "../../src/types";
+import { startSpinner, stopSpinner } from "../../src/ui/progress/spinner";
+import { displayTable } from "../../src/ui/tables/table";
 
 /**
  * Coverage gaps test - fills in remaining uncovered lines
@@ -52,7 +52,9 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
 
   describe("displayTable - column formatters", () => {
     it("should apply column formatter to cell values", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // Mock implementation - no-op
+      });
 
       const program = displayTable(
         [
@@ -82,7 +84,9 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
     });
 
     it("should apply formatter to nested object property", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        return;
+      });
 
       const program = displayTable([{ item: { count: 5 } }], {
         columns: [
@@ -104,7 +108,9 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
     });
 
     it("should handle formatter returning null or undefined", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // Mock implementation - no-op
+      });
 
       const program = displayTable([{ id: 1 }, { id: 2 }], {
         columns: [
@@ -123,7 +129,9 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
     });
 
     it("should apply multiple formatters to different columns", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // Mock implementation - no-op
+      });
 
       const program = displayTable([{ name: "test", count: 5 }], {
         columns: [
@@ -334,7 +342,9 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
 
   describe("Table with all column features", () => {
     it("should handle table with formatter and style together", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // Mock implementation - no-op
+      });
 
       const program = displayTable(
         [
@@ -365,7 +375,9 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
     });
 
     it("should handle empty data with formatters", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // Mock implementation - no-op
+      });
 
       const program = displayTable([], {
         columns: [

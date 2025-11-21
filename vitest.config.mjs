@@ -1,6 +1,6 @@
-import { defineConfig } from "vitest/config";
-import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "vitest/config";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -9,7 +9,7 @@ export default defineConfig({
     environment: "node",
     include: ["__tests__/**/*.test.{ts,tsx}"],
     exclude: ["__tests__/integration/cli-execution-real.test.ts"], // Exclude real CLI tests from main suite
-    setupFiles: ["__tests__/setup.ts"],
+    // setupFiles: ["__tests__/setup.ts"], // Setup file not needed
     testTimeout: 15_000, // 15 second timeout for tests (allows CLI commands with 10s timeout)
     // coverage: {
     //   provider: 'v8',

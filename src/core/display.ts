@@ -17,8 +17,8 @@ export function displayOutput(
   options: DisplayOptions = {}
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.output(message, { ...options, type });
+    const displayService = yield* DisplayService;
+    yield* displayService.output(message, { ...options, type });
   }).pipe(Effect.provide(DisplayService.Default));
 }
 
@@ -32,8 +32,8 @@ export function display(
   options: DisplayOptions = {}
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.output(message, options);
+    const displayService = yield* DisplayService;
+    yield* displayService.output(message, options);
   }).pipe(Effect.provide(DisplayService.Default));
 }
 
@@ -47,8 +47,8 @@ export function displayLines(
   options: DisplayOptions = {}
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.lines(lines, options);
+    const displayService = yield* DisplayService;
+    yield* displayService.lines(lines, options);
   }).pipe(Effect.provide(DisplayService.Default));
 }
 
@@ -62,8 +62,8 @@ export function displayJson(
   options: JsonDisplayOptions = {}
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.json(data, options);
+    const displayService = yield* DisplayService;
+    yield* displayService.json(data, options);
   }).pipe(Effect.provide(DisplayService.Default));
 }
 
@@ -77,8 +77,8 @@ export function displaySuccess(
   options: Omit<DisplayOptions, "type"> = {}
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.success(message, options);
+    const displayService = yield* DisplayService;
+    yield* displayService.success(message, options);
   }).pipe(Effect.provide(DisplayService.Default));
 }
 
@@ -92,7 +92,7 @@ export function displayError(
   options: Omit<DisplayOptions, "type"> = {}
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const display = yield* DisplayService;
-    yield* display.error(message, options);
+    const displayService = yield* DisplayService;
+    yield* displayService.error(message, options);
   }).pipe(Effect.provide(DisplayService.Default));
 }

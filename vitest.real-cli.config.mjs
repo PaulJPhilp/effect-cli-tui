@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["__tests__/integration/cli-execution-real.test.ts"],
-    setupFiles: ["__tests__/setup.ts"],
+    // setupFiles: ["__tests__/setup.ts"], // Setup file not needed
     testTimeout: 15_000, // 15 second timeout for tests
   },
   esbuild: {

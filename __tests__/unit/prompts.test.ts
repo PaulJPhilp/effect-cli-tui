@@ -8,7 +8,7 @@ import {
   promptConfirm,
   promptInput,
   promptPassword,
-} from "../../src/interactive/prompt";
+} from "../../src/ui/interactive/prompt";
 
 // Mock @inquirer/prompts module
 vi.mock("@inquirer/prompts", () => ({
@@ -18,9 +18,19 @@ vi.mock("@inquirer/prompts", () => ({
   password: vi.fn(),
 }));
 
-import * as inquirerModule from "@inquirer/prompts";
+// Import the mocked functions - these are the same instances from vi.mock()
+import { confirm, input, password, select } from "@inquirer/prompts";
 
-const inquirer = inquirerModule as any;
+const inquirer = {
+  input,
+  confirm,
+  select,
+  password,
+};
+
+// Regex patterns for validation tests (defined at top level for performance)
+const REGEX_DIGIT = /\d/;
+const REGEX_UPPERCASE = /[A-Z]/;
 
 /**
  * Comprehensive tests for interactive prompt functions.
@@ -58,8 +68,8 @@ describe("Interactive Prompt Functions", () => {
     it("should handle validation function returning true", async () => {
       (inquirer.input as any).mockResolvedValue("valid-input");
 
-      const validator = (input: string) =>
-        input.length > 0 ? true : "Cannot be empty";
+      const validator = (value: string) =>
+        value.length > 0 ? true : "Cannot be empty";
       const result = await Effect.runPromise(
         promptInput("Q:", undefined, validator)
       );
@@ -69,8 +79,8 @@ describe("Interactive Prompt Functions", () => {
     it("should pass validation function to inquirer", async () => {
       (inquirer.input as any).mockResolvedValue("test");
 
-      const validator = (input: string) =>
-        input.includes("@") ? true : "Must contain @";
+      const validator = (value: string) =>
+        value.includes("@") ? true : "Must contain @";
       await Effect.runPromise(promptInput("Email:", undefined, validator));
 
       const call = (inquirer.input as any).mock.calls[0][0];
@@ -325,7 +335,7 @@ describe("Interactive Prompt Functions", () => {
       const options: PromptOptions = {
         message: "Email:",
         type: "text",
-        validate: (input) => (input.includes("@") ? true : "Invalid email"),
+        validate: (value) => (value.includes("@") ? true : "Invalid email"),
       };
       const result = await Effect.runPromise(prompt(options));
       expect(result).toBe("valid@email.com");
@@ -393,9 +403,11 @@ describe("Interactive Prompt Functions", () => {
     it("should support chaining multiple prompts", async () => {
       const responses = ["John", "30"];
       let callIdx = 0;
-      (inquirer.input as any).mockImplementation(
-        async () => responses[callIdx++]
-      );
+      (inquirer.input as any).mockImplementation(() => {
+        const response = responses[callIdx];
+        callIdx += 1;
+        return response;
+      });
 
       const effect = Effect.gen(function* () {
         const name = yield* promptInput("Name:");
@@ -446,9 +458,11 @@ describe("Interactive Prompt Functions", () => {
       vi.clearAllMocks();
       const inputResponses = ["John", "john@example.com"];
       let inputIdx = 0;
-      (inquirer.input as any).mockImplementation(
-        async () => inputResponses[inputIdx++]
-      );
+      (inquirer.input as any).mockImplementation(() => {
+        const response = inputResponses[inputIdx];
+        inputIdx += 1;
+        return response;
+      });
       (inquirer.confirm as any).mockResolvedValue(true);
 
       const effect = Effect.gen(function* () {
@@ -487,7 +501,12 @@ describe("Interactive Prompt Functions", () => {
       await Effect.runPromise(promptInput("Email:", undefined, validator));
 
       const call = (inquirer.input as any).mock.calls[0][0];
-      const validatorFn = call.validate!;
+      if (!call.validate) {
+        throw new Error(
+          "Expected validate function to be present in mock call"
+        );
+      }
+      const validatorFn = call.validate;
       expect(validatorFn("test")).toBe("Must contain @");
       expect(validatorFn("test@example.com")).toBe(true);
     });
@@ -496,8 +515,8 @@ describe("Interactive Prompt Functions", () => {
       (inquirer.password as any).mockResolvedValue("SecurePass123!");
 
       const validator = (pwd: string) => {
-        const hasNumber = /\d/.test(pwd);
-        const hasUpperCase = /[A-Z]/.test(pwd);
+        const hasNumber = REGEX_DIGIT.test(pwd);
+        const hasUpperCase = REGEX_UPPERCASE.test(pwd);
         const isLongEnough = pwd.length >= 8;
         return hasNumber && hasUpperCase && isLongEnough
           ? true

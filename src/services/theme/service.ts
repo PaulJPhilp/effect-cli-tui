@@ -1,5 +1,4 @@
 import { Effect, Ref } from "effect";
-import type { ThemeService as ThemeServiceApi } from "./api";
 import { defaultTheme } from "./presets";
 import type { Theme } from "./types";
 
@@ -31,27 +30,23 @@ const ThemeRef = Ref.unsafeMake<Theme>(defaultTheme);
 export class ThemeService extends Effect.Service<ThemeService>()(
   "app/ThemeService",
   {
-    effect: Effect.sync(
-      () =>
-        ({
-          getTheme: (): Theme => Effect.runSync(Ref.get(ThemeRef)),
+    effect: Effect.sync(() => ({
+      getTheme: (): Theme => Effect.runSync(Ref.get(ThemeRef)),
 
-          setTheme: (theme: Theme): Effect.Effect<void> =>
-            Ref.set(ThemeRef, theme),
+      setTheme: (theme: Theme): Effect.Effect<void> => Ref.set(ThemeRef, theme),
 
-          withTheme: <A, E, R>(
-            theme: Theme,
-            effect: Effect.Effect<A, E, R>
-          ): Effect.Effect<A, E, R> =>
-            Effect.gen(function* () {
-              const currentTheme: Theme = yield* Ref.get(ThemeRef);
-              yield* Ref.set(ThemeRef, theme);
-              const result = yield* effect;
-              yield* Ref.set(ThemeRef, currentTheme);
-              return result;
-            }),
-        }) as const satisfies ThemeServiceApi
-    ),
+      withTheme: <A, E, R>(
+        theme: Theme,
+        effect: Effect.Effect<A, E, R>
+      ): Effect.Effect<A, E, R> =>
+        Effect.gen(function* () {
+          const currentTheme: Theme = yield* Ref.get(ThemeRef);
+          yield* Ref.set(ThemeRef, theme);
+          const result = yield* effect;
+          yield* Ref.set(ThemeRef, currentTheme);
+          return result;
+        }),
+    })),
   }
 ) {}
 

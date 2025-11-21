@@ -37,17 +37,6 @@ import {
 } from "../../src/index";
 import { MockCLI } from "../fixtures/test-layers";
 
-// Mock renderInkWithResult to avoid actual Ink rendering in tests
-vi.mock("../../src/effects/ink-wrapper", () => ({
-  renderInkWithResult: vi.fn(
-    (componentFn: (onComplete: (value: any) => void) => any) => {
-      // Extract the component and call onComplete with a mock value
-      // This is a simplified mock - in real tests you'd want more control
-      return Effect.succeed("mock-value");
-    }
-  ),
-}));
-
 describe("Prompt Builder Example - Workflow Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -55,7 +44,9 @@ describe("Prompt Builder Example - Workflow Tests", () => {
 
   describe("Welcome Screen", () => {
     it("should display welcome panel with application overview", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       const welcomeContent = [
         "Interactive CLI tool for crafting effective LLM prompts",
@@ -395,7 +386,9 @@ describe("Prompt Builder Example - Workflow Tests", () => {
 
   describe("Display Functions", () => {
     it("should display success message", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       await Effect.runPromise(displaySuccess("Operation completed"));
 
@@ -409,7 +402,9 @@ describe("Prompt Builder Example - Workflow Tests", () => {
     it("should display error message", async () => {
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => {
+          // no-op
+        });
 
       await Effect.runPromise(displayError("Something went wrong"));
 
@@ -423,7 +418,9 @@ describe("Prompt Builder Example - Workflow Tests", () => {
     });
 
     it("should display multiple lines", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       await Effect.runPromise(displayLines(["Line 1", "Line 2", "Line 3"]));
 
@@ -432,7 +429,9 @@ describe("Prompt Builder Example - Workflow Tests", () => {
     });
 
     it("should display table with review data", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       const reviewData = [
         { field: "Task", value: "Summarize text" },
@@ -486,7 +485,9 @@ describe("Prompt Builder Example - Workflow Tests", () => {
 
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => {
+          // no-op
+        });
 
       const result = await Effect.runPromise(
         Effect.gen(function* () {
@@ -511,7 +512,9 @@ describe("Prompt Builder Example - Workflow Tests", () => {
     it("should handle template not found error", async () => {
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => {
+          // no-op
+        });
 
       const result = await Effect.runPromise(
         Effect.gen(function* () {
@@ -538,7 +541,9 @@ describe("Prompt Builder Example - Workflow Tests", () => {
 
   describe("Integration Workflow", () => {
     it("should complete full workflow with valid inputs", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       // Simulate the workflow steps
       const workflow = Effect.gen(function* () {

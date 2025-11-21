@@ -6,7 +6,7 @@ import {
   startSpinner,
   stopSpinner,
   updateSpinner,
-} from "../../src/progress/spinner";
+} from "../../src/ui/progress/spinner";
 
 /**
  * Comprehensive tests for spinner.ts module
@@ -196,7 +196,7 @@ describe("Spinner - Comprehensive Coverage", () => {
     });
 
     it("should update spinner with long message", async () => {
-      const longMsg = "Processing " + "data".repeat(50);
+      const longMsg = `Processing ${"data".repeat(50)}`;
       const program = Effect.gen(function* () {
         yield* updateSpinner(longMsg);
         yield* Effect.succeed(undefined);
@@ -303,7 +303,7 @@ describe("Spinner - Comprehensive Coverage", () => {
 
       try {
         await Effect.runPromise(program);
-      } catch (error) {
+      } catch (_error) {
         // Expected to throw
       }
 

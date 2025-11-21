@@ -51,11 +51,11 @@ import {
   EffectCLI,
   Input,
   Password,
-  renderInkWithResult,
   Select,
   startSpinner,
   stopSpinner,
 } from "../src/index.js";
+import { InkService } from "../src/services/ink/index.js";
 import { copyToClipboard } from "./prompt-builder/clipboard.js";
 import { templates } from "./prompt-builder/templates.js";
 import type {
@@ -113,8 +113,9 @@ const selectTheme = (): Effect.Effect<void> =>
  */
 const selectTemplate = (): Effect.Effect<PromptTemplate> =>
   Effect.gen(function* () {
+    const ink = yield* InkService;
     const templateNames = templates.map((t) => t.name);
-    const selectedName = yield* renderInkWithResult<string>((onComplete) => (
+    const selectedName = yield* ink.renderWithResult<string>((onComplete) => (
       <Select
         choices={templateNames}
         message="Choose a template:"
@@ -132,7 +133,7 @@ const selectTemplate = (): Effect.Effect<PromptTemplate> =>
 
     yield* displaySuccess(`Selected: ${selectedTemplate.name}`);
     return selectedTemplate;
-  });
+  }).pipe(Effect.provide(InkService.Default));
 
 /**
  * Interactively collect user responses for template fields
@@ -142,6 +143,7 @@ const collectResponses = (
   template: PromptTemplate
 ): Effect.Effect<UserResponses> =>
   Effect.gen(function* () {
+    const ink = yield* InkService;
     const responses: UserResponses = {};
 
     for (const field of template.fields) {
@@ -151,7 +153,7 @@ const collectResponses = (
 
       if (field.type === "choice" && field.choices) {
         // Choice field using Select component
-        value = yield* renderInkWithResult<string>((onComplete) => (
+        value = yield* ink.renderWithResult<string>((onComplete) => (
           <Box borderStyle="round" padding={1}>
             <Select
               choices={field.choices}
@@ -162,7 +164,7 @@ const collectResponses = (
         ));
       } else if (field.type === "boolean") {
         // Boolean field using Confirm component
-        value = yield* renderInkWithResult<boolean>((onComplete) => (
+        value = yield* ink.renderWithResult<boolean>((onComplete) => (
           <Box borderStyle="round" padding={1}>
             <Confirm
               message={`${prefix} ${field.label}?`}
@@ -172,7 +174,7 @@ const collectResponses = (
         ));
       } else {
         // Text or multiline field using Input component
-        value = yield* renderInkWithResult<string>((onComplete) => (
+        value = yield* ink.renderWithResult<string>((onComplete) => (
           <Box borderStyle="round" padding={1}>
             <Input
               message={`${prefix} ${field.label}`}
@@ -213,7 +215,7 @@ const collectResponses = (
 
     yield* displaySuccess("All responses validated!");
     return responses;
-  });
+  }).pipe(Effect.provide(InkService.Default));
 
 /**
  * Display introduction for the selected template
@@ -307,7 +309,7 @@ const copyPromptToClipboard = (promptText: string): Effect.Effect<void> =>
  * 9. Attempt to copy to system clipboard
  *
  * Demonstrates:
- * - renderInkWithResult() for interactive components
+ * - InkService.renderWithResult() for interactive components
  * - Effect composition with Ink components
  * - Schema validation
  * - Display utilities
@@ -348,7 +350,8 @@ const promptBuilderApp = (): Effect.Effect<void> =>
     yield* displayReview(builtPrompt);
 
     // Ask user what to do next
-    const nextAction = yield* renderInkWithResult<string>((onComplete) => (
+    const ink = yield* InkService;
+    const nextAction = yield* ink.renderWithResult<string>((onComplete) => (
       <Box borderStyle="round" padding={1}>
         <Select
           choices={[
@@ -372,15 +375,16 @@ const promptBuilderApp = (): Effect.Effect<void> =>
     } else if (nextAction === "run") {
       yield* runPromptWithAI(builtPrompt);
     }
-  });
+  }).pipe(Effect.provide(InkService.Default));
 
 /**
  * Execute the generated prompt using AI
  */
 const runPromptWithAI = (builtPrompt: BuiltPrompt): Effect.Effect<void> =>
   Effect.gen(function* () {
+    const ink = yield* InkService;
     // Get API key
-    const apiKey = yield* renderInkWithResult<string>((onComplete) => (
+    const apiKey = yield* ink.renderWithResult<string>((onComplete) => (
       <Box borderStyle="round" padding={1}>
         <Password message="Enter your OpenAI API key:" onSubmit={onComplete} />
       </Box>
@@ -417,12 +421,15 @@ const runPromptWithAI = (builtPrompt: BuiltPrompt): Effect.Effect<void> =>
       yield* stopSpinner(spinnerId);
       yield* displayError(`Failed to run prompt: ${error.message}`);
     }
-  });
+  }).pipe(Effect.provide(InkService.Default));
 
 /**
- * Run the application with EffectCLI service provided for clipboard access
+ * Run the application with EffectCLI and InkService provided
  */
-const main = promptBuilderApp().pipe(Effect.provide(EffectCLI.Default));
+const main = promptBuilderApp().pipe(
+  Effect.provide(EffectCLI.Default),
+  Effect.provide(InkService.Default)
+);
 
 /**
  * Execute the effect

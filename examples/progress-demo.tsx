@@ -7,9 +7,11 @@
  * Run with: npx ts-node examples/progress-demo.ts
  */
 
-import * as Effect from "effect/Effect";
+import { Effect } from "effect";
+// biome-ignore lint/correctness/noUnusedImports: React is required for JSX type checking with TypeScript
+import React from "react";
 import { Message, SpinnerComponent } from "../src/components";
-import { renderInkComponent } from "../src/effects/ink-wrapper";
+import { InkService } from "../src/services/ink";
 
 /**
  * Simulate a task that takes time
@@ -21,10 +23,11 @@ const delay = (ms: number) =>
  * Show a spinner while doing work
  */
 const spinnerDemo = Effect.gen(function* () {
+  const ink = yield* InkService;
   console.log("\n⏳ Spinner Demo\n");
 
   // Show spinner
-  const spinnerTask = renderInkComponent(
+  yield* ink.renderComponent(
     <SpinnerComponent message="Processing..." type="dots" />
   );
 
@@ -32,7 +35,7 @@ const spinnerDemo = Effect.gen(function* () {
   yield* delay(3000);
 
   console.log("✓ Done!\n");
-});
+}).pipe(Effect.provide(InkService.Default));
 
 /**
  * Simulate a progress bar
@@ -44,9 +47,9 @@ const progressDemo = Effect.gen(function* () {
   for (let i = 0; i <= 10; i++) {
     const percentage = i * 10;
     console.log(
-      `Progress: ${Array(percentage / 10)
-        .fill("█")
-        .join("")}${Array(10 - percentage / 10)
+      `Progress: ${new Array(percentage / 10).fill("█").join("")}${new Array(
+        10 - percentage / 10
+      )
         .fill("░")
         .join("")} ${percentage}%`
     );
@@ -62,14 +65,15 @@ const progressDemo = Effect.gen(function* () {
 export const main = () => {
   return Effect.runPromise(
     Effect.gen(function* () {
+      const ink = yield* InkService;
       yield* spinnerDemo;
       yield* progressDemo;
 
       // Show completion message
-      yield* renderInkComponent(
+      yield* ink.renderComponent(
         <Message message="All demos completed successfully!" type="success" />
       );
-    })
+    }).pipe(Effect.provide(InkService.Default))
   );
 };
 

@@ -83,7 +83,9 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
 
   const toggleItem = (index: number) => {
     const item = normalizedChoices[index];
-    if (!item) return;
+    if (!item) {
+      return;
+    }
 
     // Ensure we're not submitting when toggling
     isSubmittingRef.current = false;

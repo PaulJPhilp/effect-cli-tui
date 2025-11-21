@@ -14,12 +14,14 @@ bun run examples/test-example.ts
 - **`multi-step-wizard.tsx`** - Complex multi-step workflow with validation
 - **`error-handling.ts`** - Comprehensive error handling patterns (reference/documentation - examples are commented out)
 - **`progress-demo.tsx`** - Spinner and progress bar demonstrations
+- **`tables-and-boxes.ts`** - Demonstrates how to display data in tables and boxes.
+- **`spinners.ts`** - A simple example of using spinners for long-running tasks.
+- **`theming.ts`** - An interactive example to preview and switch between themes.
 - **`prompt-builder.tsx`** - **🏆 Teaching Example**: Advanced prompt builder demonstrating all major library features
 
 ## The Prompt Builder - Comprehensive Teaching Example
 
 The **`prompt-builder.tsx`** example serves as the primary educational resource for learning how to use **effect-cli-tui**. It demonstrates:
-
 - ✅ **Template-based Architecture** - How to structure complex CLI applications
 - ✅ **Interactive Components** - Input, Select, Confirm with validation
 - ✅ **Display Utilities** - Panels, boxes, tables, and colored output
@@ -37,6 +39,9 @@ The **`prompt-builder.tsx`** example serves as the primary educational resource 
 bun run examples/basic-prompts.tsx
 bun run examples/multi-step-wizard.tsx
 bun run examples/progress-demo.tsx
+bun run examples/tables-and-boxes.ts
+bun run examples/spinners.ts
+bun run examples/theming.ts
 bun run examples/prompt-builder.tsx
 
 # error-handling.ts is a reference file (examples are commented out)

@@ -154,7 +154,7 @@ describe("TUIHandler Service", () => {
         return yield* tui
           .prompt("Question:")
           .pipe(
-            Effect.catchTag("TUIError", (err) => Effect.succeed("cancelled"))
+            Effect.catchTag("TUIError", (_err) => Effect.succeed("cancelled"))
           );
       }).pipe(Effect.provide(MockTUICancelled));
 

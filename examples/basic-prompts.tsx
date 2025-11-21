@@ -7,18 +7,21 @@
  * Run with: bun run examples/basic-prompts.tsx
  */
 
-import * as Effect from "effect/Effect";
+import { Effect } from "effect";
+// biome-ignore lint/correctness/noUnusedImports: React is required for JSX type checking with TypeScript
+import React from "react";
 import { Confirm, Input, Password, Select } from "../src/components";
-import { renderInkWithResult } from "../src/effects/ink-wrapper";
+import { InkService } from "../src/services/ink";
 
 /**
  * Example workflow: Collect user information
  */
 const userWorkflow = Effect.gen(function* () {
+  const ink = yield* InkService;
   console.log("\n📝 User Registration\n");
 
   // Prompt for name
-  const name = yield* renderInkWithResult<string>((onComplete) => (
+  const name = yield* ink.renderWithResult<string>((onComplete) => (
     <Input
       message="What is your name?"
       onSubmit={onComplete}
@@ -28,7 +31,7 @@ const userWorkflow = Effect.gen(function* () {
   console.log(`\n✓ Hello, ${name}!\n`);
 
   // Select a role
-  const role = yield* renderInkWithResult<string>((onComplete) => (
+  const role = yield* ink.renderWithResult<string>((onComplete) => (
     <Select
       choices={["Admin", "User", "Guest"]}
       message="Choose your role:"
@@ -38,7 +41,7 @@ const userWorkflow = Effect.gen(function* () {
   console.log(`✓ Role selected: ${role}\n`);
 
   // Confirm action
-  const confirmed = yield* renderInkWithResult<boolean>((onComplete) => (
+  const confirmed = yield* ink.renderWithResult<boolean>((onComplete) => (
     <Confirm
       default={true}
       message="Create account with these details?"
@@ -52,7 +55,7 @@ const userWorkflow = Effect.gen(function* () {
   }
 
   // Password prompt
-  const password = yield* renderInkWithResult<string>((onComplete) => (
+  const password = yield* ink.renderWithResult<string>((onComplete) => (
     <Password
       message="Enter a password:"
       onSubmit={onComplete}
@@ -64,7 +67,7 @@ const userWorkflow = Effect.gen(function* () {
   console.log(`  Name: ${name}`);
   console.log(`  Role: ${role}`);
   console.log(`  Password: ${"*".repeat(password.length)}\n`);
-});
+}).pipe(Effect.provide(InkService.Default));
 
 /**
  * Run the workflow

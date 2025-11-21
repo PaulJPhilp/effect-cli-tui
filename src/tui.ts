@@ -14,6 +14,7 @@
  * ```
  */
 
+// biome-ignore assist/source/organizeImports: <>
 import { Console, Effect } from "effect";
 import React from "react";
 import { Confirm } from "./components/Confirm";
@@ -21,13 +22,14 @@ import { Input } from "./components/Input";
 import { MultiSelect } from "./components/MultiSelect";
 import { Password } from "./components/Password";
 import { Select } from "./components/Select";
-import { DEFAULT_DISPLAY_TYPE, getDisplayIcon } from "./core/icons";
+import { DEFAULT_DISPLAY_TYPE } from "./constants";
+import { getDisplayIcon } from "./core/icons";
 import { InkService } from "./services/ink";
 import {
-  type DisplayType,
   InkError,
-  type SelectOption,
   TUIError,
+  type DisplayType,
+  type SelectOption,
 } from "./types";
 
 /**

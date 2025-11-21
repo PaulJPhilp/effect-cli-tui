@@ -64,6 +64,20 @@ export class InkError extends Data.TaggedError("InkError") {
 // Box border style types
 export type BorderStyle = "single" | "double" | "rounded" | "bold" | "classic";
 
+export interface BoxBorderChars {
+  topLeft: string;
+  topRight: string;
+  bottomLeft: string;
+  bottomRight: string;
+  horizontal: string;
+  vertical: string;
+  cross: string;
+  t: string;
+  b: string;
+  l: string;
+  r: string;
+}
+
 // Table types
 export type TableAlignment = "left" | "center" | "right";
 

@@ -80,7 +80,9 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
               : null;
 
             child.on("close", (exitCode) => {
-              if (timeout) clearTimeout(timeout);
+              if (timeout) {
+                clearTimeout(timeout);
+              }
 
               if (exitCode === 0) {
                 safeResume(
@@ -100,7 +102,9 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
             });
 
             child.on("error", (err) => {
-              if (timeout) clearTimeout(timeout);
+              if (timeout) {
+                clearTimeout(timeout);
+              }
               if (isErrnoException(err) && err.code === "ENOENT") {
                 safeResume(
                   Effect.fail(
@@ -170,7 +174,9 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
               : null;
 
             child.on("close", (exitCode) => {
-              if (timeout) clearTimeout(timeout);
+              if (timeout) {
+                clearTimeout(timeout);
+              }
 
               if (exitCode === 0) {
                 safeResume(Effect.succeed(undefined));
@@ -188,7 +194,9 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
             });
 
             child.on("error", (err) => {
-              if (timeout) clearTimeout(timeout);
+              if (timeout) {
+                clearTimeout(timeout);
+              }
               if (isErrnoException(err) && err.code === "ENOENT") {
                 safeResume(
                   Effect.fail(

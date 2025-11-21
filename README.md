@@ -30,7 +30,7 @@ yarn add effect-cli-tui
 
 ```typescript
 import { Effect } from 'effect'
-import { display, displaySuccess, TUIHandler, EffectCLIRuntime } from 'effect-cli-tui'
+import { display, displaySuccess, TUIHandler, runWithTUI } from 'effect-cli-tui'
 
 const program = Effect.gen(function* () {
   // Display utilities
@@ -46,8 +46,7 @@ const program = Effect.gen(function* () {
   yield* displaySuccess(`Hello, ${name}!`)
 })
 
-await EffectCLIRuntime.runPromise(program)
-await EffectCLIRuntime.dispose()
+runWithTUI(program)
 ```
 
 ## Core Concepts
@@ -102,13 +101,23 @@ Execute CLI commands with Effect error handling.
 - `run(command, args?, options?)` - Execute and capture output
 - `stream(command, args?, options?)` - Stream output directly
 
+### Modular API
+
+While the core APIs are available from the main `effect-cli-tui` entry point, more advanced features and services are exposed via secondary entry points for a cleaner API surface:
+
+-   **`effect-cli-tui/components`**: React components for interactive prompts (`Confirm`, `Input`, `Select`, etc.).
+-   **`effect-cli-tui/theme`**: Theming services and presets for customizing the look and feel.
+-   **`effect-cli-tui/services`**: Low-level services and runtimes (`EffectCLIRuntime`, `Terminal`, `InkService`).
+-   **`effect-cli-tui/constants`**: A collection of useful constants for icons, symbols, and ANSI codes.
+
 ## Examples
 
 ### Interactive Project Setup
 
 ```typescript
 import * as Effect from 'effect/Effect'
-import { TUIHandler, TUIHandlerRuntime } from 'effect-cli-tui'
+import { TUIHandler } from 'effect-cli-tui'
+import { TUIHandlerRuntime } from 'effect-cli-tui/services'
 
 const setupProject = Effect.gen(function* () {
   const tui = yield* TUIHandler
@@ -150,7 +159,8 @@ await TUIHandlerRuntime.dispose()
 
 ```typescript
 import * as Effect from 'effect/Effect'
-import { EffectCLI, EffectCLIOnlyRuntime } from 'effect-cli-tui'
+import { EffectCLI } from 'effect-cli-tui'
+import { EffectCLIOnlyRuntime } from 'effect-cli-tui/services'
 
 const buildProject = Effect.gen(function* () {
   const cli = yield* EffectCLI
@@ -175,7 +185,8 @@ await EffectCLIOnlyRuntime.dispose()
 
 ```typescript
 import * as Effect from 'effect/Effect'
-import { TUIHandler, EffectCLI, EffectCLIRuntime } from 'effect-cli-tui'
+import { TUIHandler, EffectCLI } from 'effect-cli-tui'
+import { EffectCLIRuntime } from 'effect-cli-tui/services'
 
 const completeWorkflow = Effect.gen(function* () {
   const tui = yield* TUIHandler
@@ -208,7 +219,8 @@ All effects can fail with typed errors:
 
 ```typescript
 import * as Effect from 'effect/Effect'
-import { TUIHandler, TUIHandlerRuntime } from 'effect-cli-tui'
+import { TUIHandler } from 'effect-cli-tui'
+import { TUIHandlerRuntime } from 'effect-cli-tui/services'
 
 const safePrompt = Effect.gen(function* () {
   const tui = yield* TUIHandler
@@ -314,7 +326,9 @@ Customize icons, colors, and styles for display types using the theme system.
 ### Using Preset Themes
 
 ```typescript
-import { ThemeService, themes, EffectCLIRuntime } from 'effect-cli-tui'
+import { displaySuccess, displayInfo } from 'effect-cli-tui'
+import { EffectCLIRuntime } from 'effect-cli-tui/services'
+import { ThemeService, themes } from 'effect-cli-tui/theme'
 
 const program = Effect.gen(function* () {
   const theme = yield* ThemeService
@@ -336,7 +350,9 @@ const program = Effect.gen(function* () {
 ### Creating Custom Themes
 
 ```typescript
-import { createTheme, ThemeService, EffectCLIRuntime } from 'effect-cli-tui'
+import { display } from 'effect-cli-tui'
+import { EffectCLIRuntime } from 'effect-cli-tui/services'
+import { createTheme, ThemeService } from 'effect-cli-tui/theme'
 
 const customTheme = createTheme({
   icons: {
@@ -367,6 +383,9 @@ const program = Effect.gen(function* () {
 Use `withTheme()` to apply a theme temporarily:
 
 ```typescript
+import { displaySuccess, displayError } from "effect-cli-tui";
+import { ThemeService, themes } from "effect-cli-tui/theme";
+
 const program = Effect.gen(function* () {
   const theme = yield* ThemeService
   
@@ -394,6 +413,8 @@ const program = Effect.gen(function* () {
 ### Theme API
 
 ```typescript
+import { ThemeService, setTheme, getCurrentTheme, withTheme } from "effect-cli-tui/theme";
+
 // Get current theme
 const theme = yield* ThemeService
 const currentTheme = theme.getTheme()
@@ -642,17 +663,16 @@ class CLIError extends Data.TaggedError('CLIError') {
 
 ## Roadmap
 
-### v1.1+
-- [x] **Theme System** — Customize icons, colors, and styles
-- [ ] Validation helpers for common patterns
-- [ ] Progress indicators and loading states
-- [ ] Better error messages and recovery
+### v2.0 (Current)
+- [x] **API Modularization** - Core APIs are in the main entry point, with specialized APIs in `effect-cli-tui/components`, `effect-cli-tui/theme`, etc.
+- [x] **Ink Integration** — Rich, component-based TUI elements are a core feature.
+- [x] **Theme System** — Customize icons, colors, and styles.
 
-### v2.0
-- [ ] **Ink Integration** — React components for rich terminal UIs
-- [ ] Advanced layout system (flexbox-like layouts)
-- [ ] Real-time dashboards and progress displays
-- [ ] **Supermemory Integration** — Context-aware prompts
+### Future
+- [ ] **Validation Helpers** - Add common validation patterns for prompts.
+- [ ] **Advanced Progress Indicators** - More complex progress bars and multi-step loaders.
+- [ ] **Dashboard / Layout System** - For building more complex, real-time terminal dashboards.
+- [ ] **Supermemory Integration** — Context-aware prompts and interactions.
 
 ## Contributing
 

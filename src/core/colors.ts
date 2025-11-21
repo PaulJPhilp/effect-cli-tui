@@ -1,10 +1,11 @@
 import chalk from "chalk";
 import { Effect } from "effect";
+import { DEFAULT_DISPLAY_TYPE } from "../constants";
+import { ThemeService } from "../services/theme/service";
 import type { ChalkBgColor, ChalkColor } from "../types";
 import { display } from "./display";
 import {
   COLOR_HIGHLIGHT,
-  DEFAULT_DISPLAY_TYPE,
   getDisplayColor,
   getDisplayIcon,
   SYMBOL_BULLET,
@@ -26,7 +27,9 @@ export function applyChalkStyle(
     bgColor?: ChalkBgColor;
   }
 ): string {
-  if (!options) return text;
+  if (!options) {
+    return text;
+  }
 
   let styled = text;
 
@@ -39,12 +42,24 @@ export function applyChalkStyle(
   }
 
   // Apply text styles
-  if (options.bold) styled = chalk.bold(styled);
-  if (options.dim) styled = chalk.dim(styled);
-  if (options.italic) styled = chalk.italic(styled);
-  if (options.underline) styled = chalk.underline(styled);
-  if (options.inverse) styled = chalk.inverse(styled);
-  if (options.strikethrough) styled = chalk.strikethrough(styled);
+  if (options.bold) {
+    styled = chalk.bold(styled);
+  }
+  if (options.dim) {
+    styled = chalk.dim(styled);
+  }
+  if (options.italic) {
+    styled = chalk.italic(styled);
+  }
+  if (options.underline) {
+    styled = chalk.underline(styled);
+  }
+  if (options.inverse) {
+    styled = chalk.inverse(styled);
+  }
+  if (options.strikethrough) {
+    styled = chalk.strikethrough(styled);
+  }
 
   return styled;
 }
@@ -59,8 +74,7 @@ export function displayHighlight(message: string): Effect.Effect<void> {
     bold: true,
     color: COLOR_HIGHLIGHT,
   });
-  console.log(`\nℹ ${styledMessage}`);
-  return Effect.succeed(undefined);
+  return display(`\nℹ ${styledMessage}`, { type: DEFAULT_DISPLAY_TYPE });
 }
 
 /**
@@ -109,33 +123,26 @@ export function displayListItem(
   options?: {
     color?: ChalkColor;
   }
-): Effect.Effect<void> {
+): Effect.Effect<void, never, ThemeService> {
   return Effect.gen(function* () {
     const bulletChar = bullet || SYMBOL_BULLET;
 
     // Use custom color if provided, otherwise try theme highlight color
     let bulletColor: ChalkColor = options?.color || COLOR_HIGHLIGHT;
     if (!options?.color) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-        const themeModule: {
-          getCurrentThemeSync?: () => { colors: { highlight: ChalkColor } };
-        } = require("../services/theme/service");
-        if (themeModule?.getCurrentThemeSync) {
-          const theme = themeModule.getCurrentThemeSync();
-          if (theme?.colors?.highlight) {
-            bulletColor = theme.colors.highlight;
-          }
+      const themeOption = yield* Effect.serviceOption(ThemeService);
+      if (themeOption._tag === "Some") {
+        const theme = themeOption.value.getTheme();
+        if (theme?.colors?.highlight) {
+          bulletColor = theme.colors.highlight as ChalkColor;
         }
-      } catch {
-        // Fallback to default
       }
     }
 
     const styledBullet = applyChalkStyle(bulletChar, {
       color: bulletColor,
     });
-    yield* Effect.log(`\n${styledBullet} ${item}`);
+    yield* display(`\n${styledBullet} ${item}`, { type: DEFAULT_DISPLAY_TYPE });
   });
 }
 

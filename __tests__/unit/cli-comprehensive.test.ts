@@ -1,5 +1,5 @@
+import { EventEmitter } from "node:events";
 import { Effect } from "effect";
-import { EventEmitter } from "events";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EffectCLI } from "../../src/cli";
 import { CLIError } from "../../src/types";
@@ -14,7 +14,7 @@ vi.mock("child_process", () => ({
   spawn: vi.fn(),
 }));
 
-import { spawn } from "child_process";
+import { spawn } from "node:child_process";
 
 describe("EffectCLI - Comprehensive Coverage", () => {
   beforeEach(() => {

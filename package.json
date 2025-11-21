@@ -29,6 +29,22 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components.d.ts",
+      "import": "./dist/components.js"
+    },
+    "./theme": {
+      "types": "./dist/theme.d.ts",
+      "import": "./dist/theme.js"
+    },
+    "./services": {
+      "types": "./dist/services.d.ts",
+      "import": "./dist/services.js"
+    },
+    "./constants": {
+      "types": "./dist/constants.d.ts",
+      "import": "./dist/constants.js"
     }
   },
   "files": [
@@ -46,6 +62,7 @@
     "lint": "biome check src __tests__",
     "format": "biome format src __tests__ docs",
     "type-check": "tsc --noEmit",
+    "docs:generate": "typedoc --plugin typedoc-plugin-markdown --entryPointStrategy resolve --out docs/api src/index.ts src/components.ts src/theme.ts src/services.ts src/constants.ts src/types.ts",
     "prepublishOnly": "bun run build && bun run test"
   },
   "type": "module",
@@ -79,6 +96,8 @@
     "effect": "^3.19.4",
     "ink-testing-library": "^4.0.0",
     "tsup": "^8.5.1",
+    "typedoc": "^0.28.14",
+    "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "^5.9.3",
     "ultracite": "^6.3.4",
     "vitest": "^4.0.10"
