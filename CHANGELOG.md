@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-11-21
+
+### 🐛 Fixed
+
+- **Prompt Tests**: Fixed test mocking by importing mocked functions directly from `@inquirer/prompts` module
+- **Variable Shadowing**: Resolved linting errors by renaming validator function parameters to avoid shadowing imported functions
+- **Regex Performance**: Moved regex patterns to top-level scope to avoid recreation on each function call
+- **Empty Blocks**: Fixed linting errors for empty block statements in test files
+- **Non-null Assertions**: Replaced non-null assertions with explicit null checks for better type safety
+- **Async Functions**: Removed unnecessary `async` keywords from functions without `await` expressions
+- **Test Configuration**: Removed missing setup file reference from vitest configs
+
+### 🧪 Testing
+
+- All 800 tests now passing (761 in main suite + 5 real CLI tests run separately with `test:real-cli`)
+- Fixed prompt test suite - all 48 prompt tests passing
+- Updated test configurations to properly exclude real CLI execution tests from main suite
+
 ## [2.0.0] - 2025-11-14
 
 ### 🎉 Major Release: Ink-Based Interactive Terminal UI
