@@ -1,0 +1,73 @@
+# Development and testing
+__tests__/
+*.test.ts
+*.test.tsx
+vitest.config.mjs
+vitest.real-cli.config.mjs
+
+# Git and CI/CD
+.git/
+.github/
+.gitignore
+.husky/
+
+# Build and development tools
+tsconfig.json
+tsup.config.ts
+biome.jsonc
+.biomeignore
+eslintrc.cjs
+
+# Development dependencies
+node_modules/
+.node-version
+.npmrc
+
+# Documentation
+docs/api/
+docs/internal/
+CLAUDE.md
+.claude/
+SUMMARY.md
+ACTION_ITEMS.md
+AGENT.md
+DEEP_DESIGN_REVIEW*.md
+DESIGN_REVIEW.md
+IMPLEMENTATION_STATUS.md
+ISSUES.md
+P0_CHECKLIST.md
+P0_COMPLETION_SUMMARY.md
+PATTERN_CORRECTION.md
+RESOURCE_SAFETY.md
+REVIEW_*.md
+RUNTIME_SETUP.md
+TERMINAL_STATE_SAFETY.md
+THEME_SYSTEM_DESIGN.md
+
+# Examples and demo files
+examples/
+docs/
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Lock files (npm uses package-lock.json)
+bun.lock
+pnpm-lock.yaml
+
+# Root files (only needed for development)
+.prettierrc
+.editorconfig
