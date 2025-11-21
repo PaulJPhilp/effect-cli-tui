@@ -344,60 +344,6 @@ describe("EffectCLI - Comprehensive Coverage", () => {
       expect(result.reason).toBe("ExecutionError");
     });
 
-    it.skip("should fail with Timeout when timeout expires", async () => {
-      const mockChild = new EventEmitter();
-      mockChild.stdout = new EventEmitter();
-      mockChild.stderr = new EventEmitter();
-      mockChild.killed = false;
-      mockChild.kill = vi.fn();
-
-      (spawn as any).mockReturnValue(mockChild as any);
-
-      const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI;
-        const result = yield* cli.run("slow-command", [], { timeout: 100 });
-        return result;
-      }).pipe(
-        Effect.provide(EffectCLI.Default),
-        Effect.catchTag("CLIError", (err) => Effect.succeed(err))
-      );
-
-      await new Promise((resolve) => setTimeout(resolve, 150));
-
-      const result = await Effect.runPromise(program);
-      expect(result).toBeInstanceOf(CLIError);
-      expect(result.reason).toBe("Timeout");
-      expect(mockChild.kill).toHaveBeenCalledWith("SIGTERM");
-    });
-
-    it.skip("should fail with ExecutionError on buffer overflow", async () => {
-      const mockChild = new EventEmitter();
-      mockChild.stdout = new EventEmitter();
-      mockChild.stderr = new EventEmitter();
-      mockChild.killed = false;
-      mockChild.kill = vi.fn();
-
-      (spawn as any).mockReturnValue(mockChild as any);
-
-      const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI;
-        const result = yield* cli.run("command", [], { maxBuffer: 10 });
-        return result;
-      }).pipe(
-        Effect.provide(EffectCLI.Default),
-        Effect.catchTag("CLIError", (err) => Effect.succeed(err))
-      );
-
-      setImmediate(() => {
-        mockChild.stdout.emit("data", "a".repeat(100)); // Exceed 10 byte limit
-      });
-
-      const result = await Effect.runPromise(program);
-      expect(result).toBeInstanceOf(CLIError);
-      expect(result.reason).toBe("ExecutionError");
-      expect(result.message).toContain("buffer");
-    });
-
     it("should handle stderr with large buffer limit", async () => {
       const mockChild = new EventEmitter();
       mockChild.stdout = new EventEmitter();
@@ -623,54 +569,6 @@ describe("EffectCLI - Comprehensive Coverage", () => {
   });
 
   describe("Resource Management", () => {
-    it.skip("should kill process on timeout", async () => {
-      const mockChild = new EventEmitter();
-      mockChild.stdout = new EventEmitter();
-      mockChild.stderr = new EventEmitter();
-      mockChild.killed = false;
-      mockChild.kill = vi.fn();
-
-      (spawn as any).mockReturnValue(mockChild as any);
-
-      const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI;
-        yield* cli.run("command", [], { timeout: 50 });
-      }).pipe(
-        Effect.provide(EffectCLI.Default),
-        Effect.catchTag("CLIError", () => Effect.succeed(undefined))
-      );
-
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      await Effect.runPromise(program);
-      expect(mockChild.kill).toHaveBeenCalledWith("SIGTERM");
-    });
-
-    it.skip("should kill process on buffer overflow", async () => {
-      const mockChild = new EventEmitter();
-      mockChild.stdout = new EventEmitter();
-      mockChild.stderr = new EventEmitter();
-      mockChild.killed = false;
-      mockChild.kill = vi.fn();
-
-      (spawn as any).mockReturnValue(mockChild as any);
-
-      const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI;
-        yield* cli.run("command", [], { maxBuffer: 5 });
-      }).pipe(
-        Effect.provide(EffectCLI.Default),
-        Effect.catchTag("CLIError", () => Effect.succeed(undefined))
-      );
-
-      setImmediate(() => {
-        mockChild.stdout.emit("data", "toolarge");
-      });
-
-      await Effect.runPromise(program);
-      expect(mockChild.kill).toHaveBeenCalledWith("SIGTERM");
-    });
-
     it("should clear timeouts on completion", async () => {
       const mockChild = new EventEmitter();
       mockChild.stdout = new EventEmitter();

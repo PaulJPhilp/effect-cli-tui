@@ -1,4 +1,8 @@
 import { defineConfig } from "vitest/config";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   test: {
@@ -20,8 +24,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "effect-cli-tui":
-        "/Users/paul/Projects/Published/effect-cli-tui/dist/index.js",
+      "effect-cli-tui": join(__dirname, "dist/index.js"),
     },
   },
   // Enable ESM support for tests

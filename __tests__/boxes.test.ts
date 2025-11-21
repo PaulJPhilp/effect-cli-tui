@@ -5,7 +5,9 @@ import { describe, expect, it, vi } from "vitest";
 describe("Box Display", () => {
   describe("displayBox", () => {
     it("should display content in a basic box", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       const content = "Hello World";
       await Effect.runPromise(displayBox(content));
@@ -18,7 +20,9 @@ describe("Box Display", () => {
     });
 
     it("should handle multi-line content", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       const content = "Line 1\nLine 2\nLine 3";
       await Effect.runPromise(displayBox(content));
@@ -37,7 +41,9 @@ describe("Box Display", () => {
     });
 
     it("should support different border styles", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       const content = "Test";
       const styles: (keyof BoxStyle)[] = [
@@ -57,7 +63,9 @@ describe("Box Display", () => {
     });
 
     it("should display box with title", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       const content = "Content";
       const title = "My Title";
@@ -69,7 +77,9 @@ describe("Box Display", () => {
     });
 
     it("should handle padding", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       const content = "Test";
       await Effect.runPromise(displayBox(content, { padding: 2 }));
@@ -79,7 +89,9 @@ describe("Box Display", () => {
     });
 
     it("should support different types (colors)", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       const content = "Test";
       const types: ("info" | "success" | "error" | "warning")[] = [
@@ -108,7 +120,9 @@ describe("Box Display", () => {
 
   describe("displayPanel", () => {
     it("should be equivalent to displayBox with title", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       const content = "Panel content";
       const title = "Panel Title";
@@ -122,7 +136,9 @@ describe("Box Display", () => {
     });
 
     it("should support additional options", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // no-op
+      });
 
       const content = "Panel content";
       const title = "Panel Title";

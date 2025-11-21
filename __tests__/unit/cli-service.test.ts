@@ -238,21 +238,6 @@ describe("EffectCLI Service", () => {
       expect(reason).toBe("Timeout");
     });
 
-    it.skip("should handle NotFound reason for missing command", async () => {
-      // Skipped: This test times out trying to execute a real command
-      // The behavior is tested in other integration tests
-      const program = Effect.gen(function* () {
-        const cli = yield* EffectCLI;
-        return yield* cli
-          .run("nonexistent-command-xyz")
-          .pipe(
-            Effect.catchTag("CLIError", (err) => Effect.succeed(err.reason))
-          );
-      }).pipe(Effect.provide(EffectCLI.Default));
-
-      const reason = await Effect.runPromise(program);
-      expect(["NotFound", "ExecutionError"]).toContain(reason);
-    });
 
     it("should have error message", async () => {
       const effect = Effect.gen(function* () {

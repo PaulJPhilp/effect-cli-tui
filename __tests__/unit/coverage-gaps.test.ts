@@ -151,32 +151,6 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
   });
 
   describe("startSpinner - cursor hidden condition", () => {
-    it.skip("should write show cursor in cleanup when cursor was hidden", async () => {
-      // Skipped: Spinner doesn't integrate with Effect.scoped cleanup
-      // Spinner requires explicit stopSpinner() call, not automatic cleanup
-      const stdoutSpy = vi
-        .spyOn(process.stdout, "write")
-        .mockImplementation(() => true);
-
-      const program = Effect.scoped(
-        Effect.gen(function* () {
-          yield* startSpinner("Processing...", { hideCursor: true });
-          // Wait briefly to let animation start
-          yield* Effect.sleep(50);
-        })
-      );
-
-      await Effect.runPromise(program);
-
-      // Check that cursor show sequence was written during cleanup
-      const cursorShowCalls = stdoutSpy.mock.calls.filter((call) =>
-        call[0]?.toString().includes("\x1B[?25h")
-      );
-      expect(cursorShowCalls.length).toBeGreaterThan(0);
-
-      stdoutSpy.mockRestore();
-    });
-
     it("should not write show cursor in cleanup when cursor was not hidden", async () => {
       const stdoutSpy = vi
         .spyOn(process.stdout, "write")
@@ -192,31 +166,6 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
       await Effect.runPromise(program);
 
       // Cleanup handler still runs but doesn't write show cursor sequence
-      stdoutSpy.mockRestore();
-    });
-
-    it.skip("should clear line in cleanup for spinners", async () => {
-      // Skipped: Spinner doesn't integrate with Effect.scoped cleanup
-      // Spinner requires explicit stopSpinner() call, not automatic cleanup
-      const stdoutSpy = vi
-        .spyOn(process.stdout, "write")
-        .mockImplementation(() => true);
-
-      const program = Effect.scoped(
-        Effect.gen(function* () {
-          yield* startSpinner("Loading...");
-          yield* Effect.sleep(50);
-        })
-      );
-
-      await Effect.runPromise(program);
-
-      // Check that clear line sequence was written
-      const clearLineCalls = stdoutSpy.mock.calls.filter((call) =>
-        call[0]?.toString().includes("\r\x1B[K")
-      );
-      expect(clearLineCalls.length).toBeGreaterThan(0);
-
       stdoutSpy.mockRestore();
     });
 
