@@ -1,4 +1,4 @@
-import * as Effect from "effect/Effect";
+import { Effect } from "effect";
 import { type BoxStyle, displayBox, displayPanel } from "effect-cli-tui";
 import { describe, expect, it, vi } from "vitest";
 
