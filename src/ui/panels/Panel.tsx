@@ -320,7 +320,7 @@ export const TablePanel: React.FC<TablePanelProps> = ({
             ? `${cell.slice(0, width - 3)}...`
             : cell.padEnd(width);
         return (
-          <Box key={cell} marginRight={1} minWidth={width}>
+          <Box key={colIndex} marginRight={1} minWidth={width}>
             {isHeader ? (
               <Text bold color="cyan">
                 {paddedCell}
@@ -346,8 +346,8 @@ export const TablePanel: React.FC<TablePanelProps> = ({
         {"─".repeat(columnWidths.reduce((sum, w) => sum + w + 1, 0) - 1)}
       </Text>
       {/* Data rows */}
-      {rows.map((row) => (
-        <Box key={row.cells.join(",")}>{renderRow(row.cells)}</Box>
+      {rows.map((row, rowIndex) => (
+        <Box key={rowIndex}>{renderRow(row.cells)}</Box>
       ))}
     </Box>
   );
