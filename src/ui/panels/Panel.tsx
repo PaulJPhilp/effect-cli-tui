@@ -199,8 +199,12 @@ export const KeyValuePanel: React.FC<KeyValuePanelProps> = ({
 
   const body = (
     <Box flexDirection="column">
-      {items.map((item) => (
-        <Box flexDirection="row" key={item.key as string}>
+      {items.map((item, index) => (
+        <Box
+          flexDirection="row"
+          // biome-ignore lint/suspicious/noArrayIndexKey: KeyValueItem.key has no uniqueness constraint, index ensures uniqueness
+          key={`kv-${index}`}
+        >
           <Box minWidth={maxKeyWidth + 2}>
             <Text bold color="cyan">
               {item.key}:
@@ -320,7 +324,12 @@ export const TablePanel: React.FC<TablePanelProps> = ({
             ? `${cell.slice(0, width - 3)}...`
             : cell.padEnd(width);
         return (
-          <Box key={colIndex} marginRight={1} minWidth={width}>
+          <Box
+            // biome-ignore lint/suspicious/noArrayIndexKey: Table columns are fixed and stable, index is appropriate
+            key={`col-${colIndex}`}
+            marginRight={1}
+            minWidth={width}
+          >
             {isHeader ? (
               <Text bold color="cyan">
                 {paddedCell}
@@ -347,7 +356,12 @@ export const TablePanel: React.FC<TablePanelProps> = ({
       </Text>
       {/* Data rows */}
       {rows.map((row, rowIndex) => (
-        <Box key={rowIndex}>{renderRow(row.cells)}</Box>
+        <Box
+          // biome-ignore lint/suspicious/noArrayIndexKey: Table rows are in fixed order, index is appropriate
+          key={`row-${rowIndex}`}
+        >
+          {renderRow(row.cells)}
+        </Box>
       ))}
     </Box>
   );
