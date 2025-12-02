@@ -1,11 +1,12 @@
+/** biome-ignore-all assist/source/organizeImports: <> */
 import { Effect } from "effect";
 import {
   DEFAULT_SLASH_COMMANDS,
-  type SlashCommandDefinition,
   setGlobalSlashCommandRegistry,
+  type SlashCommandDefinition,
 } from "../tui-slash-commands";
 import { loadKitConfig, saveKitConfig } from "./config";
-import { type Kit, KitError, type KitRegistry } from "./types";
+import { KitError, type Kit, type KitRegistry } from "./types";
 
 /**
  * Kit Registry Service

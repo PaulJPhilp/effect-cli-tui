@@ -1,7 +1,13 @@
 /**
  * Panel components exports
  */
+/** biome-ignore-all assist/source/organizeImports: <> */
 
+export {
+  KeyValuePanel,
+  Panel,
+  TablePanel,
+} from "./Panel";
 export type {
   KeyValueItem,
   KeyValuePanelProps,
@@ -9,10 +15,5 @@ export type {
   PanelTableColumn,
   TablePanelProps,
   TableRow,
-} from "./Panel";
-export {
-  KeyValuePanel,
-  Panel,
-  TablePanel,
 } from "./Panel";
 export { renderKeyValuePanel, renderTablePanel } from "./render";
