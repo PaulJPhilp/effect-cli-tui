@@ -162,7 +162,7 @@ export interface KeyValuePanelProps {
   /**
    * Array of key-value pairs
    */
-  items: ReadonlyArray<KeyValueItem>;
+  items: readonly KeyValueItem[];
 
   /**
    * Optional footer
@@ -218,9 +218,9 @@ export const KeyValuePanel: React.FC<KeyValuePanelProps> = ({
 };
 
 /**
- * Table column definition
+ * Table column definition for panels
  */
-export interface TableColumn {
+export interface PanelTableColumn {
   /**
    * Column header
    */
@@ -254,12 +254,12 @@ export interface TablePanelProps {
   /**
    * Column definitions
    */
-  columns: ReadonlyArray<TableColumn>;
+  columns: readonly PanelTableColumn[];
 
   /**
    * Table rows
    */
-  rows: ReadonlyArray<TableRow>;
+  rows: readonly TableRow[];
 
   /**
    * Optional footer

@@ -68,6 +68,7 @@ export class KitError extends Data.TaggedError("KitError")<{
     | "KitNotFound"
     | "KitAlreadyEnabled"
     | "KitNotEnabled"
-    | "KitAlreadyRegistered";
+    | "KitAlreadyRegistered"
+    | "ConfigError";
   readonly message: string;
 }> {}

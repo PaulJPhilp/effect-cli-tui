@@ -6,7 +6,7 @@ export type {
   KeyValueItem,
   KeyValuePanelProps,
   PanelProps,
-  TableColumn,
+  PanelTableColumn,
   TablePanelProps,
   TableRow,
 } from "./Panel";

@@ -75,7 +75,11 @@ export function withKits<A, E, R>(
  */
 export function enableKit(
   kitId: string
-): Effect.Effect<void, import("./types").KitError> {
+): Effect.Effect<
+  void,
+  import("./types").KitError,
+  import("./registry").KitRegistryService
+> {
   return Effect.gen(function* () {
     const registry = yield* KitRegistryService;
     yield* registry.enable(kitId);
@@ -97,7 +101,11 @@ export function enableKit(
  */
 export function disableKit(
   kitId: string
-): Effect.Effect<void, import("./types").KitError> {
+): Effect.Effect<
+  void,
+  import("./types").KitError,
+  import("./registry").KitRegistryService
+> {
   return Effect.gen(function* () {
     const registry = yield* KitRegistryService;
     yield* registry.disable(kitId);

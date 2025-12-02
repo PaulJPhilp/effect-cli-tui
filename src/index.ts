@@ -51,23 +51,23 @@ export { Title } from "./ui/boxes/box-style";
 export type { BoxStyle } from "./ui/boxes/box-style";
 // Panels
 export {
-  Panel,
   KeyValuePanel,
+  Panel,
   TablePanel,
   renderKeyValuePanel,
   renderTablePanel,
 } from "./ui/panels";
 export type {
-  PanelProps,
   KeyValueItem,
   KeyValuePanelProps,
-  TableColumn,
-  TableRow,
+  PanelProps,
+  PanelTableColumn,
   TablePanelProps,
+  TableRow,
 } from "./ui/panels";
 // Layout
 export { TUILayout } from "./ui/layout/TUILayout";
-export type { TUILayoutProps, OutputItem } from "./ui/layout/TUILayout";
+export type { OutputItem, TUILayoutProps } from "./ui/layout/TUILayout";
 export type { SpinnerOptions } from "./ui/progress/spinner";
 // Progress indicators
 export {

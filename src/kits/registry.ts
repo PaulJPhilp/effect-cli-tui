@@ -98,11 +98,27 @@ export class KitRegistryService extends Effect.Service<KitRegistryService>()(
             setGlobalSlashCommandRegistry(activeCommands);
 
             // Persist to config
-            const config = yield* loadKitConfig();
+            const _config = yield* loadKitConfig().pipe(
+              Effect.mapError(
+                (err) =>
+                  new KitError({
+                    reason: "ConfigError",
+                    message: err.message,
+                  })
+              )
+            );
             const updatedConfig = {
               enabledKits: Array.from(enabledKitIds),
             };
-            yield* saveKitConfig(updatedConfig);
+            yield* saveKitConfig(updatedConfig).pipe(
+              Effect.mapError(
+                (err) =>
+                  new KitError({
+                    reason: "ConfigError",
+                    message: err.message,
+                  })
+              )
+            );
           }),
 
         /**
@@ -129,7 +145,15 @@ export class KitRegistryService extends Effect.Service<KitRegistryService>()(
             const updatedConfig = {
               enabledKits: Array.from(enabledKitIds),
             };
-            yield* saveKitConfig(updatedConfig);
+            yield* saveKitConfig(updatedConfig).pipe(
+              Effect.mapError(
+                (err) =>
+                  new KitError({
+                    reason: "ConfigError",
+                    message: err.message,
+                  })
+              )
+            );
           }),
 
         /**
@@ -166,7 +190,7 @@ export class KitRegistryService extends Effect.Service<KitRegistryService>()(
           Effect.gen(function* () {
             const kit = registeredKits.get(kitId);
             if (!kit) {
-              yield* Effect.fail(
+              return yield* Effect.fail(
                 new KitError({
                   reason: "KitNotFound",
                   message: `Kit with id "${kitId}" is not registered`,
