@@ -258,14 +258,18 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
 
   describe("displayHighlight - Variations", () => {
     it("should display short message", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayHighlight("Hi"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display long message", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       const longMsg = `Important: ${"a".repeat(100)}`;
       await Effect.runPromise(displayHighlight(longMsg));
       expect(consoleSpy).toHaveBeenCalled();
@@ -273,14 +277,18 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     });
 
     it("should display message with special chars", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayHighlight("Alert: 🔔"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display message with newlines", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayHighlight("Line1\nLine2"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -289,14 +297,18 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
 
   describe("displayMuted - Variations", () => {
     it("should display short muted message", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayMuted("Info"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display long muted message", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       const longMsg = `Detail: ${"x".repeat(100)}`;
       await Effect.runPromise(displayMuted(longMsg));
       expect(consoleSpy).toHaveBeenCalled();
@@ -304,14 +316,18 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     });
 
     it("should display muted message with special chars", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayMuted("Note: ℹ️"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display muted empty string", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayMuted(""));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -326,14 +342,18 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
 
   describe("displayWarning - Variations", () => {
     it("should display short warning", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayWarning("Caution"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display long warning", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       const longMsg = `Warning: ${"w".repeat(100)}`;
       await Effect.runPromise(displayWarning(longMsg));
       expect(consoleSpy).toHaveBeenCalled();
@@ -341,14 +361,18 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     });
 
     it("should display warning with special chars", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayWarning("Danger: ⚠️"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display warning with numbers", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayWarning("Error code: 404"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -357,14 +381,18 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
 
   describe("displayInfo - Variations", () => {
     it("should display short info message", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayInfo("OK"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display long info message", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       const longMsg = `Information: ${"i".repeat(100)}`;
       await Effect.runPromise(displayInfo(longMsg));
       expect(consoleSpy).toHaveBeenCalled();
@@ -372,14 +400,18 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     });
 
     it("should display info with emoji", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayInfo("Status: ✅"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display info with markdown-like content", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayInfo("**Bold** and `code`"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -394,28 +426,36 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
 
   describe("displayListItem - Variations", () => {
     it("should display item with dash bullet", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayListItem("First item", "-"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display item with arrow bullet", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayListItem("Next step", "→"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display item with number bullet", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayListItem("Numbered item", "1."));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display item with red bullet color", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(
         displayListItem("Error item", "✗", { color: "red" })
       );
@@ -424,7 +464,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     });
 
     it("should display item with green bullet color", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(
         displayListItem("Success item", "✓", { color: "green" })
       );
@@ -433,7 +475,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     });
 
     it("should display item with yellow bullet color", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(
         displayListItem("Warning item", "!", { color: "yellow" })
       );
@@ -442,7 +486,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     });
 
     it("should display item with blue bullet color", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(
         displayListItem("Info item", "i", { color: "blue" })
       );
@@ -451,7 +497,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     });
 
     it("should display item with magenta bullet color", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(
         displayListItem("Custom item", "*", { color: "magenta" })
       );
@@ -460,7 +508,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     });
 
     it("should display item with white bullet color", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(
         displayListItem("Bright item", "+", { color: "white" })
       );
@@ -469,7 +519,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     });
 
     it("should display long list item text", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       const longItem = `Item: ${"a".repeat(150)}`;
       await Effect.runPromise(displayListItem(longItem));
       expect(consoleSpy).toHaveBeenCalled();
@@ -477,14 +529,18 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     });
 
     it("should display item with special characters", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayListItem("Task [COMPLETED] - Done!"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should display item with emoji", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       await Effect.runPromise(displayListItem("Project 🚀"));
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -526,15 +582,15 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
         "bgWhite",
       ] as const;
 
-      allColors.forEach((color) => {
+      for (const color of allColors) {
         const result = applyChalkStyle("test", { color });
         expect(typeof result).toBe("string");
-      });
+      }
 
-      allBgColors.forEach((bgColor) => {
+      for (const bgColor of allBgColors) {
         const result = applyChalkStyle("test", { bgColor });
         expect(typeof result).toBe("string");
-      });
+      }
     });
   });
 });

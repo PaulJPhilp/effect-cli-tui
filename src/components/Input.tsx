@@ -4,7 +4,7 @@
  * Provides a simple text input with optional validation and default value.
  */
 
-import { Box, Text } from "ink";
+import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import type React from "react";
 import { useState } from "react";
@@ -15,6 +15,12 @@ export interface InputProps {
   placeholder?: string;
   validate?: (value: string) => boolean | string;
   onSubmit: (value: string) => void;
+  // Slash command enhancement props (optional)
+  computeSlashSuggestions?: (
+    value: string
+  ) => ReadonlyArray<string> | Promise<ReadonlyArray<string>>; // Suggestion provider
+  onHistoryPrev?: () => void; // Up arrow for slash command history
+  onHistoryNext?: () => void; // Down arrow for slash command history
 }
 
 /**
@@ -47,9 +53,13 @@ export const Input: React.FC<InputProps> = ({
   placeholder = "",
   validate,
   onSubmit,
+  computeSlashSuggestions,
+  onHistoryPrev,
+  onHistoryNext,
 }) => {
   const [value, setValue] = useState(defaultValue);
   const [error, setError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<readonly string[]>([]);
 
   const handleSubmit = (input: string) => {
     if (validate) {
@@ -71,7 +81,38 @@ export const Input: React.FC<InputProps> = ({
     if (error) {
       setError(null);
     }
+    // Recompute suggestions when value changes
+    if (input.startsWith("/") && computeSlashSuggestions) {
+      const res = computeSlashSuggestions(input);
+      if (res instanceof Promise) {
+        res
+          .then((list) => setSuggestions(list ?? []))
+          .catch(() => {
+            setSuggestions([]);
+          });
+      } else {
+        setSuggestions(res ?? []);
+      }
+    } else {
+      setSuggestions([]);
+    }
   };
+
+  // Key handling for slash command features
+  useInput((inputKey, key) => {
+    if (!value.startsWith("/")) return; // Only active for slash commands
+    if (key.tab) {
+      // Auto-complete with first suggestion
+      const top = suggestions[0];
+      if (top) {
+        setValue(`${top} `);
+      }
+    } else if (key.upArrow) {
+      onHistoryPrev?.();
+    } else if (key.downArrow) {
+      onHistoryNext?.();
+    }
+  });
 
   return (
     <Box flexDirection="column">
@@ -84,6 +125,12 @@ export const Input: React.FC<InputProps> = ({
           value={value}
         />
       </Box>
+      {value.startsWith("/") && suggestions && suggestions.length > 0 && (
+        <Box flexDirection="column" marginTop={0}>
+          <Text color="cyan">Suggestions: {suggestions.join(", ")}</Text>
+          <Text dimColor>Tab to auto-complete, ↑/↓ to navigate history</Text>
+        </Box>
+      )}
       {error && (
         <Box marginTop={0}>
           <Text color="red">{error}</Text>

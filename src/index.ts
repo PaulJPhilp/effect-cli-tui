@@ -1,4 +1,3 @@
-// biome-ignore lint/performance/noBarrelFile: <>
 // biome-ignore assist/source/organizeImports: <>
 export { EffectCLI } from "./cli";
 export {
@@ -18,10 +17,57 @@ export {
   displaySuccess,
 } from "./core/display";
 // Runtimes
-export { runWithCLI, runWithRuntime, runWithTUI } from "./runtime";
+export {
+  runWithCLI,
+  runWithRuntime,
+  runWithTUI,
+  runWithTUIWithSlashCommands,
+} from "./runtime";
+export {
+  DEFAULT_SLASH_COMMANDS,
+  DEFAULT_SLASH_COMMAND_REGISTRY,
+  addToHistory,
+  configureDefaultSlashCommands,
+  createEffectCliSlashCommand,
+  createSlashCommandRegistry,
+  getSessionHistory,
+  getSlashCommandHistory,
+  getSlashCommandSuggestions,
+  getSlashCommandSuggestionsAsync,
+  parseSlashCommand,
+  setGlobalSlashCommandRegistry,
+  withSlashCommands,
+} from "./tui-slash-commands";
+export type {
+  ParsedSlashCommand,
+  SessionHistoryEntry,
+  SlashCommandContext,
+  SlashCommandDefinition,
+  SlashCommandRegistry,
+  SlashCommandResult,
+} from "./tui-slash-commands";
 export { displayBox, displayPanel } from "./ui/boxes/box";
 export { Title } from "./ui/boxes/box-style";
 export type { BoxStyle } from "./ui/boxes/box-style";
+// Panels
+export {
+  Panel,
+  KeyValuePanel,
+  TablePanel,
+  renderKeyValuePanel,
+  renderTablePanel,
+} from "./ui/panels";
+export type {
+  PanelProps,
+  KeyValueItem,
+  KeyValuePanelProps,
+  TableColumn,
+  TableRow,
+  TablePanelProps,
+} from "./ui/panels";
+// Layout
+export { TUILayout } from "./ui/layout/TUILayout";
+export type { TUILayoutProps, OutputItem } from "./ui/layout/TUILayout";
 export type { SpinnerOptions } from "./ui/progress/spinner";
 // Progress indicators
 export {
@@ -36,6 +82,30 @@ export { displayTable } from "./ui/tables/table";
 
 // TUI
 export { TUIHandler } from "./tui";
+
+// Supermemory integration
+export * from "./supermemory";
+
+// Kits system
+export * from "./kits";
+
+// Agent harness services
+export { ApprovalService } from "./services/approval";
+export type { OperationKind, OperationSummary } from "./services/approval";
+export { ToolCallLogService } from "./services/logs";
+export type { ToolCallLogEntry } from "./services/logs";
+export { ModeService } from "./services/mode";
+export type { Mode } from "./services/mode";
+
+// Utilities
+export { makeUnifiedDiff } from "./utils/diff";
+export {
+  getCurrentBranch,
+  getGitRoot,
+  getStatusSummary,
+  isGitClean,
+} from "./utils/git";
+export { showOnboardingIfNeeded } from "./utils/onboarding";
 
 // Core types
 export type {

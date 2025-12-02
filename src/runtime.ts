@@ -32,12 +32,17 @@
  */
 
 import { type Effect, Layer, ManagedRuntime } from "effect";
-import { EffectCLI } from "./cli";
+import { type EffectCLI, EffectCLILive } from "./cli";
 import { Terminal } from "./core/terminal";
+import { ApprovalService } from "./services/approval";
 import { DisplayService } from "./services/display";
 import { InkService } from "./services/ink";
+import { ToolCallLogService } from "./services/logs";
+import { ModeService } from "./services/mode";
 import { ThemeService } from "./services/theme/service";
 import { TUIHandler } from "./tui";
+import type { SlashCommandDefinition } from "./tui-slash-commands";
+import { withSlashCommands } from "./tui-slash-commands";
 
 /**
  * Combined layer providing all CLI/TUI services
@@ -49,18 +54,24 @@ import { TUIHandler } from "./tui";
  * - ThemeService (theme management)
  * - InkService (React/Ink rendering)
  * - Terminal (terminal I/O)
+ * - ApprovalService (safety layer for operations)
+ * - ModeService (mode management)
+ * - ToolCallLogService (tool call history)
  *
  * TUIHandler declares InkService as a dependency, so InkService.Default is automatically
  * included when TUIHandler.Default is provided. We explicitly include it here for clarity
  * and to ensure it's available for other services that might need it directly.
  */
 export const EffectCLITUILayer = Layer.mergeAll(
-  EffectCLI.Default,
+  EffectCLILive,
   InkService.Default, // Explicitly included (also provided via TUIHandler dependencies)
   TUIHandler.Default, // Automatically includes InkService via dependencies
   DisplayService.Default,
   ThemeService.Default,
-  Terminal.Default
+  Terminal.Default,
+  ApprovalService.Default, // Safety layer
+  ModeService.Default, // Mode management
+  ToolCallLogService.Default // Tool call logging
 );
 
 /**
@@ -83,7 +94,21 @@ export const EffectCLITUILayer = Layer.mergeAll(
  * await EffectCLIRuntime.dispose() // Clean up resources
  * ```
  */
-export const EffectCLIRuntime = ManagedRuntime.make(EffectCLITUILayer);
+export const EffectCLIRuntime = ManagedRuntime.make(
+  EffectCLITUILayer as Layer.Layer<
+    | EffectCLI
+    | InkService
+    | TUIHandler
+    | DisplayService
+    | ThemeService
+    | Terminal
+    | ApprovalService
+    | ModeService
+    | ToolCallLogService,
+    never,
+    never
+  >
+);
 
 /**
  * Runtime with only TUIHandler and its dependencies
@@ -107,7 +132,10 @@ export const TUIHandlerRuntime = ManagedRuntime.make(
     DisplayService.Default,
     InkService.Default,
     ThemeService.Default,
-    Terminal.Default
+    Terminal.Default,
+    ApprovalService.Default,
+    ModeService.Default,
+    ToolCallLogService.Default
   )
 );
 
@@ -127,7 +155,9 @@ export const TUIHandlerRuntime = ManagedRuntime.make(
  * await EffectCLIRuntime.runPromise(program)
  * ```
  */
-export const EffectCLIOnlyRuntime = ManagedRuntime.make(EffectCLI.Default);
+export const EffectCLIOnlyRuntime = ManagedRuntime.make<EffectCLI, never>(
+  EffectCLILive as Layer.Layer<EffectCLI, never, never>
+);
 
 /**
  * Runtime with only DisplayService
@@ -207,6 +237,24 @@ export async function runWithTUI<A, E>(
   } finally {
     await TUIHandlerRuntime.dispose();
   }
+}
+
+/**
+ * Convenience function to run an effect with TUIHandler runtime and a custom
+ * slash-command registry.
+ *
+ * This helper temporarily configures the global slash-command registry for the
+ * duration of the provided Effect, restoring the previous registry afterwards.
+ */
+export function runWithTUIWithSlashCommands<A, E>(
+  effect: Effect.Effect<
+    A,
+    E,
+    TUIHandler | DisplayService | InkService | Terminal
+  >,
+  commands: readonly SlashCommandDefinition[]
+): Promise<A> {
+  return runWithTUI(withSlashCommands(commands, effect));
 }
 
 /**

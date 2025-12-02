@@ -101,7 +101,9 @@ describe("Terminal Service - Comprehensive Coverage", () => {
 
   describe("Terminal.Default - line", () => {
     it("should write line with newline", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = Effect.gen(function* () {
         const terminal = yield* Terminal;
@@ -115,7 +117,9 @@ describe("Terminal Service - Comprehensive Coverage", () => {
     });
 
     it("should write multiple lines", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = Effect.gen(function* () {
         const terminal = yield* Terminal;
@@ -131,7 +135,9 @@ describe("Terminal Service - Comprehensive Coverage", () => {
     });
 
     it("should handle empty line", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = Effect.gen(function* () {
         const terminal = yield* Terminal;
@@ -287,7 +293,9 @@ describe("Terminal Service - Comprehensive Coverage", () => {
     it("should write to custom stderr function", async () => {
       const errors: string[] = [];
       const customTerminal = createCustomTerminal(
-        () => {},
+        () => {
+          /* Mock implementation - no-op */
+        },
         (text) => errors.push(text)
       );
 
@@ -348,7 +356,9 @@ describe("Terminal Service - Comprehensive Coverage", () => {
 
   describe("Complex Output Workflows", () => {
     it("should compose multiple output operations", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       const stdoutSpy = vi
         .spyOn(process.stdout, "write")
         .mockImplementation(() => true);

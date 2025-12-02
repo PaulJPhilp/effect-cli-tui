@@ -29,24 +29,29 @@ yarn add effect-cli-tui
 ## Quick Start
 
 ```typescript
-import { Effect } from 'effect'
-import { display, displaySuccess, TUIHandler, runWithTUI } from 'effect-cli-tui'
+import { Effect } from "effect";
+import {
+  display,
+  displaySuccess,
+  TUIHandler,
+  runWithTUI,
+} from "effect-cli-tui";
 
 const program = Effect.gen(function* () {
   // Display utilities
-  yield* display('Welcome to my CLI app!')
-  yield* displaySuccess('Initialization complete')
+  yield* display("Welcome to my CLI app!");
+  yield* displaySuccess("Initialization complete");
 
-  const tui = yield* TUIHandler
+  const tui = yield* TUIHandler;
 
   // Interactive prompt
-  const name = yield* tui.prompt('What is your name?')
+  const name = yield* tui.prompt("What is your name?");
 
   // Display results
-  yield* displaySuccess(`Hello, ${name}!`)
-})
+  yield* displaySuccess(`Hello, ${name}!`);
+});
 
-runWithTUI(program)
+runWithTUI(program);
 ```
 
 ## Core Concepts
@@ -56,6 +61,7 @@ runWithTUI(program)
 Simple, powerful console output utilities for CLI applications.
 
 **Functions:**
+
 - `display(message, options?)` - Display single-line messages with styling
 - `displayLines(lines, options?)` - Display multiple lines with consistent formatting
 - `displayJson(data, options?)` - Pretty-print JSON data
@@ -63,23 +69,25 @@ Simple, powerful console output utilities for CLI applications.
 - `displayError(message)` - Convenience for error messages
 
 **Example:**
+
 ```typescript
-import { display, displayLines, displayJson } from 'effect-cli-tui'
+import { display, displayLines, displayJson } from "effect-cli-tui";
 
 // Simple messages
-yield* display('Processing files...')
-yield* displaySuccess('All files processed!')
+yield * display("Processing files...");
+yield * displaySuccess("All files processed!");
 
 // Multi-line output
-yield* displayLines([
-  'Configuration Summary',
-  '─────────────────────',
-  'Mode: Production',
-  'Files: 42 processed'
-])
+yield *
+  displayLines([
+    "Configuration Summary",
+    "─────────────────────",
+    "Mode: Production",
+    "Files: 42 processed",
+  ]);
 
 // JSON output
-yield* displayJson({ status: 'ok', count: 42 })
+yield * displayJson({ status: "ok", count: 42 });
 ```
 
 ### TUIHandler
@@ -87,6 +95,7 @@ yield* displayJson({ status: 'ok', count: 42 })
 Interactive terminal prompts with Effect integration.
 
 **Methods:**
+
 - `prompt(message, options?)` - Text input
 - `selectOption(message, options)` - Single selection
 - `multiSelect(message, options)` - Multiple selection
@@ -98,6 +107,7 @@ Interactive terminal prompts with Effect integration.
 Execute CLI commands with Effect error handling.
 
 **Methods:**
+
 - `run(command, args?, options?)` - Execute and capture output
 - `stream(command, args?, options?)` - Stream output directly
 
@@ -105,142 +115,263 @@ Execute CLI commands with Effect error handling.
 
 While the core APIs are available from the main `effect-cli-tui` entry point, more advanced features and services are exposed via secondary entry points for a cleaner API surface:
 
--   **`effect-cli-tui/components`**: React components for interactive prompts (`Confirm`, `Input`, `Select`, etc.).
--   **`effect-cli-tui/theme`**: Theming services and presets for customizing the look and feel.
--   **`effect-cli-tui/services`**: Low-level services and runtimes (`EffectCLIRuntime`, `Terminal`, `InkService`).
--   **`effect-cli-tui/constants`**: A collection of useful constants for icons, symbols, and ANSI codes.
+- **`effect-cli-tui/components`**: React components for interactive prompts (`Confirm`, `Input`, `Select`, etc.).
+- **`effect-cli-tui/theme`**: Theming services and presets for customizing the look and feel.
+- **`effect-cli-tui/services`**: Low-level services and runtimes (`EffectCLIRuntime`, `Terminal`, `InkService`).
+- **`effect-cli-tui/constants`**: A collection of useful constants for icons, symbols, and ANSI codes.
 
 ## Examples
 
 ### Interactive Project Setup
 
 ```typescript
-import * as Effect from 'effect/Effect'
-import { TUIHandler } from 'effect-cli-tui'
-import { TUIHandlerRuntime } from 'effect-cli-tui/services'
+import { Effect } from "effect";
+import { TUIHandler } from "effect-cli-tui";
+import { TUIHandlerRuntime } from "effect-cli-tui/services";
 
 const setupProject = Effect.gen(function* () {
-  const tui = yield* TUIHandler
+  const tui = yield* TUIHandler;
 
   // Gather project info
-  const name = yield* tui.prompt('Project name:')
-  const description = yield* tui.prompt('Description:', { default: 'My project' })
+  const name = yield* tui.prompt("Project name:");
+  const description = yield* tui.prompt("Description:", {
+    default: "My project",
+  });
 
   // Choose template
-  const template = yield* tui.selectOption('Choose template:', [
-    'Basic',
-    'CLI'
-  ])
+  const template = yield* tui.selectOption("Choose template:", [
+    "Basic",
+    "CLI",
+  ]);
 
   // Multi-select features
-  const features = yield* tui.multiSelect('Select features:', [
-    'Testing',
-    'Linting',
-    'Type Checking'
-  ])
+  const features = yield* tui.multiSelect("Select features:", [
+    "Testing",
+    "Linting",
+    "Type Checking",
+  ]);
 
   // Confirm
-  const shouldCreate = yield* tui.confirm(`Create ${name}? (${template})`)
+  const shouldCreate = yield* tui.confirm(`Create ${name}? (${template})`);
 
   if (shouldCreate) {
-    yield* tui.display('Creating project...', 'info')
+    yield* tui.display("Creating project...", "info");
     // ... project creation logic ...
-    yield* tui.display('Project created!', 'success')
+    yield* tui.display("Project created!", "success");
   } else {
-    yield* tui.display('Cancelled', 'error')
+    yield* tui.display("Cancelled", "error");
   }
-})
+});
 
-await TUIHandlerRuntime.runPromise(setupProject)
-await TUIHandlerRuntime.dispose()
+await TUIHandlerRuntime.runPromise(setupProject);
+await TUIHandlerRuntime.dispose();
 ```
 
 ### CLI Command Execution
 
 ```typescript
-import * as Effect from 'effect/Effect'
-import { EffectCLI } from 'effect-cli-tui'
-import { EffectCLIOnlyRuntime } from 'effect-cli-tui/services'
+import { Effect } from "effect";
+import { EffectCLI } from "effect-cli-tui";
+import { EffectCLIOnlyRuntime } from "effect-cli-tui/services";
 
 const buildProject = Effect.gen(function* () {
-  const cli = yield* EffectCLI
+  const cli = yield* EffectCLI;
 
-  console.log('Building project...')
-  const result = yield* cli.run('build', [], { timeout: 30000 })
+  console.log("Building project...");
+  const result = yield* cli.run("build", [], { timeout: 30_000 });
 
-  console.log('Build output:')
-  console.log(result.stdout)
+  console.log("Build output:");
+  console.log(result.stdout);
 
   if (result.stderr) {
-    console.error('Build warnings:')
-    console.error(result.stderr)
+    console.error("Build warnings:");
+    console.error(result.stderr);
   }
-})
+});
 
-await EffectCLIOnlyRuntime.runPromise(buildProject)
-await EffectCLIOnlyRuntime.dispose()
+await EffectCLIOnlyRuntime.runPromise(buildProject);
+await EffectCLIOnlyRuntime.dispose();
 ```
 
 ### Workflow Composition
 
 ```typescript
-import * as Effect from 'effect/Effect'
-import { TUIHandler, EffectCLI } from 'effect-cli-tui'
-import { EffectCLIRuntime } from 'effect-cli-tui/services'
+import { Effect } from "effect";
+import { EffectCLI, TUIHandler } from "effect-cli-tui";
+import { EffectCLIRuntime } from "effect-cli-tui/services";
 
 const completeWorkflow = Effect.gen(function* () {
-  const tui = yield* TUIHandler
-  const cli = yield* EffectCLI
+  const tui = yield* TUIHandler;
+  const cli = yield* EffectCLI;
 
   // Step 1: Gather input
-  yield* tui.display('Step 1: Gathering input...', 'info')
-  const values = []
-  for (let i = 0; i < 3; i++) {
-    const value = yield* tui.prompt(`Enter value ${i + 1}:`)
-    values.push(value)
+  yield* tui.display("Step 1: Gathering input...", "info");
+  const values: string[] = [];
+  for (let index = 0; index < 3; index += 1) {
+    const value = yield* tui.prompt(`Enter value ${index + 1}:`);
+    values.push(value);
   }
 
   // Step 2: Process
-  yield* tui.display('Step 2: Processing...', 'info')
+  yield* tui.display("Step 2: Processing...", "info");
   // Process values...
 
   // Step 3: Report
-  yield* tui.display('Complete!', 'success')
-  console.log('Processed values:', values)
-})
+  yield* tui.display("Complete!", "success");
+  console.log("Processed values:", values);
+});
 
-await EffectCLIRuntime.runPromise(completeWorkflow)
-await EffectCLIRuntime.dispose()
+await EffectCLIRuntime.runPromise(completeWorkflow);
+await EffectCLIRuntime.dispose();
 ```
+
+### Slash Commands with TUIHandler
+
+Slash commands allow users to type `/command` at any interactive prompt to trigger meta-commands without leaving the prompting flow. Supported in `prompt()`, `password()`, `selectOption()`, and `multiSelect()`.
+
+```typescript
+import { Effect } from "effect";
+import {
+  DEFAULT_SLASH_COMMANDS,
+  EffectCLI,
+  TUIHandler,
+  createEffectCliSlashCommand,
+  configureDefaultSlashCommands,
+} from "effect-cli-tui";
+import { EffectCLIRuntime } from "effect-cli-tui/services";
+
+// Configure global "/" commands before running your workflow
+configureDefaultSlashCommands([
+  ...DEFAULT_SLASH_COMMANDS,
+  createEffectCliSlashCommand({
+    name: "deploy",
+    description: "Run project deploy command",
+    effect: () =>
+      Effect.gen(function* () {
+        const cli = yield* EffectCLI;
+        const result = yield* cli.run("echo", ["Deploying..."]);
+        console.log(result.stdout.trim());
+        return { kind: "continue" } as const;
+      }),
+  }),
+]);
+
+const slashWorkflow = Effect.gen(function* () {
+  const tui = yield* TUIHandler;
+
+  console.log(
+    "\nType /help for commands, /deploy to run deploy, or /quit to exit.\n"
+  );
+
+  // Slash commands work in prompt()
+  const name = yield* tui.prompt("Project name:");
+
+  // Slash commands work in selectOption() - include /help or /quit as choices
+  const template = yield* tui.selectOption("Choose template:", [
+    "Basic",
+    "CLI",
+    "/help", // User can select this to see help
+    "/quit", // User can select this to exit
+  ]);
+
+  // Slash commands work in multiSelect() - if any selection starts with "/"
+  const features = yield* tui.multiSelect("Choose features:", [
+    "Testing",
+    "Linting",
+    "TypeScript",
+    "/help", // If selected, will trigger help command
+  ]);
+
+  // Slash commands work in password() too
+  const password = yield* tui.password("Enter password:");
+
+  const confirmed = yield* tui.confirm(`Create project '${name}'?`);
+
+  if (confirmed) {
+    yield* tui.display("Project created!", "success");
+  } else {
+    yield* tui.display("Cancelled", "error");
+  }
+});
+
+await EffectCLIRuntime.runPromise(slashWorkflow);
+await EffectCLIRuntime.dispose();
+```
+
+**Built-in Commands:**
+
+- `/help` - Show available slash commands
+- `/quit` or `/exit` - Exit the current interactive session
+- `/clear` or `/cls` - Clear the terminal screen
+- `/history` or `/h` - Show session command history
+- `/save` - Save session history to a JSON file
+- `/load` - Load and display a previous session from file
+
+**Advanced Features:**
+
+- **Argument Parsing**: Slash commands support positional args and flags:
+  - Example: `/deploy production --force --tag=latest --count=3`
+  - Positional args: `production`
+  - Boolean flags: `--force`
+  - Key/value flags: `--tag=latest`, `--count=3`
+  - Short flags supported and merged: `-f` → `--force`, `-t latest` → `--tag=latest`, `-c 3` → `--count=3`. Clusters like `-fv` set both boolean flags.
+- **Auto-Completion**: While typing a slash command in `prompt()` an inline suggestions list appears. Press `Tab` to auto-complete the first suggestion.
+- **History Navigation**: Press `↑` / `↓` to cycle through previously executed slash commands (only consecutive unique commands stored).
+- **Password Safety**: Password inputs are automatically masked (`********`) in `/history` output.
+
+**Slash Command Context Fields:**
+
+Each custom command receives an extended context:
+
+```ts
+interface SlashCommandContext {
+  promptMessage: string;
+  promptKind: "input" | "password" | "select" | "multiSelect";
+  rawInput: string; // Full text e.g. /deploy prod --force
+  command: string; // Parsed command name e.g. 'deploy'
+  args: string[]; // Positional arguments ['prod']
+  flags: Record<string, string | boolean>; // Parsed flags { force: true }
+  tokens: string[]; // Tokens after command ['prod','--force']
+  registry: SlashCommandRegistry;
+}
+```
+
+You can use these to implement richer behaviors in custom commands.
+
+**Slash Command Behavior:**
+
+- `continue` - Command executes, then the prompt re-appears (e.g., `/help`)
+- `abortPrompt` - Cancel the current prompt and return an error
+- `exitSession` - Exit the entire interactive session (e.g., `/quit`)
 
 ## Error Handling
 
 All effects can fail with typed errors:
 
 ```typescript
-import * as Effect from 'effect/Effect'
-import { TUIHandler } from 'effect-cli-tui'
-import { TUIHandlerRuntime } from 'effect-cli-tui/services'
+import * as Effect from "effect/Effect";
+import { TUIHandler } from "effect-cli-tui";
+import { TUIHandlerRuntime } from "effect-cli-tui/services";
 
 const safePrompt = Effect.gen(function* () {
-  const tui = yield* TUIHandler
+  const tui = yield* TUIHandler;
 
-  const result = yield* tui.prompt('Enter something:').pipe(
-    Effect.catchTag('TUIError', (err) => {
-      if (err.reason === 'Cancelled') {
-        console.log('User cancelled the operation')
-        return Effect.succeed('default value')
+  const result = yield* tui.prompt("Enter something:").pipe(
+    Effect.catchTag("TUIError", (err) => {
+      if (err.reason === "Cancelled") {
+        console.log("User cancelled the operation");
+        return Effect.succeed("default value");
       }
-      console.error(`UI Error: ${err.message}`)
-      return Effect.succeed('default value')
+      console.error(`UI Error: ${err.message}`);
+      return Effect.succeed("default value");
     })
-  )
+  );
 
-  return result
-})
+  return result;
+});
 
-await TUIHandlerRuntime.runPromise(safePrompt)
-await TUIHandlerRuntime.dispose()
+await TUIHandlerRuntime.runPromise(safePrompt);
+await TUIHandlerRuntime.dispose();
 ```
 
 ### Cancellation Handling
@@ -249,72 +380,83 @@ All interactive prompts support cancellation via Ctrl+C (SIGINT). When a user pr
 
 ```typescript
 const program = Effect.gen(function* () {
-  const tui = yield* TUIHandler
+  const tui = yield* TUIHandler;
 
-  const name = yield* tui.prompt('Enter your name:').pipe(
-    Effect.catchTag('TUIError', (err) => {
-      if (err.reason === 'Cancelled') {
-        yield* tui.display('Operation cancelled', 'warning')
-        return Effect.fail(new Error('User cancelled'))
+  const name = yield* tui.prompt("Enter your name:").pipe(
+    Effect.catchTag("TUIError", (err) => {
+      if (err.reason === "Cancelled") {
+        yield * tui.display("Operation cancelled", "warning");
+        return Effect.fail(new Error("User cancelled"));
       }
-      return Effect.fail(err)
+      return Effect.fail(err);
     })
-  )
+  );
 
-  return name
-})
+  return name;
+});
 ```
 
 ### Error Handling Patterns
 
 **Handle CLI Errors:**
+
 ```typescript
-const result = yield* cli.run('git', ['status']).pipe(
-  Effect.catchTag('CLIError', (err) => {
-    switch (err.reason) {
-      case 'NotFound':
-        yield* displayError('Command not found. Please install Git.')
-        return Effect.fail(err)
-      case 'Timeout':
-        yield* displayError('Command timed out. Try again.')
-        return Effect.fail(err)
-      case 'CommandFailed':
-        yield* displayError(`Failed with exit code ${err.exitCode}`)
-        return Effect.fail(err)
-      default:
-        return Effect.fail(err)
-    }
-  })
-)
+const result =
+  yield *
+  cli.run("git", ["status"]).pipe(
+    Effect.catchTag("CLIError", (err) => {
+      switch (err.reason) {
+        case "NotFound":
+          yield * displayError("Command not found. Please install Git.");
+          return Effect.fail(err);
+        case "Timeout":
+          yield * displayError("Command timed out. Try again.");
+          return Effect.fail(err);
+        case "CommandFailed":
+          yield * displayError(`Failed with exit code ${err.exitCode}`);
+          return Effect.fail(err);
+        default:
+          return Effect.fail(err);
+      }
+    })
+  );
 ```
 
 **Handle Validation Errors with Retry:**
+
 ```typescript
-const email = yield* tui.prompt('Email:', {
-  validate: (input) => input.includes('@') || 'Invalid email'
-}).pipe(
-  Effect.catchTag('TUIError', (err) => {
-    if (err.reason === 'ValidationFailed') {
-      yield* displayError(`Validation failed: ${err.message}`)
-      // Retry or use default
-      return Effect.succeed('default@example.com')
-    }
-    return Effect.fail(err)
-  })
-)
+const email =
+  yield *
+  tui
+    .prompt("Email:", {
+      validate: (input) => input.includes("@") || "Invalid email",
+    })
+    .pipe(
+      Effect.catchTag("TUIError", (err) => {
+        if (err.reason === "ValidationFailed") {
+          yield * displayError(`Validation failed: ${err.message}`);
+          // Retry or use default
+          return Effect.succeed("default@example.com");
+        }
+        return Effect.fail(err);
+      })
+    );
 ```
 
 **Error Recovery with Fallback:**
+
 ```typescript
-const template = yield* tui.selectOption('Template:', ['basic', 'cli']).pipe(
-  Effect.catchTag('TUIError', (err) => {
-    if (err.reason === 'Cancelled') {
-      yield* tui.display('Using default: basic', 'info')
-      return Effect.succeed('basic') // Fallback value
-    }
-    return Effect.fail(err)
-  })
-)
+const template =
+  yield *
+  tui.selectOption("Template:", ["basic", "cli"]).pipe(
+    Effect.catchTag("TUIError", (err) => {
+      if (err.reason === "Cancelled") {
+        yield * tui.display("Using default: basic", "info");
+        return Effect.succeed("basic"); // Fallback value
+      }
+      return Effect.fail(err);
+    })
+  );
 ```
 
 See `examples/error-handling.ts` for more comprehensive error handling examples.
@@ -326,56 +468,56 @@ Customize icons, colors, and styles for display types using the theme system.
 ### Using Preset Themes
 
 ```typescript
-import { displaySuccess, displayInfo } from 'effect-cli-tui'
-import { EffectCLIRuntime } from 'effect-cli-tui/services'
-import { ThemeService, themes } from 'effect-cli-tui/theme'
+import { displaySuccess, displayInfo } from "effect-cli-tui";
+import { EffectCLIRuntime } from "effect-cli-tui/services";
+import { ThemeService, themes } from "effect-cli-tui/theme";
 
 const program = Effect.gen(function* () {
-  const theme = yield* ThemeService
-  
+  const theme = yield* ThemeService;
+
   // Use emoji theme
-  yield* theme.setTheme(themes.emoji)
-  yield* displaySuccess('Success!')  // Uses ✅ emoji
-  
+  yield* theme.setTheme(themes.emoji);
+  yield* displaySuccess("Success!"); // Uses ✅ emoji
+
   // Use minimal theme (no icons)
-  yield* theme.setTheme(themes.minimal)
-  yield* displaySuccess('Done!')  // No icon, just green text
-  
+  yield* theme.setTheme(themes.minimal);
+  yield* displaySuccess("Done!"); // No icon, just green text
+
   // Use dark theme (optimized for dark terminals)
-  yield* theme.setTheme(themes.dark)
-  yield* displayInfo('Info')  // Uses cyan instead of blue
-})
+  yield* theme.setTheme(themes.dark);
+  yield* displayInfo("Info"); // Uses cyan instead of blue
+});
 ```
 
 ### Creating Custom Themes
 
 ```typescript
-import { display } from 'effect-cli-tui'
-import { EffectCLIRuntime } from 'effect-cli-tui/services'
-import { createTheme, ThemeService } from 'effect-cli-tui/theme'
+import { display } from "effect-cli-tui";
+import { EffectCLIRuntime } from "effect-cli-tui/services";
+import { createTheme, ThemeService } from "effect-cli-tui/theme";
 
 const customTheme = createTheme({
   icons: {
-    success: '✅',
-    error: '❌',
-    warning: '⚠️',
-    info: 'ℹ️'
+    success: "✅",
+    error: "❌",
+    warning: "⚠️",
+    info: "ℹ️",
   },
   colors: {
-    success: 'green',
-    error: 'red',
-    warning: 'yellow',
-    info: 'cyan',  // Changed from blue
-    highlight: 'magenta'  // Changed from cyan
-  }
-})
+    success: "green",
+    error: "red",
+    warning: "yellow",
+    info: "cyan", // Changed from blue
+    highlight: "magenta", // Changed from cyan
+  },
+});
 
 const program = Effect.gen(function* () {
-  const theme = yield* ThemeService
-  yield* theme.setTheme(customTheme)
-  
-  yield* display('Custom theme!', { type: 'success' })
-})
+  const theme = yield* ThemeService;
+  yield* theme.setTheme(customTheme);
+
+  yield* display("Custom theme!", { type: "success" });
+});
 ```
 
 ### Scoped Theme Changes
@@ -387,20 +529,23 @@ import { displaySuccess, displayError } from "effect-cli-tui";
 import { ThemeService, themes } from "effect-cli-tui/theme";
 
 const program = Effect.gen(function* () {
-  const theme = yield* ThemeService
-  
+  const theme = yield* ThemeService;
+
   // Set default theme
-  yield* theme.setTheme(themes.default)
-  
+  yield* theme.setTheme(themes.default);
+
   // Use emoji theme only for this scope
-  yield* theme.withTheme(themes.emoji, Effect.gen(function* () {
-    yield* displaySuccess('Uses emoji theme')
-    yield* displayError('Also uses emoji theme')
-  }))
-  
+  yield* theme.withTheme(
+    themes.emoji,
+    Effect.gen(function* () {
+      yield* displaySuccess("Uses emoji theme");
+      yield* displayError("Also uses emoji theme");
+    })
+  );
+
   // Back to default theme here
-  yield* displaySuccess('Uses default theme')
-})
+  yield* displaySuccess("Uses default theme");
+});
 ```
 
 ### Available Preset Themes
@@ -413,22 +558,27 @@ const program = Effect.gen(function* () {
 ### Theme API
 
 ```typescript
-import { ThemeService, setTheme, getCurrentTheme, withTheme } from "effect-cli-tui/theme";
+import {
+  ThemeService,
+  setTheme,
+  getCurrentTheme,
+  withTheme,
+} from "effect-cli-tui/theme";
 
 // Get current theme
-const theme = yield* ThemeService
-const currentTheme = theme.getTheme()
+const theme = yield * ThemeService;
+const currentTheme = theme.getTheme();
 
 // Set theme
-yield* theme.setTheme(customTheme)
+yield * theme.setTheme(customTheme);
 
 // Scoped theme
-yield* theme.withTheme(customTheme, effect)
+yield * theme.withTheme(customTheme, effect);
 
 // Convenience functions
-yield* setTheme(customTheme)
-const current = yield* getCurrentTheme()
-yield* withTheme(customTheme, effect)
+yield * setTheme(customTheme);
+const current = yield * getCurrentTheme();
+yield * withTheme(customTheme, effect);
 ```
 
 ## API Reference
@@ -440,13 +590,14 @@ yield* withTheme(customTheme, effect)
 Display a single-line message with optional styling.
 
 ```typescript
-yield* display('This is an info message')
-yield* display('Success!', { type: 'success' })
-yield* display('Custom prefix>>>', { prefix: '>>>' })
-yield* display('No newline', { newline: false })
+yield * display("This is an info message");
+yield * display("Success!", { type: "success" });
+yield * display("Custom prefix>>>", { prefix: ">>>" });
+yield * display("No newline", { newline: false });
 ```
 
 **Options:**
+
 - `type?: 'info' | 'success' | 'error'` - Message type (default: 'info')
 - `prefix?: string` - Custom prefix (overrides default)
 - `newline?: boolean` - Add newline before message (default: true)
@@ -456,12 +607,16 @@ yield* display('No newline', { newline: false })
 Display multiple lines with consistent formatting.
 
 ```typescript
-yield* displayLines([
-  'Project Status',
-  '──────────────',
-  '✅ Database: Connected',
-  '✅ Cache: Ready'
-], { type: 'success' })
+yield *
+  displayLines(
+    [
+      "Project Status",
+      "──────────────",
+      "✅ Database: Connected",
+      "✅ Cache: Ready",
+    ],
+    { type: "success" }
+  );
 ```
 
 #### `displayJson(data: unknown, options?: JsonDisplayOptions): Effect<void>`
@@ -469,12 +624,13 @@ yield* displayLines([
 Pretty-print JSON data with optional prefix.
 
 ```typescript
-yield* displayJson({ name: 'project', version: '1.0.0' })
-yield* displayJson(data, { spaces: 4, showPrefix: false })
-yield* displayJson(data, { customPrefix: '>>>' }) // Custom prefix
+yield * displayJson({ name: "project", version: "1.0.0" });
+yield * displayJson(data, { spaces: 4, showPrefix: false });
+yield * displayJson(data, { customPrefix: ">>>" }); // Custom prefix
 ```
 
 **JsonDisplayOptions extends DisplayOptions:**
+
 - `spaces?: number` - Indentation spaces (default: 2)
 - `showPrefix?: boolean` - Show/hide the default prefix icon (default: true)
 - `customPrefix?: string` - Custom prefix string (overrides default icon when provided)
@@ -484,7 +640,7 @@ yield* displayJson(data, { customPrefix: '>>>' }) // Custom prefix
 Convenience function for success messages.
 
 ```typescript
-yield* displaySuccess('Operation completed!')
+yield * displaySuccess("Operation completed!");
 ```
 
 #### `displayError(message: string): Effect<void>`
@@ -492,7 +648,7 @@ yield* displaySuccess('Operation completed!')
 Convenience function for error messages.
 
 ```typescript
-yield* displayError('Failed to connect')
+yield * displayError("Failed to connect");
 ```
 
 ### TUIHandler
@@ -502,9 +658,11 @@ yield* displayError('Failed to connect')
 Display a text input prompt.
 
 ```typescript
-const name = yield* tui.prompt('Enter your name:', {
-  default: 'User'
-})
+const name =
+  yield *
+  tui.prompt("Enter your name:", {
+    default: "User",
+  });
 ```
 
 #### `selectOption(message: string, choices: string[]): Effect<string, TUIError>`
@@ -512,14 +670,13 @@ const name = yield* tui.prompt('Enter your name:', {
 Display a single-select dialog.
 
 **Controls:**
+
 - **Arrow keys** (↑/↓) - Navigate up/down
 - **Enter** - Select highlighted option
 
 ```typescript
-const choice = yield* tui.selectOption('Choose one:', [
-  'Option A',
-  'Option B'
-])
+const choice =
+  yield * tui.selectOption("Choose one:", ["Option A", "Option B"]);
 ```
 
 #### `multiSelect(message: string, choices: string[]): Effect<string[], TUIError>`
@@ -527,15 +684,14 @@ const choice = yield* tui.selectOption('Choose one:', [
 Display a multi-select dialog (checkbox).
 
 **Controls:**
+
 - **Arrow keys** (↑/↓) - Navigate up/down
 - **Space** - Toggle selection (☐ ↔ ☑)
 - **Enter** - Submit selections
 
 ```typescript
-const choices = yield* tui.multiSelect('Choose multiple:', [
-  'Feature 1',
-  'Feature 2'
-])
+const choices =
+  yield * tui.multiSelect("Choose multiple:", ["Feature 1", "Feature 2"]);
 ```
 
 #### `confirm(message: string): Effect<boolean, TUIError>`
@@ -543,7 +699,7 @@ const choices = yield* tui.multiSelect('Choose multiple:', [
 Display a yes/no confirmation.
 
 ```typescript
-const confirmed = yield* tui.confirm('Are you sure?')
+const confirmed = yield * tui.confirm("Are you sure?");
 ```
 
 #### `display(message: string, type: 'info' | 'success' | 'error'): Effect<void>`
@@ -551,9 +707,9 @@ const confirmed = yield* tui.confirm('Are you sure?')
 Display a styled message.
 
 ```typescript
-yield* tui.display('Operation successful!', 'success')
-yield* tui.display('This is an error', 'error')
-yield* tui.display('For your information', 'info')
+yield * tui.display("Operation successful!", "success");
+yield * tui.display("This is an error", "error");
+yield * tui.display("For your information", "info");
 ```
 
 ### EffectCLI
@@ -563,13 +719,15 @@ yield* tui.display('For your information', 'info')
 Execute a command and capture output.
 
 ```typescript
-const result = yield* cli.run('echo', ['Hello'], {
-  cwd: '/path/to/dir',
-  env: { NODE_ENV: 'production' },
-  timeout: 5000
-})
+const result =
+  yield *
+  cli.run("echo", ["Hello"], {
+    cwd: "/path/to/dir",
+    env: { NODE_ENV: "production" },
+    timeout: 5000,
+  });
 
-console.log(result.stdout) // "Hello"
+console.log(result.stdout); // "Hello"
 ```
 
 #### `stream(command: string, args?: string[], options?: CLIRunOptions): Effect<void, CLIError>`
@@ -577,102 +735,188 @@ console.log(result.stdout) // "Hello"
 Execute a command with streaming output (inherited stdio).
 
 ```typescript
-yield* cli.stream('npm', ['install'], {
-  cwd: '/path/to/project'
-})
+yield *
+  cli.stream("npm", ["install"], {
+    cwd: "/path/to/project",
+  });
 ```
 
 ## Types
 
 ### SelectOption
+
 ```typescript
 interface SelectOption {
-  label: string      // Display text
-  value: string      // Returned value
-  description?: string  // Optional help text
+  label: string; // Display text
+  value: string; // Returned value
+  description?: string; // Optional help text
 }
 ```
 
 **Note:** `selectOption()` and `multiSelect()` accept both `string[]` (for simple cases) and `SelectOption[]` (for options with descriptions). When using `SelectOption[]`, descriptions are displayed as gray, dimmed text below each option label.
 
 ### CLIResult
+
 ```typescript
 interface CLIResult {
-  exitCode: number
-  stdout: string
-  stderr: string
+  exitCode: number;
+  stdout: string;
+  stderr: string;
 }
 ```
 
 ### CLIRunOptions
+
 ```typescript
 interface CLIRunOptions {
-  cwd?: string                         // Working directory
-  env?: Record<string, string>         // Environment variables
-  timeout?: number                     // Timeout in milliseconds
+  cwd?: string; // Working directory
+  env?: Record<string, string>; // Environment variables
+  timeout?: number; // Timeout in milliseconds
 }
 ```
 
 ### PromptOptions
+
 ```typescript
 interface PromptOptions {
-  default?: string                     // Default value
-  validate?: (input: string) => boolean | string  // Validation function
+  default?: string; // Default value
+  validate?: (input: string) => boolean | string; // Validation function
 }
 ```
 
 ### Display Types
+
 ```typescript
-type DisplayType = 'info' | 'success' | 'error'
+type DisplayType = "info" | "success" | "error";
 
 interface DisplayOptions {
-  type?: DisplayType          // Message type (default: 'info')
-  prefix?: string             // Custom prefix
-  newline?: boolean           // Add newline before message (default: true)
+  type?: DisplayType; // Message type (default: 'info')
+  prefix?: string; // Custom prefix
+  newline?: boolean; // Add newline before message (default: true)
 }
 
 interface JsonDisplayOptions extends DisplayOptions {
-  spaces?: number             // JSON indentation spaces (default: 2)
-  prefix?: boolean            // Show type prefix (default: true)
+  spaces?: number; // JSON indentation spaces (default: 2)
+  prefix?: boolean; // Show type prefix (default: true)
 }
 ```
 
 ## Error Types
 
 ### TUIError
+
 Thrown by `TUIHandler` when prompts fail.
 
 ```typescript
 type TUIError = {
-  _tag: 'TUIError'
-  reason: 'Cancelled' | 'ValidationFailed' | 'RenderError'
-  message: string
-}
+  _tag: "TUIError";
+  reason: "Cancelled" | "ValidationFailed" | "RenderError";
+  message: string;
+};
 ```
 
 ### CLIError
+
 Thrown by `EffectCLI` when commands fail.
 
 ```typescript
-class CLIError extends Data.TaggedError('CLIError') {
-  readonly reason: 'CommandFailed' | 'Timeout' | 'NotFound' | 'ExecutionError'
-  readonly message: string
-  readonly exitCode?: number  // Exit code when command fails (if available)
+class CLIError extends Data.TaggedError("CLIError") {
+  readonly reason: "CommandFailed" | "Timeout" | "NotFound" | "ExecutionError";
+  readonly message: string;
+  readonly exitCode?: number; // Exit code when command fails (if available)
 }
+```
+
+## Supermemory Integration (experimental)
+
+You can configure a Supermemory API key and use it from the TUI:
+
+### Setup
+
+```typescript
+import { Effect } from "effect";
+import { TUIHandler, runWithTUI, withSupermemory } from "effect-cli-tui";
+
+const program = Effect.gen(function* () {
+  const tui = yield* TUIHandler;
+  
+  // Your interactive program here
+  const name = yield* tui.prompt("What's your name?");
+  yield* tui.display(`Hello, ${name}!`, "success");
+});
+
+// Run with Supermemory integration
+await Effect.runPromise(
+  withSupermemory(runWithTUI(program))
+);
+```
+
+### Commands
+
+Once configured, you can use these slash commands in any prompt:
+
+- **Set API key:**
+  ```
+  /supermemory api-key sk_...
+  ```
+
+- **Add a memory:**
+  ```
+  /supermemory add This is something I want to remember.
+  ```
+
+- **Search memories:**
+  ```
+  /supermemory search onboarding checklist
+  ```
+
+### Configuration
+
+The API key is stored in `~/.effect-supermemory.json`. You can also set the `SUPERMEMORY_API_KEY` environment variable as a fallback.
+
+### Programmatic Usage
+
+```typescript
+import { Effect } from "effect";
+import { 
+  SupermemoryClient, 
+  SupermemoryClientLive,
+  loadConfig,
+  updateApiKey 
+} from "effect-cli-tui";
+
+// Direct API usage
+const program = Effect.gen(function* () {
+  const client = yield* SupermemoryClient;
+  
+  // Add a memory
+  yield* client.addText("Important meeting notes from today");
+  
+  // Search memories
+  const results = yield* client.search("meeting notes");
+  console.log(`Found ${results.memories.length} memories`);
+});
+
+// Provide the client layer
+await Effect.runPromise(
+  program.pipe(Effect.provide(SupermemoryClientLive))
+);
 ```
 
 ## Roadmap
 
 ### v2.0 (Current)
+
 - [x] **API Modularization** - Core APIs are in the main entry point, with specialized APIs in `effect-cli-tui/components`, `effect-cli-tui/theme`, etc.
 - [x] **Ink Integration** — Rich, component-based TUI elements are a core feature.
 - [x] **Theme System** — Customize icons, colors, and styles.
 
 ### Future
+
 - [ ] **Validation Helpers** - Add common validation patterns for prompts.
 - [ ] **Advanced Progress Indicators** - More complex progress bars and multi-step loaders.
 - [ ] **Dashboard / Layout System** - For building more complex, real-time terminal dashboards.
-- [ ] **Supermemory Integration** — Context-aware prompts and interactions.
+- [x] **Supermemory Integration** — Context-aware prompts and interactions.
 
 ## Contributing
 
@@ -709,6 +953,7 @@ bun run type-check
 ### Running Examples
 
 Test that examples work:
+
 ```bash
 bun run examples/test-example.ts
 ```

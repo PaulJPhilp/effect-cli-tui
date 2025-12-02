@@ -1,6 +1,12 @@
 import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ConfigError, loadConfig, saveConfig, SupermemoryTuiConfig, updateApiKey } from "../config";
+import {
+  ConfigError,
+  loadConfig,
+  SupermemoryTuiConfig,
+  saveConfig,
+  updateApiKey,
+} from "../config";
 
 // Mock fs operations
 const mockFs = {
@@ -26,21 +32,23 @@ describe("Supermemory Config Module", () => {
   describe("loadConfig", () => {
     it("should load default config when no file exists and no env var", async () => {
       mockFs.access.mockRejectedValue(new Error("File not found"));
-      
+
       const result = await Effect.runPromise(loadConfig());
-      
+
       expect(result).toEqual({
         apiKey: null,
       });
-      expect(mockFs.access).toHaveBeenCalledWith("/mock/home/.effect-supermemory.json");
+      expect(mockFs.access).toHaveBeenCalledWith(
+        "/mock/home/.effect-supermemory.json"
+      );
     });
 
     it("should load config from environment variable when no file exists", async () => {
       mockFs.access.mockRejectedValue(new Error("File not found"));
       process.env.SUPERMEMORY_API_KEY = "sk_test123";
-      
+
       const result = await Effect.runPromise(loadConfig());
-      
+
       expect(result).toEqual({
         apiKey: "sk_test123",
       });
@@ -49,9 +57,9 @@ describe("Supermemory Config Module", () => {
     it("should load config from file when it exists", async () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.readFile.mockResolvedValue('{"apiKey": "sk_file456"}');
-      
+
       const result = await Effect.runPromise(loadConfig());
-      
+
       expect(result).toEqual({
         apiKey: "sk_file456",
       });
@@ -64,11 +72,9 @@ describe("Supermemory Config Module", () => {
     it("should handle invalid JSON in config file", async () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.readFile.mockResolvedValue('{"apiKey": invalid}');
-      
-      const result = await Effect.runPromise(
-        Effect.flip(loadConfig())
-      );
-      
+
+      const result = await Effect.runPromise(Effect.flip(loadConfig()));
+
       expect(result).toBeInstanceOf(ConfigError);
       expect(result.message).toContain("Invalid JSON");
     });
@@ -76,9 +82,9 @@ describe("Supermemory Config Module", () => {
     it("should return default config for invalid config structure", async () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.readFile.mockResolvedValue('{"apiKey": 123}');
-      
+
       const result = await Effect.runPromise(loadConfig());
-      
+
       expect(result).toEqual({
         apiKey: null,
       });
@@ -87,11 +93,9 @@ describe("Supermemory Config Module", () => {
     it("should handle file read errors", async () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.readFile.mockRejectedValue(new Error("Permission denied"));
-      
-      const result = await Effect.runPromise(
-        Effect.flip(loadConfig())
-      );
-      
+
+      const result = await Effect.runPromise(Effect.flip(loadConfig()));
+
       expect(result).toBeInstanceOf(ConfigError);
       expect(result.message).toContain("Failed to read config file");
     });
@@ -100,10 +104,10 @@ describe("Supermemory Config Module", () => {
   describe("saveConfig", () => {
     it("should save config to file", async () => {
       mockFs.writeFile.mockResolvedValue(undefined);
-      
+
       const config = { apiKey: "sk_new789" };
       await Effect.runPromise(saveConfig(config));
-      
+
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         "/mock/home/.effect-supermemory.json",
         JSON.stringify(config, null, 2),
@@ -113,12 +117,10 @@ describe("Supermemory Config Module", () => {
 
     it("should handle file write errors", async () => {
       mockFs.writeFile.mockRejectedValue(new Error("Disk full"));
-      
+
       const config = { apiKey: "sk_new789" };
-      const result = await Effect.runPromise(
-        Effect.flip(saveConfig(config))
-      );
-      
+      const result = await Effect.runPromise(Effect.flip(saveConfig(config)));
+
       expect(result).toBeInstanceOf(ConfigError);
       expect(result.message).toContain("Failed to write config file");
     });
@@ -129,9 +131,9 @@ describe("Supermemory Config Module", () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.readFile.mockResolvedValue('{"apiKey": "sk_old"}');
       mockFs.writeFile.mockResolvedValue(undefined);
-      
+
       await Effect.runPromise(updateApiKey("sk_new"));
-      
+
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         "/mock/home/.effect-supermemory.json",
         JSON.stringify({ apiKey: "sk_new" }, null, 2),
@@ -142,9 +144,9 @@ describe("Supermemory Config Module", () => {
     it("should create new config file when none exists", async () => {
       mockFs.access.mockRejectedValue(new Error("File not found"));
       mockFs.writeFile.mockResolvedValue(undefined);
-      
+
       await Effect.runPromise(updateApiKey("sk_new"));
-      
+
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         "/mock/home/.effect-supermemory.json",
         JSON.stringify({ apiKey: "sk_new" }, null, 2),
@@ -156,9 +158,9 @@ describe("Supermemory Config Module", () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.readFile.mockResolvedValue('{"apiKey": "sk_old"}');
       mockFs.writeFile.mockResolvedValue(undefined);
-      
+
       await Effect.runPromise(updateApiKey(null));
-      
+
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         "/mock/home/.effect-supermemory.json",
         JSON.stringify({ apiKey: null }, null, 2),

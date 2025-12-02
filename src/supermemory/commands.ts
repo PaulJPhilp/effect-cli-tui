@@ -1,12 +1,15 @@
 import { Console, Effect } from "effect";
-import { type SlashCommandContext, type SlashCommandResult } from "../tui-slash-commands";
+import type {
+  SlashCommandContext,
+  SlashCommandResult,
+} from "../tui-slash-commands";
 import { TUIError } from "../types";
 import {
-  MissingSupermemoryApiKey,
+  type MissingSupermemoryApiKey,
   SupermemoryClientService,
-  SupermemoryError
+  type SupermemoryError,
 } from "./client";
-import { ConfigError, updateApiKey } from "./config";
+import { type ConfigError, updateApiKey } from "./config";
 
 /**
  * Mask API key for display - show only first and last 4 characters
@@ -26,22 +29,26 @@ export function handleApiKeyCommand(
 ): Effect.Effect<SlashCommandResult, ConfigError | TUIError> {
   return Effect.gen(function* () {
     const apiKey = context.args[0];
-    
+
     if (!apiKey) {
       yield* Console.log("[Supermemory] Error: API key is required.");
-      yield* Console.log("[Supermemory] Usage: /supermemory api-key <your-api-key>");
+      yield* Console.log(
+        "[Supermemory] Usage: /supermemory api-key <your-api-key>"
+      );
       return { kind: "continue" } as const;
     }
 
     // Basic validation for API key format (starts with sk_)
     if (!apiKey.startsWith("sk_")) {
-      yield* Console.log("[Supermemory] Warning: API key should typically start with 'sk_'");
+      yield* Console.log(
+        "[Supermemory] Warning: API key should typically start with 'sk_'"
+      );
     }
 
     yield* updateApiKey(apiKey);
     const maskedKey = maskApiKey(apiKey);
     yield* Console.log(`[Supermemory] API key saved: ${maskedKey}`);
-    
+
     return { kind: "continue" } as const;
   });
 }
@@ -54,26 +61,28 @@ export function handleAddCommand(
 ): Effect.Effect<SlashCommandResult, TUIError, SupermemoryClientService> {
   return Effect.gen(function* () {
     const text = context.args.join(" ");
-    
+
     if (!text.trim()) {
       yield* Console.log("[Supermemory] Error: No text provided to add.");
-      yield* Console.log("[Supermemory] Usage: /supermemory add <text-to-remember>");
+      yield* Console.log(
+        "[Supermemory] Usage: /supermemory add <text-to-remember>"
+      );
       return { kind: "continue" } as const;
     }
 
     const supermemoryClient = yield* SupermemoryClientService;
     yield* supermemoryClient.addText(text);
-    
+
     yield* Console.log("[Supermemory] Memory added successfully.");
-    
+
     return { kind: "continue" } as const;
   }).pipe(
     Effect.catchAll((error) => {
       const unknownError = error as unknown;
-      
+
       if (
-        typeof unknownError === "object" && 
-        unknownError !== null && 
+        typeof unknownError === "object" &&
+        unknownError !== null &&
         "_tag" in unknownError &&
         unknownError._tag === "MissingSupermemoryApiKey" &&
         "message" in unknownError
@@ -84,21 +93,23 @@ export function handleAddCommand(
           return { kind: "continue" } as const;
         });
       }
-      
+
       if (
-        typeof unknownError === "object" && 
-        unknownError !== null && 
+        typeof unknownError === "object" &&
+        unknownError !== null &&
         "_tag" in unknownError &&
         unknownError._tag === "SupermemoryError" &&
         "message" in unknownError
       ) {
         const supermemoryError = unknownError as SupermemoryError;
         return Effect.gen(function* () {
-          yield* Console.log(`[Supermemory] Error: ${supermemoryError.message}`);
+          yield* Console.log(
+            `[Supermemory] Error: ${supermemoryError.message}`
+          );
           return { kind: "continue" } as const;
         });
       }
-      
+
       return Effect.fail(new TUIError("RenderError", String(error)));
     })
   );
@@ -112,7 +123,7 @@ export function handleSearchCommand(
 ): Effect.Effect<SlashCommandResult, TUIError, SupermemoryClientService> {
   return Effect.gen(function* () {
     const query = context.args.join(" ");
-    
+
     if (!query.trim()) {
       yield* Console.log("[Supermemory] Error: No search query provided.");
       yield* Console.log("[Supermemory] Usage: /supermemory search <query>");
@@ -124,33 +135,32 @@ export function handleSearchCommand(
       topK: 5,
       threshold: 0.5,
     });
-    
+
     yield* Console.log(`[Supermemory] Results for "${query}":`);
-    
+
     if (memories.length === 0) {
       yield* Console.log("  No memories found matching your query.");
     } else {
       for (let i = 0; i < memories.length; i++) {
         const memory = memories[i];
         const score = memory.score ? (memory.score * 100).toFixed(1) : "N/A";
-        const snippet = memory.content.length > 80 
-          ? `${memory.content.slice(0, 80)}...` 
-          : memory.content;
-        
-        yield* Console.log(
-          `  ${i + 1}. "${snippet}" (score: ${score})`
-        );
+        const snippet =
+          memory.content.length > 80
+            ? `${memory.content.slice(0, 80)}...`
+            : memory.content;
+
+        yield* Console.log(`  ${i + 1}. "${snippet}" (score: ${score})`);
       }
     }
-    
+
     return { kind: "continue" } as const;
   }).pipe(
     Effect.catchAll((error) => {
       const unknownError = error as unknown;
-      
+
       if (
-        typeof unknownError === "object" && 
-        unknownError !== null && 
+        typeof unknownError === "object" &&
+        unknownError !== null &&
         "_tag" in unknownError &&
         unknownError._tag === "MissingSupermemoryApiKey" &&
         "message" in unknownError
@@ -161,21 +171,23 @@ export function handleSearchCommand(
           return { kind: "continue" } as const;
         });
       }
-      
+
       if (
-        typeof unknownError === "object" && 
-        unknownError !== null && 
+        typeof unknownError === "object" &&
+        unknownError !== null &&
         "_tag" in unknownError &&
         unknownError._tag === "SupermemoryError" &&
         "message" in unknownError
       ) {
         const supermemoryError = unknownError as SupermemoryError;
         return Effect.gen(function* () {
-          yield* Console.log(`[Supermemory] Error: ${supermemoryError.message}`);
+          yield* Console.log(
+            `[Supermemory] Error: ${supermemoryError.message}`
+          );
           return { kind: "continue" } as const;
         });
       }
-      
+
       return Effect.fail(new TUIError("RenderError", String(error)));
     })
   );

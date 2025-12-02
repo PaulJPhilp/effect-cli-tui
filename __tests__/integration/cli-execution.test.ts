@@ -39,12 +39,16 @@ describe("EffectCLI Integration Tests", () => {
         const cli = yield* EffectCLI;
         return yield* cli
           .run("failing-command")
-          .pipe(Effect.catchTag("CLIError", (error) => Effect.succeed(error)));
+          .pipe(
+            Effect.catchTag("CLIError", (errorFromCli) =>
+              Effect.succeed(errorFromCli)
+            )
+          );
       }).pipe(Effect.provide(MockCLIFailure));
 
-      const error = await Effect.runPromise(program);
-      expect(error.reason).toBe("CommandFailed");
-      expect(error.message).toContain("exit code 1");
+      const cliError = await Effect.runPromise(program);
+      expect(cliError.reason).toBe("CommandFailed");
+      expect(cliError.message).toContain("exit code 1");
     });
 
     it("should handle mock timeout", async () => {
@@ -52,12 +56,16 @@ describe("EffectCLI Integration Tests", () => {
         const cli = yield* EffectCLI;
         return yield* cli
           .run("slow-command")
-          .pipe(Effect.catchTag("CLIError", (error) => Effect.succeed(error)));
+          .pipe(
+            Effect.catchTag("CLIError", (errorFromCli) =>
+              Effect.succeed(errorFromCli)
+            )
+          );
       }).pipe(Effect.provide(MockCLITimeout));
 
-      const error = await Effect.runPromise(program);
-      expect(error.reason).toBe("Timeout");
-      expect(error.message).toContain("timed out");
+      const cliError = await Effect.runPromise(program);
+      expect(cliError.reason).toBe("Timeout");
+      expect(cliError.message).toContain("timed out");
     });
 
     it("should use custom mock response", async () => {

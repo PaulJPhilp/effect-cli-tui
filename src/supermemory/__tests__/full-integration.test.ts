@@ -1,13 +1,23 @@
 import { Effect, Layer } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { type SlashCommandContext } from "../../tui-slash-commands";
+import type { SlashCommandContext } from "../../tui-slash-commands";
 import {
-    MissingSupermemoryApiKey,
-    SupermemoryClient,
-    SupermemoryClientLive
+  MissingSupermemoryApiKey,
+  SupermemoryClient,
+  SupermemoryClientLive,
 } from "../client";
-import { handleAddCommand, handleApiKeyCommand, handleSearchCommand } from "../commands";
-import { ConfigError, loadConfig, saveConfig, SupermemoryTuiConfig, updateApiKey } from "../config";
+import {
+  handleAddCommand,
+  handleApiKeyCommand,
+  handleSearchCommand,
+} from "../commands";
+import {
+  ConfigError,
+  loadConfig,
+  SupermemoryTuiConfig,
+  saveConfig,
+  updateApiKey,
+} from "../config";
 import { SUPERMEMORY_SLASH_COMMANDS } from "../slash-commands";
 
 // Mock fs operations
@@ -66,9 +76,9 @@ describe("Supermemory Integration Suite", () => {
   describe("Config Module", () => {
     it("should load default config when no file exists and no env var", async () => {
       mockFs.access.mockRejectedValue(new Error("File not found"));
-      
+
       const result = await Effect.runPromise(loadConfig());
-      
+
       expect(result).toEqual({
         apiKey: null,
       });
@@ -77,9 +87,9 @@ describe("Supermemory Integration Suite", () => {
     it("should load config from environment variable when no file exists", async () => {
       mockFs.access.mockRejectedValue(new Error("File not found"));
       process.env.SUPERMEMORY_API_KEY = "sk_test123";
-      
+
       const result = await Effect.runPromise(loadConfig());
-      
+
       expect(result).toEqual({
         apiKey: "sk_test123",
       });
@@ -88,9 +98,9 @@ describe("Supermemory Integration Suite", () => {
     it("should load config from file when it exists", async () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.readFile.mockResolvedValue('{"apiKey": "sk_file456"}');
-      
+
       const result = await Effect.runPromise(loadConfig());
-      
+
       expect(result).toEqual({
         apiKey: "sk_file456",
       });
@@ -99,21 +109,19 @@ describe("Supermemory Integration Suite", () => {
     it("should handle invalid JSON in config file", async () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.readFile.mockResolvedValue('{"apiKey": invalid}');
-      
-      const result = await Effect.runPromise(
-        Effect.flip(loadConfig())
-      );
-      
+
+      const result = await Effect.runPromise(Effect.flip(loadConfig()));
+
       expect(result).toBeInstanceOf(ConfigError);
       expect(result.message).toContain("Invalid JSON");
     });
 
     it("should save config to file", async () => {
       mockFs.writeFile.mockResolvedValue(undefined);
-      
+
       const config = { apiKey: "sk_new789" };
       await Effect.runPromise(saveConfig(config));
-      
+
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         "/mock/home/.effect-supermemory.json",
         JSON.stringify(config, null, 2),
@@ -125,9 +133,9 @@ describe("Supermemory Integration Suite", () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.readFile.mockResolvedValue('{"apiKey": "sk_old"}');
       mockFs.writeFile.mockResolvedValue(undefined);
-      
+
       await Effect.runPromise(updateApiKey("sk_new"));
-      
+
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         "/mock/home/.effect-supermemory.json",
         JSON.stringify({ apiKey: "sk_new" }, null, 2),
@@ -191,9 +199,9 @@ describe("Supermemory Integration Suite", () => {
 
     it("handleApiKeyCommand should handle missing API key", async () => {
       const context = createMockContext([]);
-      
+
       const result = await Effect.runPromise(handleApiKeyCommand(context));
-      
+
       expect(result).toEqual({ kind: "continue" });
       expect(mockConsole.log).toHaveBeenCalledWith(
         "[Supermemory] Error: API key is required."
@@ -202,9 +210,9 @@ describe("Supermemory Integration Suite", () => {
 
     it("handleAddCommand should handle missing text", async () => {
       const context = createMockContext([]);
-      
+
       const result = await Effect.runPromise(handleAddCommand(context));
-      
+
       expect(result).toEqual({ kind: "continue" });
       expect(mockConsole.log).toHaveBeenCalledWith(
         "[Supermemory] Error: No text provided to add."
@@ -213,9 +221,9 @@ describe("Supermemory Integration Suite", () => {
 
     it("handleSearchCommand should handle missing query", async () => {
       const context = createMockContext([]);
-      
+
       const result = await Effect.runPromise(handleSearchCommand(context));
-      
+
       expect(result).toEqual({ kind: "continue" });
       expect(mockConsole.log).toHaveBeenCalledWith(
         "[Supermemory] Error: No search query provided."
@@ -226,7 +234,7 @@ describe("Supermemory Integration Suite", () => {
   describe("Slash Commands Registration", () => {
     it("should export correct slash commands", () => {
       expect(SUPERMEMORY_SLASH_COMMANDS).toHaveLength(1);
-      
+
       const command = SUPERMEMORY_SLASH_COMMANDS[0];
       expect(command.name).toBe("supermemory");
       expect(command.aliases).toContain("sm");

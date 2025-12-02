@@ -7,6 +7,8 @@ import {
   safeEnvironmentLog,
 } from "../../src/core/redact";
 
+const REGEX_NPM_WITH_SPACE = /^npm\s+/;
+
 /**
  * Comprehensive tests for secret redaction utilities.
  * Ensures sensitive data is properly filtered from logs.
@@ -330,7 +332,7 @@ MIIEpAIBAAKCAQEA1234567890abcdef...
 
     it("should produce valid command-like output", () => {
       const log = safeCommandLog("npm", ["install", "--save", "package"]);
-      expect(log).toMatch(/^npm\s+/);
+      expect(log).toMatch(REGEX_NPM_WITH_SPACE);
     });
 
     it("should handle complex command with mixed args", () => {

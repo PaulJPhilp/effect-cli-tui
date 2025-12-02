@@ -5,7 +5,11 @@
     "rules": {
       "style": {
         "useConsistentTypeDefinitions": "off",
-        "noParameterProperties": "off"
+        "noParameterProperties": "off",
+        "useFilenamingConvention": "off"
+      },
+      "performance": {
+        "noBarrelFile": "off"
       }
     }
   }

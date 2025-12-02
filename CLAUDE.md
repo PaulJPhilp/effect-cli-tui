@@ -680,6 +680,15 @@ export class MyService extends Effect.Service<MyService>()('app/MyService', {
 
 ---
 
+## Effect Patterns Reference
+
+For Effect.ts patterns, see the workspace root rules:
+- **Beginner**: `/Users/paul/Projects/.cursor/rules/EFFECT_BEGINNER_PATTERNS.md`
+- **Intermediate**: `/Users/paul/Projects/.cursor/rules/EFFECT_INTERMEDIATE_PATTERNS.md`
+- **Advanced**: `/Users/paul/Projects/.cursor/rules/EFFECT_ADVANCED_PATTERNS.md`
+
+These rules are automatically applied when working with TypeScript files.
+
 ## No Configuration Currently Used
 
 - No `.cursorrules` or `.github/copilot-instructions.md` exist

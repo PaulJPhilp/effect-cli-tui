@@ -1,4 +1,4 @@
-import * as Effect from "effect/Effect";
+import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 import {
   display,
@@ -11,7 +11,9 @@ import {
 describe("SM-CLI Integration Patterns", () => {
   describe("Real-world CLI Usage", () => {
     it("should support project information display pattern", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const projectInfo = Effect.gen(function* (_) {
         yield* _(display("Project Information"));
@@ -40,7 +42,9 @@ describe("SM-CLI Integration Patterns", () => {
     });
 
     it("should support JSON data display for API responses", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const apiResponse = {
         status: "success",
@@ -63,10 +67,14 @@ describe("SM-CLI Integration Patterns", () => {
     });
 
     it("should support success/error messaging patterns", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => {
+          /* Mock implementation - no-op */
+        });
 
       const operationResult = Effect.gen(function* (_) {
         yield* _(display("Connecting to database..."));
@@ -144,7 +152,9 @@ describe("SM-CLI Integration Patterns", () => {
     });
 
     it("should support custom formatting for advanced CLI output", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const customOutput = Effect.gen(function* (_) {
         // Custom prefix for logs
@@ -205,7 +215,9 @@ describe("SM-CLI Integration Patterns", () => {
     });
 
     it("should handle newline control for inline messages", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const inlineMessages = Effect.gen(function* (_) {
         yield* _(display("Processing", { newline: false }));

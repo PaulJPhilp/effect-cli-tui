@@ -1,5 +1,5 @@
 // This file is the entry point for the theme system.
-// biome-ignore lint/performance/noBarrelFile: <>
+/** biome-ignore-all assist/source/organizeImports: <> */
 export { createTheme, mergeTheme } from "./services/theme/helpers";
 export {
   darkTheme,
@@ -9,9 +9,9 @@ export {
   themes,
 } from "./services/theme/presets";
 export {
+  ThemeService,
   getCurrentTheme,
   setTheme,
-  ThemeService,
   withTheme,
 } from "./services/theme/service";
 export type { PartialTheme, Theme } from "./services/theme/types";

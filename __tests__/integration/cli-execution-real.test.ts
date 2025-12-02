@@ -34,11 +34,15 @@ describe("EffectCLI - Real Command Execution (Isolated)", () => {
       const cli = yield* EffectCLI;
       return yield* cli
         .run("nonexistent-command-xyz-123")
-        .pipe(Effect.catchTag("CLIError", (error) => Effect.succeed(error)));
+        .pipe(
+          Effect.catchTag("CLIError", (errorFromCli) =>
+            Effect.succeed(errorFromCli)
+          )
+        );
     }).pipe(Effect.provide(EffectCLI.Default));
 
-    const error = await Effect.runPromise(program);
-    expect(error.reason).toBe("NotFound");
+    const cliError = await Effect.runPromise(program);
+    expect(cliError.reason).toBe("NotFound");
   });
 
   it("should capture both stdout and stderr from command", async () => {

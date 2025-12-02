@@ -19,7 +19,6 @@ describe("Signal Handler Utilities", () => {
   beforeEach(() => {
     // Clear all handlers before each test
     clearCleanupHandlers();
-    expect(getCleanupHandlerCount()).toBe(0);
   });
 
   afterEach(() => {
@@ -90,14 +89,22 @@ describe("Signal Handler Utilities", () => {
 
     it("should set up signal handlers on first registration", async () => {
       expect(hasSignalHandlers()).toBe(false);
-      await Effect.runPromise(registerCleanupHandler(() => {}));
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       expect(hasSignalHandlers()).toBe(true);
     });
 
     it("should register SIGINT handler", async () => {
       // Verify signal handlers are registered by checking hasSignalHandlers
       expect(hasSignalHandlers()).toBe(false);
-      await Effect.runPromise(registerCleanupHandler(() => {}));
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       expect(hasSignalHandlers()).toBe(true);
       // Signal handlers (SIGINT, SIGTERM) are registered to process
       // We verify this indirectly through hasSignalHandlers
@@ -106,14 +113,26 @@ describe("Signal Handler Utilities", () => {
     it("should register SIGTERM handler", async () => {
       // Verify signal handlers are registered
       expect(hasSignalHandlers()).toBe(false);
-      await Effect.runPromise(registerCleanupHandler(() => {}));
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       expect(hasSignalHandlers()).toBe(true);
       // Both SIGINT and SIGTERM handlers are set up together
     });
 
     it("should not duplicate signal handler setup", async () => {
-      await Effect.runPromise(registerCleanupHandler(() => {}));
-      await Effect.runPromise(registerCleanupHandler(() => {}));
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       // Signal handlers should be set up only once
       expect(hasSignalHandlers()).toBe(true);
     });
@@ -135,7 +154,7 @@ describe("Signal Handler Utilities", () => {
   });
 
   describe("withCleanup - Effect-based Cleanup", () => {
-    it("should register cleanup in Effect context", async () => {
+    it("should register cleanup in Effect context", () => {
       const handler = vi.fn();
       const effect = withCleanup(() => handler());
       expect(effect).toBeDefined();
@@ -158,7 +177,7 @@ describe("Signal Handler Utilities", () => {
       expect(getCleanupHandlerCount()).toBe(0);
     });
 
-    it("should handle cleanup errors gracefully", async () => {
+    it("should handle cleanup errors gracefully", () => {
       const badEffect = withCleanup(() => {
         throw new Error("Cleanup failed");
       });
@@ -279,22 +298,38 @@ describe("Signal Handler Utilities", () => {
     });
 
     it("should return true after first registration", async () => {
-      await Effect.runPromise(registerCleanupHandler(() => {}));
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       expect(hasSignalHandlers()).toBe(true);
     });
 
     it("should remain true after multiple registrations", async () => {
-      await Effect.runPromise(registerCleanupHandler(() => {}));
-      await Effect.runPromise(registerCleanupHandler(() => {}));
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       expect(hasSignalHandlers()).toBe(true);
     });
 
     it("should still be true even after all handlers deregistered", async () => {
       const deregister1 = await Effect.runPromise(
-        registerCleanupHandler(() => {})
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
       );
       const deregister2 = await Effect.runPromise(
-        registerCleanupHandler(() => {})
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
       );
       deregister1();
       deregister2();
@@ -305,9 +340,21 @@ describe("Signal Handler Utilities", () => {
 
   describe("clearCleanupHandlers", () => {
     it("should clear all registered handlers", async () => {
-      await Effect.runPromise(registerCleanupHandler(() => {}));
-      await Effect.runPromise(registerCleanupHandler(() => {}));
-      await Effect.runPromise(registerCleanupHandler(() => {}));
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       expect(getCleanupHandlerCount()).toBe(3);
 
       clearCleanupHandlers();
@@ -315,7 +362,11 @@ describe("Signal Handler Utilities", () => {
     });
 
     it("should be safe to call multiple times", async () => {
-      await Effect.runPromise(registerCleanupHandler(() => {}));
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       clearCleanupHandlers();
       expect(() => clearCleanupHandlers()).not.toThrow();
       expect(getCleanupHandlerCount()).toBe(0);
@@ -332,15 +383,25 @@ describe("Signal Handler Utilities", () => {
     });
 
     it("should increment on registration", async () => {
-      await Effect.runPromise(registerCleanupHandler(() => {}));
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       expect(getCleanupHandlerCount()).toBe(1);
-      await Effect.runPromise(registerCleanupHandler(() => {}));
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       expect(getCleanupHandlerCount()).toBe(2);
     });
 
     it("should decrement on deregistration", async () => {
       const deregister = await Effect.runPromise(
-        registerCleanupHandler(() => {})
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
       );
       expect(getCleanupHandlerCount()).toBe(1);
       deregister();
@@ -348,15 +409,31 @@ describe("Signal Handler Utilities", () => {
     });
 
     it("should return accurate count with mixed operations", async () => {
-      const _d1 = await Effect.runPromise(registerCleanupHandler(() => {}));
-      const d2 = await Effect.runPromise(registerCleanupHandler(() => {}));
-      const _d3 = await Effect.runPromise(registerCleanupHandler(() => {}));
+      const _d1 = await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
+      const d2 = await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
+      const _d3 = await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       expect(getCleanupHandlerCount()).toBe(3);
 
       d2();
       expect(getCleanupHandlerCount()).toBe(2);
 
-      await Effect.runPromise(registerCleanupHandler(() => {}));
+      await Effect.runPromise(
+        registerCleanupHandler(() => {
+          /* Test cleanup handler - no-op */
+        })
+      );
       expect(getCleanupHandlerCount()).toBe(3);
 
       clearCleanupHandlers();

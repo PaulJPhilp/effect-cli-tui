@@ -40,7 +40,12 @@ export class CLIError extends Data.TaggedError("CLIError") {
 
 export class TUIError extends Data.TaggedError("TUIError") {
   constructor(
-    readonly reason: "Cancelled" | "ValidationFailed" | "RenderError",
+    readonly reason:
+      | "Cancelled"
+      | "ValidationFailed"
+      | "RenderError"
+      | "SlashCommandAbort"
+      | "SlashCommandExit",
     readonly message: string
   ) {
     super();

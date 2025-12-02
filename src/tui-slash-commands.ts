@@ -1,7 +1,8 @@
-import { Console, Effect } from "effect";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { TUIError, type CLIError } from "./types";
+import { Console, Effect } from "effect";
+import { type CLIError, TUIError } from "./types";
+import { renderTablePanel } from "./ui/panels/render";
 
 export interface SlashCommandContext {
   readonly promptMessage: string;
@@ -208,9 +209,7 @@ export function parseSlashCommand(input: string): ParsedSlashCommand | null {
         if (letters.length > 0) {
           // All but last are boolean, last gets value
           for (let j = 0; j < letters.length; j++) {
-            const letter = letters[j]!
-              .trim()
-              .toLowerCase();
+            const letter = letters[j]!.trim().toLowerCase();
             if (!letter) continue;
             if (j === letters.length - 1) {
               setFlag(letter, value ?? "");
@@ -225,9 +224,7 @@ export function parseSlashCommand(input: string): ParsedSlashCommand | null {
         const letters = body.split("");
         if (letters.length > 0) {
           for (let j = 0; j < letters.length; j++) {
-            const letter = letters[j]!
-              .trim()
-              .toLowerCase();
+            const letter = letters[j]!.trim().toLowerCase();
             if (!letter) continue;
             if (j === letters.length - 1) {
               const next = parts[i + 1];
@@ -282,7 +279,7 @@ function tokenizeSlashInput(input: string): string[] {
       inSingle = !inSingle;
       continue;
     }
-    if (!inSingle && !inDouble && /\s/.test(ch)) {
+    if (!(inSingle || inDouble) && /\s/.test(ch)) {
       if (current.length > 0) {
         tokens.push(current);
         current = "";
@@ -305,10 +302,8 @@ export function applyShortFlagMapping(
   for (const [shortKeyRaw, longKeyRaw] of Object.entries(mapping)) {
     const shortKey = normalizeCommandName(shortKeyRaw);
     const longKey = normalizeCommandName(longKeyRaw);
-    if (shortKey in flags) {
-      if (!(longKey in out)) {
-        out[longKey] = flags[shortKey]!;
-      }
+    if (shortKey in flags && !(longKey in out)) {
+      out[longKey] = flags[shortKey]!;
     }
   }
   return out;
@@ -318,14 +313,16 @@ export function applyShortFlagMapping(
 export function getSlashCommandSuggestions(
   input: string,
   registry: SlashCommandRegistry,
-  max: number = 5
+  max = 5
 ): readonly string[] {
   const parsed = parseSlashCommand(input);
   const suggestions: string[] = [];
 
   // If not a slash yet or just "/" → suggest command names
   if (!parsed) {
-    const prefix = input.startsWith("/") ? input.slice(1).toLowerCase() : input.toLowerCase();
+    const prefix = input.startsWith("/")
+      ? input.slice(1).toLowerCase()
+      : input.toLowerCase();
     for (const def of registry.commands) {
       const names = [def.name, ...(def.aliases ?? [])];
       for (const n of names) {
@@ -341,7 +338,7 @@ export function getSlashCommandSuggestions(
   const def = registry.lookup.get(parsed.command);
   // If only the command fragment typed (no tokens besides the leading command),
   // suggest matching command names and aliases that start with the fragment.
-  if ((parsed.tokens.length === 0) && (!input.endsWith(" "))) {
+  if (parsed.tokens.length === 0 && !input.endsWith(" ")) {
     const prefix = parsed.command.toLowerCase();
     for (const d of registry.commands) {
       const names = [d.name, ...(d.aliases ?? [])];
@@ -399,7 +396,7 @@ export function getSlashCommandSuggestions(
 export async function getSlashCommandSuggestionsAsync(
   input: string,
   registry: SlashCommandRegistry,
-  max: number = 5
+  max = 5
 ): Promise<readonly string[]> {
   const parsed = parseSlashCommand(input);
   const suggestions: string[] = [];
@@ -522,26 +519,45 @@ export function setGlobalSlashCommandRegistry(
   currentSlashCommandRegistry = createSlashCommandRegistry(definitions);
 }
 
+import { AGENT_HARNESS_SLASH_COMMANDS } from "./tui-slash-commands-agent";
+
 /**
  * Built-in slash commands
  *
  * These provide a baseline UX that can be extended in future iterations.
  */
 export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
+  ...AGENT_HARNESS_SLASH_COMMANDS,
   {
     name: "help",
     description: "Show available slash commands",
     run: (context) =>
       Effect.gen(function* () {
-        const header = "\nAvailable slash commands:\n";
-        yield* Console.log(header);
-
-        for (const command of context.registry.commands) {
+        // Build table rows from all commands
+        const rows = context.registry.commands.map((command) => {
           const names = [command.name, ...(command.aliases ?? [])]
             .map((name) => `/${name}`)
             .join(", ");
-          yield* Console.log(`  ${names} - ${command.description}`);
-        }
+          const aliases =
+            command.aliases && command.aliases.length > 0
+              ? command.aliases.map((a) => `/${a}`).join(", ")
+              : "none";
+          return {
+            cells: [names, aliases, command.description],
+          };
+        });
+
+        // Render as table panel
+        yield* renderTablePanel({
+          title: "AVAILABLE COMMANDS",
+          columns: [
+            { header: "Command", width: 20 },
+            { header: "Aliases", width: 15 },
+            { header: "Description" },
+          ],
+          rows,
+          footer: "Tip: Use /status to see current workspace state",
+        });
 
         return { kind: "continue" } as const;
       }),
@@ -582,16 +598,28 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
           return { kind: "continue" } as const;
         }
 
-        yield* Console.log("\nSession History:\n");
-        for (const [index, entry] of history.entries()) {
+        // Build table rows from history
+        const rows = history.map((entry, index) => {
           const time = new Date(entry.timestamp).toLocaleTimeString();
           const maskedInput =
             entry.promptKind === "password" ? "********" : entry.input;
-          yield* Console.log(
-            `  ${index + 1}. [${time}] ${entry.promptKind}: ${maskedInput}`
-          );
-        }
-        yield* Console.log("");
+          return {
+            cells: [String(index + 1), time, entry.promptKind, maskedInput],
+          };
+        });
+
+        // Render as table panel
+        yield* renderTablePanel({
+          title: "SESSION HISTORY",
+          columns: [
+            { header: "#", width: 4 },
+            { header: "Time", width: 12 },
+            { header: "Type", width: 12 },
+            { header: "Input" },
+          ],
+          rows,
+          footer: `Total: ${history.length} entries`,
+        });
 
         return { kind: "continue" } as const;
       }),
@@ -622,9 +650,7 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
           catch: (error) =>
             new Error(`Failed to save history: ${String(error)}`),
         }).pipe(
-          Effect.mapError(
-            (error) => new TUIError("RenderError", String(error))
-          )
+          Effect.mapError((error) => new TUIError("RenderError", String(error)))
         );
 
         yield* Console.log(`\nSession history saved to: ${filename}\n`);
@@ -642,9 +668,7 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
           catch: (error) =>
             new Error(`Failed to read directory: ${String(error)}`),
         }).pipe(
-          Effect.mapError(
-            (error) => new TUIError("RenderError", String(error))
-          )
+          Effect.mapError((error) => new TUIError("RenderError", String(error)))
         );
 
         const sessionFiles = files.filter((file) =>
@@ -652,7 +676,9 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
         );
 
         if (sessionFiles.length === 0) {
-          yield* Console.log("\nNo saved sessions found in current directory.\n");
+          yield* Console.log(
+            "\nNo saved sessions found in current directory.\n"
+          );
           return { kind: "continue" } as const;
         }
 
@@ -671,12 +697,9 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
         const filepath = path.join(process.cwd(), latestFile);
         const content = yield* Effect.tryPromise({
           try: () => fs.readFile(filepath, "utf-8"),
-          catch: (error) =>
-            new Error(`Failed to read file: ${String(error)}`),
+          catch: (error) => new Error(`Failed to read file: ${String(error)}`),
         }).pipe(
-          Effect.mapError(
-            (error) => new TUIError("RenderError", String(error))
-          )
+          Effect.mapError((error) => new TUIError("RenderError", String(error)))
         );
 
         const tempHistory = new SessionHistory();

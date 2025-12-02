@@ -1,9 +1,9 @@
 import { Context, Effect, Layer } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    MissingSupermemoryApiKey,
-    SupermemoryClientService,
-    SupermemoryError
+  MissingSupermemoryApiKey,
+  SupermemoryClientService,
+  SupermemoryError,
 } from "../client";
 
 // Create a test config tag that allows providing API key
@@ -96,7 +96,10 @@ describe("Supermemory Client Module", () => {
       const result = await Effect.runPromise(
         Effect.gen(function* () {
           const client = yield* SupermemoryClientService;
-          return yield* client.search("test query", { topK: 10, threshold: 0.8 });
+          return yield* client.search("test query", {
+            topK: 10,
+            threshold: 0.8,
+          });
         }).pipe(
           Effect.provide(
             Layer.succeed(TestSupermemoryTuiConfig, { apiKey: "sk_test123" })
@@ -112,7 +115,7 @@ describe("Supermemory Client Module", () => {
   describe("Error Types", () => {
     it("should create MissingSupermemoryApiKey error", () => {
       const error = new MissingSupermemoryApiKey({
-        message: "API key missing"
+        message: "API key missing",
       });
 
       expect(error._tag).toBe("MissingSupermemoryApiKey");
@@ -123,7 +126,7 @@ describe("Supermemory Client Module", () => {
       const cause = new Error("Underlying error");
       const error = new SupermemoryError({
         message: "Supermemory operation failed",
-        cause
+        cause,
       });
 
       expect(error._tag).toBe("SupermemoryError");

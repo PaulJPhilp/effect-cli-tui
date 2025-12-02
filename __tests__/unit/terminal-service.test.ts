@@ -44,7 +44,9 @@ describe("Output Service Abstraction", () => {
     });
 
     it("should write line with newline", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = Effect.gen(function* () {
         const terminal = yield* Terminal;
@@ -178,7 +180,9 @@ describe("Output Service Abstraction", () => {
     });
 
     it("should not write to console", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = Effect.gen(function* () {
         const terminal = yield* Terminal;
@@ -242,7 +246,9 @@ describe("Output Service Abstraction", () => {
     it("should use custom stderr function", async () => {
       const outputs: string[] = [];
       const customTerminal = createCustomTerminal(
-        () => {}, // stdout ignored
+        () => {
+          /* Mock implementation - no-op */
+        },
         (text) => outputs.push(text)
       );
 
@@ -392,7 +398,7 @@ describe("Output Service Abstraction", () => {
     it("should handle mixed error and success", async () => {
       let callCount = 0;
       const customTerminal = createCustomTerminal((_text) => {
-        callCount++;
+        callCount += 1;
         if (callCount === 2) {
           throw new Error("Error on second call");
         }

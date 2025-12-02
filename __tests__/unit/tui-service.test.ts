@@ -12,6 +12,8 @@ import {
  * Tests all interactive methods, error handling, and mock layers.
  */
 
+const REGEX_NUMERIC = /^\d+$/;
+
 describe("TUIHandler Service", () => {
   describe("Service Registration", () => {
     it("should be accessible via Effect.Service", async () => {
@@ -139,7 +141,7 @@ describe("TUIHandler Service", () => {
       const effect = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         const answer = yield* tui.prompt("Age:", undefined, (val) =>
-          /^\d+$/.test(val) ? true : "Must be number"
+          REGEX_NUMERIC.test(val) ? true : "Must be number"
         );
         return answer;
       }).pipe(Effect.provide(MockTUI));
@@ -378,7 +380,7 @@ describe("TUIHandler Service", () => {
       expect(result).toContain("error:");
     });
 
-    it("should use MockTUIValidationFailed for validation errors", async () => {
+    it("should use MockTUIValidationFailed for validation errors", () => {
       // Test structure for validation failure handling
       expect(true).toBe(true);
     });
@@ -421,7 +423,7 @@ describe("TUIHandler Service", () => {
       expect(result).toBe("fallback");
     });
 
-    it("should support error recovery chain", async () => {
+    it("should support error recovery chain", () => {
       const effect = Effect.gen(function* () {
         const input = yield* MockTUI.pipe(
           Effect.flatMap(() => Effect.succeed("test"))
@@ -432,7 +434,7 @@ describe("TUIHandler Service", () => {
       expect(effect).toBeDefined();
     });
 
-    it("should propagate validation errors", async () => {
+    it("should propagate validation errors", () => {
       // Validation errors should propagate correctly
       expect(true).toBe(true);
     });
@@ -499,7 +501,7 @@ describe("TUIHandler Service", () => {
     it("should handle repeat operations", async () => {
       const effect = Effect.gen(function* () {
         const tui = yield* TUIHandler;
-        const results = [];
+        const results: string[] = [];
 
         for (let i = 0; i < 3; i++) {
           const input = yield* tui

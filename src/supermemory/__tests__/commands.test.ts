@@ -1,7 +1,11 @@
 import { Effect, Layer } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MissingSupermemoryApiKey, SupermemoryClient } from "../client";
-import { handleAddCommand, handleApiKeyCommand, handleSearchCommand } from "../commands";
+import {
+  handleAddCommand,
+  handleApiKeyCommand,
+  handleSearchCommand,
+} from "../commands";
 
 // Mock Console
 const mockConsole = {
@@ -37,9 +41,9 @@ describe("Supermemory Commands", () => {
   describe("handleApiKeyCommand", () => {
     it("should handle missing API key", async () => {
       const context = createMockContext([]);
-      
+
       const result = await Effect.runPromise(handleApiKeyCommand(context));
-      
+
       expect(result).toEqual({ kind: "continue" });
       expect(mockConsole.log).toHaveBeenCalledWith(
         "[Supermemory] Error: API key is required."
@@ -51,9 +55,9 @@ describe("Supermemory Commands", () => {
 
     it("should handle API key that doesn't start with sk_", async () => {
       const context = createMockContext(["invalid_key"]);
-      
+
       const result = await Effect.runPromise(handleApiKeyCommand(context));
-      
+
       expect(result).toEqual({ kind: "continue" });
       expect(mockConsole.log).toHaveBeenCalledWith(
         "[Supermemory] Warning: API key should typically start with 'sk_'"
@@ -62,9 +66,9 @@ describe("Supermemory Commands", () => {
 
     it("should handle valid API key", async () => {
       const context = createMockContext(["sk_test123456789"]);
-      
+
       const result = await Effect.runPromise(handleApiKeyCommand(context));
-      
+
       expect(result).toEqual({ kind: "continue" });
       expect(mockConsole.log).toHaveBeenCalledWith(
         "[Supermemory] API key saved: sk_t************789"
@@ -75,9 +79,9 @@ describe("Supermemory Commands", () => {
   describe("handleAddCommand", () => {
     it("should handle missing text", async () => {
       const context = createMockContext([]);
-      
+
       const result = await Effect.runPromise(handleAddCommand(context));
-      
+
       expect(result).toEqual({ kind: "continue" });
       expect(mockConsole.log).toHaveBeenCalledWith(
         "[Supermemory] Error: No text provided to add."
@@ -86,7 +90,7 @@ describe("Supermemory Commands", () => {
 
     it("should handle missing API key", async () => {
       const context = createMockContext(["test memory"]);
-      
+
       const result = await Effect.runPromise(
         Effect.flip(
           Effect.gen(function* () {
@@ -101,7 +105,7 @@ describe("Supermemory Commands", () => {
           )
         )
       );
-      
+
       expect(result).toBeInstanceOf(MissingSupermemoryApiKey);
       expect(mockConsole.log).toHaveBeenCalledWith(
         expect.stringContaining("No Supermemory API key configured")
@@ -112,9 +116,9 @@ describe("Supermemory Commands", () => {
   describe("handleSearchCommand", () => {
     it("should handle missing query", async () => {
       const context = createMockContext([]);
-      
+
       const result = await Effect.runPromise(handleSearchCommand(context));
-      
+
       expect(result).toEqual({ kind: "continue" });
       expect(mockConsole.log).toHaveBeenCalledWith(
         "[Supermemory] Error: No search query provided."
@@ -123,7 +127,7 @@ describe("Supermemory Commands", () => {
 
     it("should handle missing API key", async () => {
       const context = createMockContext(["test query"]);
-      
+
       const result = await Effect.runPromise(
         Effect.flip(
           Effect.gen(function* () {
@@ -138,7 +142,7 @@ describe("Supermemory Commands", () => {
           )
         )
       );
-      
+
       expect(result).toBeInstanceOf(MissingSupermemoryApiKey);
       expect(mockConsole.log).toHaveBeenCalledWith(
         expect.stringContaining("No Supermemory API key configured")

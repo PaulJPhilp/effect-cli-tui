@@ -558,7 +558,7 @@ describe("EffectCLI Service", () => {
       expect(true).toBe(true);
     });
 
-    it("should handle optional parameters correctly", async () => {
+    it("should handle optional parameters correctly", () => {
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI;
         yield* cli.run("cmd", undefined, {});

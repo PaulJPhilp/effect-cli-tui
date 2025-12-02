@@ -1,6 +1,4 @@
 // This file is the entry point for constants.
-// Explicit exports to avoid barrel file linting error
-// biome-ignore lint/performance/noBarrelFile: This file is intentionally a central export point for constants
 // biome-ignore assist/source/organizeImports: <>
 export {
   ANSI_CARRIAGE_RETURN,

@@ -60,7 +60,7 @@ export function displayLines(
 export function displayJson(
   data: unknown,
   options: JsonDisplayOptions = {}
-): Effect.Effect<void> {
+): Effect.Effect<void, import("effect-json").StringifyError> {
   return Effect.gen(function* () {
     const displayService = yield* DisplayService;
     yield* displayService.json(data, options);

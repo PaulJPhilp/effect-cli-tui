@@ -19,7 +19,6 @@
  * ```
  */
 
-// biome-ignore lint/performance/noBarrelFile: This file is intentionally a central export point for React/Ink components
 export { Confirm, type ConfirmProps } from "./Confirm";
 export { Input, type InputProps } from "./Input";
 export { Message, type MessageProps } from "./Message";

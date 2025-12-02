@@ -17,7 +17,9 @@ import {
 describe("Display - Comprehensive Coverage", () => {
   describe("display", () => {
     it("should display message with default options", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = display("Test message");
       await Effect.runPromise(program);
@@ -27,7 +29,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display message with info type", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = display("Info message", { type: "info" });
       await Effect.runPromise(program);
@@ -37,7 +41,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display message with custom prefix", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = display("Custom prefix message", { prefix: "▶" });
       await Effect.runPromise(program);
@@ -47,7 +53,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display message without newline", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = display("No newline", { newline: false });
       await Effect.runPromise(program);
@@ -59,7 +67,9 @@ describe("Display - Comprehensive Coverage", () => {
 
   describe("displayOutput", () => {
     it("should output message with default type", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayOutput("Output message");
       await Effect.runPromise(program);
@@ -69,7 +79,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should output message with success type", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayOutput("Success", "success");
       await Effect.runPromise(program);
@@ -81,7 +93,9 @@ describe("Display - Comprehensive Coverage", () => {
     it("should output message with error type", async () => {
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => {
+          /* Mock implementation - no-op */
+        });
 
       const program = displayOutput("Error", "error");
       await Effect.runPromise(program);
@@ -93,7 +107,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should apply style options", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayOutput("Styled message", "info", {
         style: { color: "red", bold: true },
@@ -107,7 +123,9 @@ describe("Display - Comprehensive Coverage", () => {
 
   describe("displayLines", () => {
     it("should display single line", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayLines(["Line 1"]);
       await Effect.runPromise(program);
@@ -117,7 +135,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display multiple lines", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayLines(["Line 1", "Line 2", "Line 3"]);
       await Effect.runPromise(program);
@@ -127,7 +147,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display empty lines array", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayLines([]);
       await Effect.runPromise(program);
@@ -137,7 +159,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display lines with type option", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayLines(["Line 1", "Line 2"], { type: "success" });
       await Effect.runPromise(program);
@@ -147,7 +171,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display lines with custom prefix", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayLines(["Item 1", "Item 2"], { prefix: "→" });
       await Effect.runPromise(program);
@@ -159,7 +185,9 @@ describe("Display - Comprehensive Coverage", () => {
 
   describe("displayJson", () => {
     it("should display JSON with default options", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayJson({ name: "Test", value: 123 });
       await Effect.runPromise(program);
@@ -173,7 +201,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display JSON with custom spacing", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayJson({ a: 1, b: 2 }, { spaces: 4 });
       await Effect.runPromise(program);
@@ -183,7 +213,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display JSON without prefix", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayJson({ test: "data" }, { showPrefix: false });
       await Effect.runPromise(program);
@@ -193,7 +225,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display JSON with success type", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayJson({ status: "ok" }, { type: "success" });
       await Effect.runPromise(program);
@@ -203,7 +237,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display JSON with error type", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayJson({ error: "Failed" }, { type: "error" });
       await Effect.runPromise(program);
@@ -213,7 +249,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display array as JSON", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayJson([1, 2, 3, 4, 5]);
       await Effect.runPromise(program);
@@ -223,7 +261,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display nested JSON", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayJson({
         user: {
@@ -240,7 +280,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should handle null and undefined values", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displayJson({ a: null, b: undefined });
       await Effect.runPromise(program);
@@ -252,7 +294,9 @@ describe("Display - Comprehensive Coverage", () => {
 
   describe("displaySuccess", () => {
     it("should display success message", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displaySuccess("Operation completed!");
       await Effect.runPromise(program);
@@ -262,7 +306,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display success with custom prefix", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displaySuccess("Done", { prefix: "✔" });
       await Effect.runPromise(program);
@@ -272,7 +318,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display success without newline", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = displaySuccess("Success", { newline: false });
       await Effect.runPromise(program);
@@ -286,7 +334,9 @@ describe("Display - Comprehensive Coverage", () => {
     it("should display error message", async () => {
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => {
+          /* Mock implementation - no-op */
+        });
 
       const program = displayError("Operation failed!");
       await Effect.runPromise(program);
@@ -298,7 +348,9 @@ describe("Display - Comprehensive Coverage", () => {
     it("should display error with custom prefix", async () => {
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => {
+          /* Mock implementation - no-op */
+        });
 
       const program = displayError("Failed", { prefix: "❌" });
       await Effect.runPromise(program);
@@ -310,7 +362,9 @@ describe("Display - Comprehensive Coverage", () => {
     it("should display error without newline", async () => {
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => {
+          /* Mock implementation - no-op */
+        });
 
       const program = displayError("Error", { newline: false });
       await Effect.runPromise(program);
@@ -322,12 +376,14 @@ describe("Display - Comprehensive Coverage", () => {
 
   describe("Complex Display Scenarios", () => {
     it("should compose multiple display calls", async () => {
-      const consoleLogSpy = vi
-        .spyOn(console, "log")
-        .mockImplementation(() => {});
+      const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => {
+          /* Mock implementation - no-op */
+        });
 
       const program = Effect.gen(function* () {
         yield* display("Starting process...");
@@ -346,7 +402,9 @@ describe("Display - Comprehensive Coverage", () => {
     });
 
     it("should display structured workflow output", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        /* Mock implementation - no-op */
+      });
 
       const program = Effect.gen(function* () {
         yield* displayLines(["Building...", "Testing...", "Deploying..."]);

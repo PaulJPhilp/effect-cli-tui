@@ -72,7 +72,7 @@ export function startSpinner(
     currentSpinner = setInterval(() => {
       const frame = spinnerFrames[currentFrame % spinnerFrames.length];
       process.stdout.write(`${ANSI_CARRIAGE_RETURN}${frame} ${spinnerMessage}`);
-      currentFrame++;
+      currentFrame += 1;
     }, interval);
   });
 }

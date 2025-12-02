@@ -51,7 +51,10 @@ export interface DisplayService {
    * yield* display.json({ key: 'value' }, { spaces: 2 })
    * ```
    */
-  json: (data: unknown, options?: JsonDisplayOptions) => Effect.Effect<void>;
+  json: (
+    data: unknown,
+    options?: JsonDisplayOptions
+  ) => Effect.Effect<void, import("effect-json").StringifyError>;
 
   /**
    * Display a success message

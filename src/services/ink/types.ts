@@ -5,4 +5,4 @@
  */
 
 // No additional types needed - using React.ReactElement from react types
-
+export {};
