@@ -1,4 +1,4 @@
-import { Effect, Ref } from "effect";
+import { Effect } from "effect";
 import {
   ANSI_CARRIAGE_RETURN_CLEAR,
   ANSI_SHOW_CURSOR,
@@ -19,10 +19,9 @@ import {
 const cleanupHandlers: (() => void | Promise<void>)[] = [];
 
 /**
- * Atomic reference for whether signal handlers are already registered
- * Uses Effect.Ref for thread-safe atomic updates
+ * Track whether signal handlers are already registered
  */
-const signalsRegisteredRef = Ref.unsafeMake(false);
+let signalsRegistered = false;
 
 /**
  * Register a cleanup handler to run on SIGINT/SIGTERM
@@ -45,17 +44,14 @@ const signalsRegisteredRef = Ref.unsafeMake(false);
 export function registerCleanupHandler(
   handler: () => void | Promise<void>
 ): Effect.Effect<() => void> {
-  return Effect.gen(function* () {
+  return Effect.sync(() => {
     cleanupHandlers.push(handler);
 
-    // Register signal handlers on first registration (atomic check-and-set)
-    yield* Ref.modify(signalsRegisteredRef, (registered) => {
-      if (!registered) {
-        setupSignalHandlers();
-        return [undefined, true] as const;
-      }
-      return [undefined, registered] as const;
-    });
+    // Register signal handlers on first registration
+    if (!signalsRegistered) {
+      signalsRegistered = true;
+      setupSignalHandlers();
+    }
 
     // Return deregister function
     return () => {
@@ -76,25 +72,23 @@ function setupSignalHandlers(): void {
     for (let i = cleanupHandlers.length - 1; i >= 0; i--) {
       const handler = cleanupHandlers[i];
       if (handler) {
-        await Effect.runPromise(
-          Effect.tryPromise({
-            try: () => {
-              const result = handler();
-              return result instanceof Promise ? result : Promise.resolve();
-            },
-            catch: () => null, // Silently ignore cleanup errors to avoid masking the actual error
-          })
-        );
+        try {
+          const result = handler();
+          if (result instanceof Promise) {
+            await result;
+          }
+        } catch {
+          // Silently ignore cleanup errors to avoid masking the actual error
+        }
       }
     }
 
     // Ensure cursor is visible as final fallback
-    await Effect.runPromise(
-      Effect.try({
-        try: () => process.stdout.write(ANSI_SHOW_CURSOR),
-        catch: () => null, // Ignore
-      })
-    );
+    try {
+      process.stdout.write(ANSI_SHOW_CURSOR);
+    } catch {
+      // Ignore write errors
+    }
 
     // Exit with standard exit codes
     process.exit(signal === "SIGINT" ? EXIT_CODE_SIGINT : EXIT_CODE_SIGTERM);
@@ -178,7 +172,7 @@ export function createTerminalCleanup(): () => void {
  * Check if a signal handler has been registered
  */
 export function hasSignalHandlers(): boolean {
-  return Effect.runSync(Ref.get(signalsRegisteredRef));
+  return signalsRegistered;
 }
 
 /**
@@ -186,7 +180,7 @@ export function hasSignalHandlers(): boolean {
  */
 export function clearCleanupHandlers(): void {
   cleanupHandlers.length = 0;
-  Effect.runSync(Ref.set(signalsRegisteredRef, false));
+  signalsRegistered = false;
 }
 
 /**

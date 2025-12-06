@@ -2,9 +2,9 @@
  * Tests for ProgressBar component
  */
 
+import { ProgressBar } from "@components/ProgressBar";
 import { render } from "ink-testing-library";
 import { describe, expect, it } from "vitest";
-import { ProgressBar } from "../../src/components/ProgressBar";
 
 describe("ProgressBar component", () => {
   it("should render progress bar with percentage", () => {

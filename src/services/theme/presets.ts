@@ -8,7 +8,7 @@ import {
   ICON_INFO,
   ICON_SUCCESS,
   ICON_WARNING,
-} from "../../core/icons";
+} from "@core/icons";
 import type { Theme } from "./types";
 
 /**

@@ -7,7 +7,8 @@
 import { Box, Text, useInput } from "ink";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { SelectOption } from "../types";
+
+import type { SelectOption } from "@/types";
 
 export interface MultiSelectProps {
   message: string;

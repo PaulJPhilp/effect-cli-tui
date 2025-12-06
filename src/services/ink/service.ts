@@ -1,7 +1,7 @@
+import { isError } from "@core/error-utils";
 import { Effect } from "effect";
 import { render } from "ink";
 import type React from "react";
-import { isError } from "../../core/error-utils";
 import type { InkService as InkServiceApi } from "./api";
 import { InkError } from "./errors";
 

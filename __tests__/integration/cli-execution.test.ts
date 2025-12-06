@@ -1,12 +1,12 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
+import { EffectCLI } from "@/cli";
 import {
   createMockCLI,
   MockCLI,
   MockCLIFailure,
   MockCLITimeout,
-} from "../../__tests__/fixtures/test-layers";
-import { EffectCLI } from "../../src/cli";
+} from "../fixtures/test-layers";
 
 /**
  * Integration tests for EffectCLI service.

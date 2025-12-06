@@ -1,5 +1,3 @@
-import { Effect } from "effect";
-import { describe, expect, it, vi } from "vitest";
 import {
   display,
   displayError,
@@ -7,7 +5,9 @@ import {
   displayLines,
   displayOutput,
   displaySuccess,
-} from "../../src/core/display";
+} from "@core/display";
+import { Effect } from "effect";
+import { describe, expect, it, vi } from "vitest";
 
 /**
  * Comprehensive tests for display.ts module

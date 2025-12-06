@@ -1,14 +1,24 @@
-import { Effect } from "effect";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ConfigError,
   loadConfig,
-  SupermemoryTuiConfig,
+  SupermemoryTuiConfigService,
   saveConfig,
   updateApiKey,
-} from "../config";
+} from "@supermemory/config";
+import { Effect } from "effect";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock fs operations
+/**
+ * Config Unit Tests
+ *
+ * ⚠️ KNOWN ISSUE: These tests use vi.mock for file system operations.
+ * Due to vitest ESM mock hoisting, tests may fail when run together
+ * with other supermemory test files that also mock node:fs/promises.
+ *
+ * Run individually with: bun test src/supermemory/__tests__/config.unit.test.ts
+ */
+
+// Mock fs operations - must be hoisted above vi.mock call
 const mockFs = {
   access: vi.fn(),
   readFile: vi.fn(),
@@ -27,6 +37,10 @@ describe("Supermemory Config Module", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     delete process.env.SUPERMEMORY_API_KEY;
+  });
+
+  afterAll(() => {
+    vi.restoreAllMocks();
   });
 
   describe("loadConfig", () => {
@@ -169,9 +183,20 @@ describe("Supermemory Config Module", () => {
     });
   });
 
-  describe("Context Tag", () => {
-    it("should create a valid Context tag", () => {
-      expect(SupermemoryTuiConfig.key).toBe("SupermemoryTuiConfig");
+  describe("SupermemoryTuiConfigService", () => {
+    it("should have correct service key", () => {
+      expect(SupermemoryTuiConfigService.key).toBe("SupermemoryTuiConfig");
+    });
+
+    it("should provide default config via service", async () => {
+      const result = await Effect.runPromise(
+        Effect.gen(function* () {
+          const config = yield* SupermemoryTuiConfigService;
+          return config;
+        }).pipe(Effect.provide(SupermemoryTuiConfigService.Default))
+      );
+
+      expect(result).toEqual({ apiKey: null });
     });
   });
 });

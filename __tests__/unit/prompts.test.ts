@@ -1,5 +1,3 @@
-import { Effect } from "effect";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   PromptError,
   type PromptOptions,
@@ -8,7 +6,9 @@ import {
   promptConfirm,
   promptInput,
   promptPassword,
-} from "../../src/ui/interactive/prompt";
+} from "@ui/interactive/prompt";
+import { Effect } from "effect";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock @inquirer/prompts module
 vi.mock("@inquirer/prompts", () => ({

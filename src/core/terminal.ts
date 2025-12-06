@@ -103,7 +103,7 @@ export const TerminalTest: Layer.Layer<Terminal> = Layer.effect(
   Terminal,
   Effect.sync(
     () =>
-      new Terminal({
+      ({
         stdout: (_text: string): Effect.Effect<void> =>
           Effect.sync(() => {
             // Captured in tests via console spy
@@ -138,7 +138,7 @@ export const TerminalTest: Layer.Layer<Terminal> = Layer.effect(
           Effect.sync(() => {
             // No-op for tests
           }),
-      })
+      }) as Terminal
   )
 );
 
@@ -175,7 +175,7 @@ export function createCustomTerminal(
     Terminal,
     Effect.sync(
       () =>
-        new Terminal({
+        ({
           stdout: (text: string): Effect.Effect<void> =>
             Effect.sync(() => {
               stdoutFn(text);
@@ -214,7 +214,7 @@ export function createCustomTerminal(
             Effect.sync(() => {
               stdoutFn(ANSI_SHOW_CURSOR);
             }),
-        })
+        }) as Terminal
     )
   );
 }

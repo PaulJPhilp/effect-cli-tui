@@ -1,8 +1,9 @@
+import { ThemeService } from "@services/theme/service";
 import chalk from "chalk";
 import { Effect } from "effect";
-import { DEFAULT_DISPLAY_TYPE } from "../constants";
-import { ThemeService } from "../services/theme/service";
-import type { ChalkBgColor, ChalkColor } from "../types";
+import { DEFAULT_DISPLAY_TYPE } from "@/constants";
+import type { ChalkBgColor, ChalkColor } from "@/types";
+
 import { display } from "./display";
 import {
   COLOR_HIGHLIGHT,

@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
-import { EffectCLI } from "../../src/cli";
+
+import { EffectCLI } from "@/cli";
 import {
   createMockCLI,
   MockCLI,

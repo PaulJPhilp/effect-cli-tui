@@ -34,6 +34,7 @@ export {
   getSlashCommandHistory,
   getSlashCommandSuggestions,
   getSlashCommandSuggestionsAsync,
+  getSlashCommandSuggestionsEffect,
   parseSlashCommand,
   setGlobalSlashCommandRegistry,
   withSlashCommands,

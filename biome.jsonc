@@ -1,6 +1,10 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/core", "ultracite/react"],
+  "files": {
+    "ignoreUnknown": true,
+    "includes": ["**", "!!**/*.md"]
+  },
   "linter": {
     "rules": {
       "style": {
@@ -9,7 +13,11 @@
         "useFilenamingConvention": "off"
       },
       "performance": {
-        "noBarrelFile": "off"
+        "noBarrelFile": "off",
+        "noNamespaceImport": "off"
+      },
+      "correctness": {
+        "useYield": "off"
       }
     }
   }

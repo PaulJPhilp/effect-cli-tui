@@ -13,6 +13,13 @@
 import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  displayError,
+  displayLines,
+  displayPanel,
+  displaySuccess,
+  displayTable,
+} from "@/index";
+import {
   getTemplate,
   templates,
   zeroShotTemplate,
@@ -28,13 +35,6 @@ import {
   validateGeneratedPrompt,
   validateResponses,
 } from "../../examples/prompt-builder/validation";
-import {
-  displayError,
-  displayLines,
-  displayPanel,
-  displaySuccess,
-  displayTable,
-} from "../../src/index";
 import { MockCLI } from "../fixtures/test-layers";
 
 describe("Prompt Builder Example - Workflow Tests", () => {

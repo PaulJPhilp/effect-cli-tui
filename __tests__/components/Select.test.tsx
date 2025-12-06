@@ -2,9 +2,9 @@
  * Tests for Select component
  */
 
+import { Select } from "@components/Select";
 import { render } from "ink-testing-library";
 import { describe, expect, it, vi } from "vitest";
-import { Select } from "../../src/components/Select";
 
 describe("Select component", () => {
   const choices = ["Option A", "Option B", "Option C"];

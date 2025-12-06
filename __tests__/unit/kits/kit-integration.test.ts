@@ -1,20 +1,15 @@
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import { createKit, KitRegistryService, MemKit, withKit } from "@kits";
 import { Effect } from "effect";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import {
-  createKit,
-  KitRegistryService,
-  MemKit,
-  withKit,
-} from "../../../src/kits";
 import {
   createEffectCliSlashCommand,
   DEFAULT_SLASH_COMMANDS,
   getGlobalSlashCommandRegistry,
   setGlobalSlashCommandRegistry,
-} from "../../../src/tui-slash-commands";
+} from "@/tui-slash-commands";
 
 const CONFIG_DIR_NAME = ".effect-cli-tui";
 const CONFIG_FILE_NAME = "kits.json";

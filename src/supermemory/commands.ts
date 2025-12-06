@@ -1,9 +1,10 @@
 import { Console, Effect } from "effect";
+
 import type {
   SlashCommandContext,
   SlashCommandResult,
-} from "../tui-slash-commands";
-import { TUIError } from "../types";
+} from "@/tui-slash-commands";
+import { TUIError } from "@/types";
 import {
   type MissingSupermemoryApiKey,
   SupermemoryClientService,

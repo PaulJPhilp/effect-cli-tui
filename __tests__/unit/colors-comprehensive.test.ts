@@ -1,5 +1,6 @@
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
+
 import {
   applyChalkStyle,
   displayHighlight,
@@ -7,7 +8,7 @@ import {
   displayListItem,
   displayMuted,
   displayWarning,
-} from "../../src/index";
+} from "@/index";
 
 /**
  * Comprehensive tests for colors.ts module

@@ -1,12 +1,43 @@
-import * as fs from "node:fs/promises";
-import * as path from "node:path";
+/** biome-ignore-all assist/source/organizeImports: <> */
 import { Console, Effect } from "effect";
-import { type CLIError, TUIError } from "./types";
+import { promises as fs } from "node:fs";
+import { join as pathJoin } from "node:path";
+import {
+  ANSI_CLEAR_SCREEN,
+  DEFAULT_MAX_SUGGESTIONS,
+  GENERIC_FLAGS,
+  HELP_TABLE_COLUMN_WIDTHS,
+  HISTORY_TABLE_COLUMN_WIDTHS,
+  JSON_INDENT,
+  NEGATED_FLAG_MIN_LENGTH,
+  NEGATED_FLAG_PREFIX,
+  PASSWORD_MASK,
+  SESSION_FILE_PREFIX,
+  SHORT_TO_LONG_FLAGS,
+} from "./constants";
+import type { KitRegistryService } from "./kits/registry";
+import type { ToolCallLogService } from "./services/logs";
+import type { ModeService } from "./services/mode";
+import type { SupermemoryClientService } from "./supermemory/client";
+import { TUIError, type CLIError, type PromptKind } from "./types";
 import { renderTablePanel } from "./ui/panels/render";
+
+/**
+ * Union type of all possible slash command service dependencies.
+ *
+ * Slash commands may require different services. This type captures
+ * all known service dependencies that slash commands can have.
+ * Commands are provided with their dependencies when executed.
+ */
+export type SlashCommandRequirements =
+  | KitRegistryService
+  | ModeService
+  | ToolCallLogService
+  | SupermemoryClientService;
 
 export interface SlashCommandContext {
   readonly promptMessage: string;
-  readonly promptKind: "input" | "password" | "select" | "multiSelect";
+  readonly promptKind: PromptKind;
   readonly rawInput: string; // Full raw input line (e.g. /deploy prod --force)
   readonly command: string; // Parsed command name (lowercase)
   readonly args: readonly string[]; // Positional arguments
@@ -51,7 +82,7 @@ class SessionHistory {
         entries: this.entries,
       },
       null,
-      2
+      JSON_INDENT
     );
   }
 
@@ -95,13 +126,16 @@ export type SlashCommandResult =
   | { readonly kind: "abortPrompt"; readonly message?: string }
   | { readonly kind: "exitSession"; readonly message?: string };
 
-// Type for slash command effect with flexible requirements
-// This allows slash commands to have dependencies like EffectCLI
+/**
+ * Type for slash command effect with known service requirements.
+ *
+ * Commands may depend on various services (KitRegistryService, ModeService, etc.).
+ * The caller is responsible for providing these services when executing commands.
+ */
 type SlashCommandEffect = Effect.Effect<
   SlashCommandResult,
   CLIError | TUIError,
-  // biome-ignore lint/suspicious/noExplicitAny: Requirements must be flexible for commands with different dependencies
-  any
+  SlashCommandRequirements
 >;
 
 export interface SlashCommandDefinition {
@@ -111,7 +145,7 @@ export interface SlashCommandDefinition {
   readonly shortFlags?: Readonly<Record<string, string>>;
   readonly getCompletions?: (
     context: ParsedSlashCommand
-  ) => ReadonlyArray<string> | Promise<ReadonlyArray<string>>;
+  ) => Effect.Effect<readonly string[]>;
   readonly run: (context: SlashCommandContext) => SlashCommandEffect;
 }
 
@@ -141,155 +175,260 @@ export interface ParsedSlashCommand {
  * Supports:
  *   /deploy production --force --tag=latest --count=3
  */
-export function parseSlashCommand(input: string): ParsedSlashCommand | null {
-  if (!input.startsWith("/")) return null;
+
+/** Set a flag with optional short-to-long expansion */
+function setFlag(
+  flags: Record<string, string | boolean>,
+  key: string,
+  value: string | boolean
+): void {
+  const k = normalizeCommandName(key);
+  flags[k] = value;
+  const long = SHORT_TO_LONG_FLAGS[k];
+  if (long) {
+    flags[long] = value;
+  }
+}
+
+/** Parse a long flag (--flag, --flag=value, --no-flag) */
+function parseLongFlag(
+  token: string,
+  flags: Record<string, string | boolean>
+): boolean {
+  const flagToken = token.slice(2);
+  if (!flagToken) {
+    return false;
+  }
+
+  // Negated flag --no-xyz => xyz=false
+  if (
+    flagToken.startsWith(NEGATED_FLAG_PREFIX) &&
+    flagToken.length > NEGATED_FLAG_MIN_LENGTH
+  ) {
+    setFlag(flags, flagToken.slice(NEGATED_FLAG_PREFIX.length), false);
+    return true;
+  }
+
+  const eqIndex = flagToken.indexOf("=");
+  if (eqIndex === -1) {
+    setFlag(flags, flagToken, true);
+  } else {
+    const key = normalizeCommandName(flagToken.slice(0, eqIndex));
+    setFlag(flags, key, flagToken.slice(eqIndex + 1));
+  }
+  return true;
+}
+
+/** Parse short flags with equals (-t=value, -tv=value) */
+function parseShortFlagsWithEquals(
+  body: string,
+  flags: Record<string, string | boolean>
+): void {
+  const [letters, value] = body.split("=", 2);
+  for (let j = 0; j < letters.length; j++) {
+    const letter = letters[j]?.trim().toLowerCase();
+    if (!letter) {
+      continue;
+    }
+    // Last letter gets the value, others are boolean
+    setFlag(flags, letter, j === letters.length - 1 ? (value ?? "") : true);
+  }
+}
+
+/** Context for parsing short flags */
+interface ShortFlagParseContext {
+  parts: string[];
+  currentIndex: number;
+  flags: Record<string, string | boolean>;
+  tokens: string[];
+}
+
+/** Parse short flags without equals, returns tokens consumed */
+function parseShortFlagsNoEquals(
+  body: string,
+  ctx: ShortFlagParseContext
+): number {
+  const letters = body.split("");
+  let consumed = 0;
+
+  for (let j = 0; j < letters.length; j++) {
+    const letter = letters[j]?.trim().toLowerCase();
+    if (!letter) {
+      continue;
+    }
+
+    if (j === letters.length - 1) {
+      // Last letter: check if next token is a value
+      const next = ctx.parts[ctx.currentIndex + 1];
+      if (next && !next.startsWith("-")) {
+        setFlag(ctx.flags, letter, next);
+        ctx.tokens.push(next);
+        consumed = 1;
+      } else {
+        setFlag(ctx.flags, letter, true);
+      }
+    } else {
+      setFlag(ctx.flags, letter, true);
+    }
+  }
+  return consumed;
+}
+
+/** Validate and extract initial parts from slash command input */
+function validateSlashInput(
+  input: string
+): { parts: string[]; commandName: string } | null {
+  if (!input.startsWith("/")) {
+    return null;
+  }
+
   const trimmed = input.trim();
-  if (trimmed === "/") return null;
+  if (trimmed === "/") {
+    return null;
+  }
 
   const parts = tokenizeSlashInput(trimmed);
-  if (parts.length === 0) return null;
+  if (parts.length === 0) {
+    return null;
+  }
 
-  const first = parts[0];
-  const commandNameRaw = first.slice(1);
-  if (!commandNameRaw) return null;
-  const command = normalizeCommandName(commandNameRaw);
+  const commandNameRaw = parts[0].slice(1);
+  if (!commandNameRaw) {
+    return null;
+  }
 
+  return { parts, commandName: normalizeCommandName(commandNameRaw) };
+}
+
+/** Process a single token in slash command parsing */
+function processSlashToken(token: string, ctx: ShortFlagParseContext): number {
+  if (token.startsWith("--")) {
+    if (parseLongFlag(token, ctx.flags)) {
+      ctx.tokens.push(token);
+    }
+    return 0;
+  }
+
+  if (token.startsWith("-") && token.length > 1) {
+    const body = token.slice(1);
+    ctx.tokens.push(token);
+    if (body.includes("=")) {
+      parseShortFlagsWithEquals(body, ctx.flags);
+      return 0;
+    }
+    return parseShortFlagsNoEquals(body, ctx);
+  }
+
+  return -1; // Signal: treat as positional arg
+}
+
+export function parseSlashCommand(input: string): ParsedSlashCommand | null {
+  const validated = validateSlashInput(input);
+  if (!validated) {
+    return null;
+  }
+
+  const { parts, commandName } = validated;
   const tokens: string[] = [];
   const args: string[] = [];
   const flags: Record<string, string | boolean> = {};
 
-  // Common short-flag to long-flag mappings for convenience
-  const shortToLong: Record<string, string> = {
-    f: "force",
-    t: "tag",
-    c: "count",
-    v: "verbose",
-    q: "quiet",
-    h: "help",
-  };
-
-  const setFlag = (key: string, value: string | boolean) => {
-    const k = normalizeCommandName(key);
-    flags[k] = value;
-    const long = shortToLong[k];
-    if (long) {
-      flags[long] = value;
-    }
-  };
-
   for (let i = 1; i < parts.length; i++) {
     const token = parts[i];
-    if (!token) continue;
-    if (token.startsWith("--")) {
-      const flagToken = token.slice(2);
-      if (!flagToken) continue;
-      // Negated flag --no-xyz => xyz=false
-      if (flagToken.startsWith("no-") && flagToken.length > 3) {
-        const key = flagToken.slice(3);
-        setFlag(key, false);
-        tokens.push(token);
-        continue;
-      }
-      const eqIndex = flagToken.indexOf("=");
-      if (eqIndex === -1) {
-        // boolean flag
-        setFlag(flagToken, true);
-      } else {
-        const key = normalizeCommandName(flagToken.slice(0, eqIndex));
-        const value = flagToken.slice(eqIndex + 1);
-        setFlag(key, value);
-      }
-      tokens.push(token);
-    } else if (token.startsWith("-") && token.length > 1) {
-      // Short flags cluster, e.g., -f, -tv, -t=latest, -c 3
-      const body = token.slice(1);
-      const hasEq = body.includes("=");
-      if (hasEq) {
-        const [letters, value] = body.split("=", 2);
-        if (letters.length > 0) {
-          // All but last are boolean, last gets value
-          for (let j = 0; j < letters.length; j++) {
-            const letter = letters[j]!.trim().toLowerCase();
-            if (!letter) continue;
-            if (j === letters.length - 1) {
-              setFlag(letter, value ?? "");
-            } else {
-              setFlag(letter, true);
-            }
-          }
-        }
-        tokens.push(token);
-      } else {
-        // No equals. If next token is a value, assign to last letter
-        const letters = body.split("");
-        if (letters.length > 0) {
-          for (let j = 0; j < letters.length; j++) {
-            const letter = letters[j]!.trim().toLowerCase();
-            if (!letter) continue;
-            if (j === letters.length - 1) {
-              const next = parts[i + 1];
-              if (next && !next.startsWith("-")) {
-                setFlag(letter, next);
-                tokens.push(token);
-                tokens.push(next);
-                i++; // consume value
-              } else {
-                setFlag(letter, true);
-                tokens.push(token);
-              }
-            } else {
-              setFlag(letter, true);
-              // Only push token once overall
-            }
-          }
-        }
-      }
-    } else {
+    if (!token) {
+      continue;
+    }
+
+    const result = processSlashToken(token, {
+      parts,
+      currentIndex: i,
+      flags,
+      tokens,
+    });
+    if (result === -1) {
       args.push(token);
       tokens.push(token);
+    } else {
+      i += result;
     }
   }
 
-  return { command, args, flags, tokens };
+  return { command: commandName, args, flags, tokens };
+}
+
+// Whitespace regex hoisted to top level for performance
+const WHITESPACE_REGEX = /\s/;
+
+/** State for tokenizer */
+interface TokenizerState {
+  tokens: string[];
+  current: string;
+  inSingle: boolean;
+  inDouble: boolean;
+  escaping: boolean;
+}
+
+/** Check if character is a quote toggle */
+function handleQuoteChar(ch: string, state: TokenizerState): boolean {
+  if (ch === '"' && !state.inSingle) {
+    state.inDouble = !state.inDouble;
+    return true;
+  }
+  if (ch === "'" && !state.inDouble) {
+    state.inSingle = !state.inSingle;
+    return true;
+  }
+  return false;
+}
+
+/** Check if character is whitespace outside quotes */
+function handleWhitespace(ch: string, state: TokenizerState): boolean {
+  if (state.inSingle || state.inDouble) {
+    return false;
+  }
+  if (!WHITESPACE_REGEX.test(ch)) {
+    return false;
+  }
+  if (state.current.length > 0) {
+    state.tokens.push(state.current);
+    state.current = "";
+  }
+  return true;
 }
 
 /** Tokenize input respecting quotes and escapes */
 function tokenizeSlashInput(input: string): string[] {
-  const tokens: string[] = [];
-  let current = "";
-  let inSingle = false;
-  let inDouble = false;
-  let escaping = false;
-  for (let i = 0; i < input.length; i++) {
-    const ch = input[i]!;
-    if (escaping) {
-      current += ch;
-      escaping = false;
+  const state: TokenizerState = {
+    tokens: [],
+    current: "",
+    inSingle: false,
+    inDouble: false,
+    escaping: false,
+  };
+
+  for (const ch of input) {
+    if (state.escaping) {
+      state.current += ch;
+      state.escaping = false;
       continue;
     }
     if (ch === "\\") {
-      escaping = true;
+      state.escaping = true;
       continue;
     }
-    if (ch === '"' && !inSingle) {
-      inDouble = !inDouble;
+    if (handleQuoteChar(ch, state)) {
       continue;
     }
-    if (ch === "'" && !inDouble) {
-      inSingle = !inSingle;
+    if (handleWhitespace(ch, state)) {
       continue;
     }
-    if (!(inSingle || inDouble) && /\s/.test(ch)) {
-      if (current.length > 0) {
-        tokens.push(current);
-        current = "";
-      }
-      continue;
-    }
-    current += ch;
+    state.current += ch;
   }
-  if (current.length > 0) tokens.push(current);
-  return tokens;
+
+  if (state.current.length > 0) {
+    state.tokens.push(state.current);
+  }
+  return state.tokens;
 }
 
 /** Apply per-command short flag mapping by duplicating short keys as long */
@@ -297,172 +436,190 @@ export function applyShortFlagMapping(
   flags: Readonly<Record<string, string | boolean>>,
   mapping?: Readonly<Record<string, string>>
 ): Readonly<Record<string, string | boolean>> {
-  if (!mapping || Object.keys(mapping).length === 0) return flags;
+  if (!mapping || Object.keys(mapping).length === 0) {
+    return flags;
+  }
   const out: Record<string, string | boolean> = { ...flags };
   for (const [shortKeyRaw, longKeyRaw] of Object.entries(mapping)) {
     const shortKey = normalizeCommandName(shortKeyRaw);
     const longKey = normalizeCommandName(longKeyRaw);
     if (shortKey in flags && !(longKey in out)) {
-      out[longKey] = flags[shortKey]!;
+      out[longKey] = flags[shortKey] as string | boolean;
     }
   }
   return out;
 }
 
-/** Suggest slash commands given a prefix (without slash or with) */
-export function getSlashCommandSuggestions(
-  input: string,
+/** Collect matching command names from registry */
+function collectCommandSuggestions(
   registry: SlashCommandRegistry,
-  max = 5
-): readonly string[] {
-  const parsed = parseSlashCommand(input);
+  prefix: string
+): string[] {
   const suggestions: string[] = [];
+  const lowerPrefix = prefix.toLowerCase();
 
-  // If not a slash yet or just "/" → suggest command names
-  if (!parsed) {
-    const prefix = input.startsWith("/")
-      ? input.slice(1).toLowerCase()
-      : input.toLowerCase();
-    for (const def of registry.commands) {
-      const names = [def.name, ...(def.aliases ?? [])];
-      for (const n of names) {
-        if (!prefix || n.toLowerCase().startsWith(prefix)) {
-          suggestions.push(`/${n}`);
-        }
-      }
-    }
-    return Array.from(new Set(suggestions)).slice(0, max);
-  }
-
-  // If we have a parsed command, check per-command completions
-  const def = registry.lookup.get(parsed.command);
-  // If only the command fragment typed (no tokens besides the leading command),
-  // suggest matching command names and aliases that start with the fragment.
-  if (parsed.tokens.length === 0 && !input.endsWith(" ")) {
-    const prefix = parsed.command.toLowerCase();
-    for (const d of registry.commands) {
-      const names = [d.name, ...(d.aliases ?? [])];
-      for (const n of names) {
-        if (n.toLowerCase().startsWith(prefix)) {
-          suggestions.push(`/${n}`);
-        }
-      }
-    }
-    return Array.from(new Set(suggestions)).slice(0, max);
-  }
-
-  if (def?.getCompletions) {
-    // Note: getCompletions may return Promise or sync array
-    // This function returns sync results only; Input component handles async via computeSlashSuggestions
-    try {
-      const res = def.getCompletions(parsed);
-      // Only handle sync results here; async will be handled by Input's Promise detection
-      if (!res || res instanceof Promise) {
-        // Skip async results in sync path
-      } else {
-        const list = Array.isArray(res) ? res : [];
-        for (const s of list) {
-          suggestions.push(s);
-        }
-      }
-    } catch {
-      // ignore completion errors
-    }
-  } else {
-    // Default suggestions: when last token starts with '-' suggest known short/long flags
-    const last = parsed.tokens.at(-1) ?? "";
-    if (last.startsWith("-")) {
-      const names = [def?.name ?? "", ...((def?.aliases ?? []) as string[])];
-      // Generic flags
-      const generic = ["--help", "--verbose", "--quiet", "-h", "-v", "-q"];
-      suggestions.push(...generic);
-      // Per-command shortFlags
-      if (def?.shortFlags) {
-        for (const [shortKey, longKey] of Object.entries(def.shortFlags)) {
-          suggestions.push(`-${shortKey}`);
-          suggestions.push(`--${longKey}`);
-        }
+  for (const def of registry.commands) {
+    const names = [def.name, ...(def.aliases ?? [])];
+    for (const name of names) {
+      if (!lowerPrefix || name.toLowerCase().startsWith(lowerPrefix)) {
+        suggestions.push(`/${name}`);
       }
     }
   }
+  return suggestions;
+}
 
+/** Collect flag suggestions for a command */
+function collectFlagSuggestions(
+  def: SlashCommandDefinition | undefined
+): string[] {
+  const suggestions = [...GENERIC_FLAGS];
+
+  if (def?.shortFlags) {
+    for (const [shortKey, longKey] of Object.entries(def.shortFlags)) {
+      suggestions.push(`-${shortKey}`, `--${longKey}`);
+    }
+  }
+  return suggestions;
+}
+
+/** Deduplicate and limit suggestions */
+function finalizeSuggestions(
+  suggestions: string[],
+  max: number
+): readonly string[] {
   return Array.from(new Set(suggestions)).slice(0, max);
 }
 
-/**
- * Async-aware version of getSlashCommandSuggestions
- * Resolves both sync and async completions
- */
-export async function getSlashCommandSuggestionsAsync(
+/** Suggest slash commands given a prefix (without slash or with) */
+/** Fetch sync completions from command definition */
+function fetchSyncCompletions(
+  def: SlashCommandDefinition,
+  parsed: ParsedSlashCommand
+): string[] {
+  if (!def.getCompletions) {
+    return [];
+  }
+  return Effect.runSync(
+    def.getCompletions(parsed).pipe(
+      Effect.map((list) => (Array.isArray(list) ? [...list] : [])),
+      Effect.catchAll(() => Effect.succeed([]))
+    )
+  );
+}
+
+export function getSlashCommandSuggestions(
   input: string,
   registry: SlashCommandRegistry,
-  max = 5
-): Promise<readonly string[]> {
+  max = DEFAULT_MAX_SUGGESTIONS
+): readonly string[] {
   const parsed = parseSlashCommand(input);
-  const suggestions: string[] = [];
 
-  // If not a slash yet or just "/" → suggest command names
+  // No valid parse → suggest command names matching input prefix
   if (!parsed) {
-    const prefix = input.startsWith("/")
-      ? input.slice(1).toLowerCase()
-      : input.toLowerCase();
-    for (const def of registry.commands) {
-      const names = [def.name, ...(def.aliases ?? [])];
-      for (const n of names) {
-        if (!prefix || n.toLowerCase().startsWith(prefix)) {
-          suggestions.push(`/${n}`);
-        }
-      }
-    }
-    return Array.from(new Set(suggestions)).slice(0, max);
+    const prefix = input.startsWith("/") ? input.slice(1) : input;
+    return finalizeSuggestions(
+      collectCommandSuggestions(registry, prefix),
+      max
+    );
+  }
+
+  // Command fragment only → suggest matching commands
+  if (parsed.tokens.length === 0 && !input.endsWith(" ")) {
+    return finalizeSuggestions(
+      collectCommandSuggestions(registry, parsed.command),
+      max
+    );
   }
 
   const def = registry.lookup.get(parsed.command);
-  // If only the command fragment typed (no tokens besides the leading command),
-  // suggest matching command names and aliases that start with the fragment.
+
+  // Use command completions if available, otherwise suggest flags
+  const suggestions = def?.getCompletions
+    ? fetchSyncCompletions(def, parsed)
+    : collectDefaultSuggestions(parsed, def);
+
+  return finalizeSuggestions(suggestions, max);
+}
+
+/** Fetch completions from command definition */
+function fetchCommandCompletions(
+  def: SlashCommandDefinition,
+  parsed: ParsedSlashCommand
+): Effect.Effect<string[]> {
+  if (!def.getCompletions) {
+    return Effect.succeed([]);
+  }
+  return def.getCompletions(parsed).pipe(
+    Effect.map((list) => (Array.isArray(list) ? [...list] : [])),
+    Effect.catchAll(() => Effect.succeed([]))
+  );
+}
+
+/**
+ * Effect-based version of getSlashCommandSuggestions
+ * Handles async completions via Effects
+ */
+export function getSlashCommandSuggestionsEffect(
+  input: string,
+  registry: SlashCommandRegistry,
+  max = DEFAULT_MAX_SUGGESTIONS
+): Effect.Effect<readonly string[]> {
+  const parsed = parseSlashCommand(input);
+
+  // No valid parse → suggest command names matching input prefix
+  if (!parsed) {
+    const prefix = input.startsWith("/") ? input.slice(1) : input;
+    return Effect.succeed(
+      finalizeSuggestions(collectCommandSuggestions(registry, prefix), max)
+    );
+  }
+
+  // Command fragment only → suggest matching commands
   if (parsed.tokens.length === 0 && !input.endsWith(" ")) {
-    const prefix = parsed.command.toLowerCase();
-    for (const d of registry.commands) {
-      const names = [d.name, ...(d.aliases ?? [])];
-      for (const n of names) {
-        if (n.toLowerCase().startsWith(prefix)) {
-          suggestions.push(`/${n}`);
-        }
-      }
-    }
-    return Array.from(new Set(suggestions)).slice(0, max);
+    return Effect.succeed(
+      finalizeSuggestions(
+        collectCommandSuggestions(registry, parsed.command),
+        max
+      )
+    );
   }
 
+  const def = registry.lookup.get(parsed.command);
+
+  // Use command completions if available, otherwise suggest flags
   if (def?.getCompletions) {
-    try {
-      const res = def.getCompletions(parsed);
-      const list = res instanceof Promise ? await res : res;
-      if (Array.isArray(list)) {
-        for (const s of list) {
-          suggestions.push(s);
-        }
-      }
-    } catch {
-      // ignore completion errors
-    }
-  } else {
-    // Default suggestions: when last token starts with '-' suggest known short/long flags
-    const last = parsed.tokens.at(-1) ?? "";
-    if (last.startsWith("-")) {
-      // Generic flags
-      const generic = ["--help", "--verbose", "--quiet", "-h", "-v", "-q"];
-      suggestions.push(...generic);
-      // Per-command shortFlags
-      if (def?.shortFlags) {
-        for (const [shortKey, longKey] of Object.entries(def.shortFlags)) {
-          suggestions.push(`-${shortKey}`);
-          suggestions.push(`--${longKey}`);
-        }
-      }
-    }
+    return fetchCommandCompletions(def, parsed).pipe(
+      Effect.map((suggestions) => finalizeSuggestions(suggestions, max))
+    );
   }
 
-  return Array.from(new Set(suggestions)).slice(0, max);
+  return Effect.succeed(
+    finalizeSuggestions(collectDefaultSuggestions(parsed, def), max)
+  );
+}
+
+/**
+ * Promise-based wrapper for React components
+ * Converts Effect-based suggestions to Promise for React boundary
+ */
+export function getSlashCommandSuggestionsAsync(
+  input: string,
+  registry: SlashCommandRegistry,
+  max = DEFAULT_MAX_SUGGESTIONS
+): Promise<readonly string[]> {
+  return Effect.runPromise(
+    getSlashCommandSuggestionsEffect(input, registry, max)
+  );
+}
+
+/** Collect default suggestions (flags) based on current input */
+function collectDefaultSuggestions(
+  parsed: ParsedSlashCommand,
+  def: SlashCommandDefinition | undefined
+): string[] {
+  const last = parsed.tokens.at(-1) ?? "";
+  return last.startsWith("-") ? collectFlagSuggestions(def) : [];
 }
 
 // Slash command usage history (raw input). Separate from session history.
@@ -470,7 +627,9 @@ const slashCommandHistory: string[] = [];
 
 export function addSlashCommandHistoryEntry(raw: string): void {
   const entry = raw.trim();
-  if (!entry.startsWith("/")) return;
+  if (!entry.startsWith("/")) {
+    return;
+  }
   // Avoid consecutive duplicates
   if (slashCommandHistory.at(-1) !== entry) {
     slashCommandHistory.push(entry);
@@ -551,8 +710,8 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
         yield* renderTablePanel({
           title: "AVAILABLE COMMANDS",
           columns: [
-            { header: "Command", width: 20 },
-            { header: "Aliases", width: 15 },
+            { header: "Command", width: HELP_TABLE_COLUMN_WIDTHS.command },
+            { header: "Aliases", width: HELP_TABLE_COLUMN_WIDTHS.aliases },
             { header: "Description" },
           ],
           rows,
@@ -579,9 +738,7 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
     run: () =>
       Effect.gen(function* () {
         // Clear screen using ANSI escape codes
-        // \x1b[2J clears entire screen
-        // \x1b[H moves cursor to home position (0,0)
-        yield* Console.log("\x1b[2J\x1b[H");
+        yield* Console.log(ANSI_CLEAR_SCREEN);
         return { kind: "continue" } as const;
       }),
   },
@@ -602,7 +759,7 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
         const rows = history.map((entry, index) => {
           const time = new Date(entry.timestamp).toLocaleTimeString();
           const maskedInput =
-            entry.promptKind === "password" ? "********" : entry.input;
+            entry.promptKind === "password" ? PASSWORD_MASK : entry.input;
           return {
             cells: [String(index + 1), time, entry.promptKind, maskedInput],
           };
@@ -612,9 +769,9 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
         yield* renderTablePanel({
           title: "SESSION HISTORY",
           columns: [
-            { header: "#", width: 4 },
-            { header: "Time", width: 12 },
-            { header: "Type", width: 12 },
+            { header: "#", width: HISTORY_TABLE_COLUMN_WIDTHS.index },
+            { header: "Time", width: HISTORY_TABLE_COLUMN_WIDTHS.time },
+            { header: "Type", width: HISTORY_TABLE_COLUMN_WIDTHS.type },
             { header: "Input" },
           ],
           rows,
@@ -640,8 +797,8 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
           .toISOString()
           .replace(/[:.]/g, "-")
           .slice(0, -5);
-        const filename = `session-${timestamp}.json`;
-        const filepath = path.join(process.cwd(), filename);
+        const filename = `${SESSION_FILE_PREFIX}${timestamp}.json`;
+        const filepath = pathJoin(process.cwd(), filename);
 
         const json = globalSessionHistory.toJSON();
 
@@ -671,8 +828,8 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
           Effect.mapError((error) => new TUIError("RenderError", String(error)))
         );
 
-        const sessionFiles = files.filter((file) =>
-          file.startsWith("session-")
+        const sessionFiles = (files as string[]).filter((file: string) =>
+          file.startsWith(SESSION_FILE_PREFIX)
         );
 
         if (sessionFiles.length === 0) {
@@ -694,7 +851,7 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
           return { kind: "continue" } as const;
         }
 
-        const filepath = path.join(process.cwd(), latestFile);
+        const filepath = pathJoin(process.cwd(), latestFile);
         const content = yield* Effect.tryPromise({
           try: () => fs.readFile(filepath, "utf-8"),
           catch: (error) => new Error(`Failed to read file: ${String(error)}`),
@@ -712,7 +869,7 @@ export const DEFAULT_SLASH_COMMANDS: readonly SlashCommandDefinition[] = [
         for (const [index, entry] of entries.entries()) {
           const time = new Date(entry.timestamp).toLocaleTimeString();
           const maskedInput =
-            entry.promptKind === "password" ? "********" : entry.input;
+            entry.promptKind === "password" ? PASSWORD_MASK : entry.input;
           yield* Console.log(
             `  ${index + 1}. [${time}] ${entry.promptKind}: ${maskedInput}`
           );
@@ -759,7 +916,9 @@ export function withSlashCommands<A, E, R>(
   );
 }
 
-export interface EffectCliSlashCommandOptions<R = never> {
+export interface EffectCliSlashCommandOptions<
+  R extends SlashCommandRequirements | never = never,
+> {
   readonly name: string;
   readonly description: string;
   readonly aliases?: readonly string[];
@@ -768,13 +927,14 @@ export interface EffectCliSlashCommandOptions<R = never> {
   ) => Effect.Effect<SlashCommandResult, CLIError | TUIError, R>;
 }
 
-export function createEffectCliSlashCommand<R = never>(
-  options: EffectCliSlashCommandOptions<R>
-): SlashCommandDefinition {
+export function createEffectCliSlashCommand<
+  R extends SlashCommandRequirements | never = never,
+>(options: EffectCliSlashCommandOptions<R>): SlashCommandDefinition {
   return {
     name: options.name,
     description: options.description,
     aliases: options.aliases,
-    run: (context: SlashCommandContext) => options.effect(context),
+    run: (context: SlashCommandContext) =>
+      options.effect(context) as SlashCommandEffect,
   };
 }

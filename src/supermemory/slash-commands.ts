@@ -1,9 +1,10 @@
 import { Console, Effect } from "effect";
+
 import {
   createEffectCliSlashCommand,
   type SlashCommandDefinition,
-} from "../tui-slash-commands";
-import { TUIError } from "../types";
+} from "@/tui-slash-commands";
+import { TUIError } from "@/types";
 import {
   handleAddCommand,
   handleApiKeyCommand,

@@ -2,9 +2,9 @@
  * Tests for Input component
  */
 
+import { Input } from "@components/Input";
 import { render } from "ink-testing-library";
 import { describe, expect, it, vi } from "vitest";
-import { Input } from "../../src/components/Input";
 
 describe("Input component", () => {
   it("should render prompt message", () => {

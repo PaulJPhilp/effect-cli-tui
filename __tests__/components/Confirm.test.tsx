@@ -2,9 +2,9 @@
  * Tests for Confirm component
  */
 
+import { Confirm } from "@components/Confirm";
 import { render } from "ink-testing-library";
 import { describe, expect, it, vi } from "vitest";
-import { Confirm } from "../../src/components/Confirm";
 
 describe("Confirm component", () => {
   it("should render confirmation prompt", () => {

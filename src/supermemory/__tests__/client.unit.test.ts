@@ -1,40 +1,50 @@
-import { Context, Effect, Layer } from "effect";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   MissingSupermemoryApiKey,
+  type SupermemoryClient,
   SupermemoryClientService,
   SupermemoryError,
-} from "../client";
+} from "@supermemory/client";
+import type { SupermemoryTuiConfig } from "@supermemory/config";
+import { Effect, Layer } from "effect";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Create a test config tag that allows providing API key
-const TestSupermemoryTuiConfig = Context.GenericTag<{
-  readonly apiKey: string | null;
-}>("TestSupermemoryTuiConfig");
+// Mock loadConfig to return controllable config
+let mockApiKey: string | null = null;
 
-// Mock loadConfig to use our test config
 vi.mock("../config", () => ({
-  ConfigError: vi.fn(),
-  loadConfig: () => Effect.succeed(TestSupermemoryTuiConfig),
-  updateApiKey: vi.fn(),
+  ConfigError: class ConfigError extends Error {
+    readonly _tag = "ConfigError";
+  },
+  loadConfig: () =>
+    Effect.sync((): SupermemoryTuiConfig => ({ apiKey: mockApiKey })),
+  updateApiKey: vi.fn(() => Effect.void),
 }));
+
+/**
+ * Helper to create a mock layer for SupermemoryClientService
+ */
+function createMockClientLayer(mockClient: SupermemoryClient) {
+  return Layer.succeed(
+    SupermemoryClientService,
+    mockClient as unknown as SupermemoryClientService
+  );
+}
 
 describe("Supermemory Client Module", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockApiKey = null;
   });
 
   describe("SupermemoryClientService", () => {
     it("should fail when API key is missing", async () => {
+      mockApiKey = null;
+
       const result = await Effect.runPromise(
         Effect.flip(
           Effect.gen(function* () {
             yield* SupermemoryClientService;
-          }).pipe(
-            Effect.provide(
-              Layer.succeed(TestSupermemoryTuiConfig, { apiKey: null })
-            ),
-            Effect.provide(SupermemoryClientService.Default)
-          )
+          }).pipe(Effect.provide(SupermemoryClientService.Default))
         )
       );
 
@@ -43,16 +53,13 @@ describe("Supermemory Client Module", () => {
     });
 
     it("should create client when API key is present", async () => {
+      mockApiKey = "sk_test123";
+
       const result = await Effect.runPromise(
         Effect.gen(function* () {
           const client = yield* SupermemoryClientService;
           return client;
-        }).pipe(
-          Effect.provide(
-            Layer.succeed(TestSupermemoryTuiConfig, { apiKey: "sk_test123" })
-          ),
-          Effect.provide(SupermemoryClientService.Default)
-        )
+        }).pipe(Effect.provide(SupermemoryClientService.Default))
       );
 
       expect(result).toBeDefined();
@@ -61,38 +68,34 @@ describe("Supermemory Client Module", () => {
     });
 
     it("should handle addText success", async () => {
+      mockApiKey = "sk_test123";
+
       const result = await Effect.runPromise(
         Effect.gen(function* () {
           const client = yield* SupermemoryClientService;
           yield* client.addText("test memory");
-        }).pipe(
-          Effect.provide(
-            Layer.succeed(TestSupermemoryTuiConfig, { apiKey: "sk_test123" })
-          ),
-          Effect.provide(SupermemoryClientService.Default)
-        )
+        }).pipe(Effect.provide(SupermemoryClientService.Default))
       );
 
       expect(result).toBeUndefined();
     });
 
     it("should handle search success", async () => {
+      mockApiKey = "sk_test123";
+
       const result = await Effect.runPromise(
         Effect.gen(function* () {
           const client = yield* SupermemoryClientService;
           return yield* client.search("test query");
-        }).pipe(
-          Effect.provide(
-            Layer.succeed(TestSupermemoryTuiConfig, { apiKey: "sk_test123" })
-          ),
-          Effect.provide(SupermemoryClientService.Default)
-        )
+        }).pipe(Effect.provide(SupermemoryClientService.Default))
       );
 
       expect(Array.isArray(result)).toBe(true);
     });
 
     it("should handle search with custom options", async () => {
+      mockApiKey = "sk_test123";
+
       const result = await Effect.runPromise(
         Effect.gen(function* () {
           const client = yield* SupermemoryClientService;
@@ -100,12 +103,7 @@ describe("Supermemory Client Module", () => {
             topK: 10,
             threshold: 0.8,
           });
-        }).pipe(
-          Effect.provide(
-            Layer.succeed(TestSupermemoryTuiConfig, { apiKey: "sk_test123" })
-          ),
-          Effect.provide(SupermemoryClientService.Default)
-        )
+        }).pipe(Effect.provide(SupermemoryClientService.Default))
       );
 
       expect(Array.isArray(result)).toBe(true);
@@ -135,9 +133,48 @@ describe("Supermemory Client Module", () => {
     });
   });
 
-  describe("Context Tag", () => {
-    it("should create a valid Context tag", () => {
+  describe("Service", () => {
+    it("should have correct service key", () => {
       expect(SupermemoryClientService.key).toBe("SupermemoryClient");
+    });
+  });
+
+  describe("Mock Client Layer", () => {
+    it("should work with a mock client layer", async () => {
+      const mockClient: SupermemoryClient = {
+        addText: () => Effect.void,
+        search: () => Effect.succeed([]),
+        addDocument: () =>
+          Effect.succeed({
+            id: "doc_1",
+            title: "Test",
+            content: "test content",
+          }),
+        listDocuments: () => Effect.succeed([]),
+        getDocument: () =>
+          Effect.succeed({
+            id: "doc_1",
+            title: "Test",
+            content: "test content",
+          }),
+        getMemory: () =>
+          Effect.succeed({
+            id: "mem_1",
+            content: "test",
+            documentId: "doc_1",
+          }),
+        deleteDocument: () => Effect.void,
+        searchMemories: () => Effect.succeed([]),
+      };
+
+      const result = await Effect.runPromise(
+        Effect.gen(function* () {
+          const client = yield* SupermemoryClientService;
+          return yield* client.search("test");
+        }).pipe(Effect.provide(createMockClientLayer(mockClient)))
+      );
+
+      expect(Array.isArray(result)).toBe(true);
     });
   });
 });

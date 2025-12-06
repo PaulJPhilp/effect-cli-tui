@@ -1,6 +1,7 @@
 import type { Effect } from "effect";
 import type React from "react";
-import type { InkError } from "../../types";
+
+import type { InkError } from "@/types";
 
 /**
  * Ink service API interface

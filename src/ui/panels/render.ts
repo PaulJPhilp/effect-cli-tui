@@ -38,7 +38,7 @@ export function renderKeyValuePanel(
     for (const item of props.items) {
       const keyPadded = item.key.padEnd(maxKeyWidth);
       yield* Console.log(
-        chalk.dim("│") + ` ${chalk.cyan.bold(keyPadded)}: ${item.value}`
+        `${chalk.dim("│")} ${chalk.cyan.bold(keyPadded)}: ${item.value}`
       );
     }
 
@@ -88,7 +88,7 @@ export function renderTablePanel(props: TablePanelProps): Effect.Effect<void> {
       const width = columnWidths[colIndex] ?? 10;
       return chalk.cyan.bold(col.header.padEnd(width));
     });
-    yield* Console.log(chalk.dim("│") + ` ${headerCells.join(" ")}`);
+    yield* Console.log(`${chalk.dim("│")} ${headerCells.join(" ")}`);
 
     // Separator
     const separatorLength =
@@ -105,7 +105,7 @@ export function renderTablePanel(props: TablePanelProps): Effect.Effect<void> {
             : cell.padEnd(width);
         return paddedCell;
       });
-      yield* Console.log(chalk.dim("│") + ` ${cells.join(" ")}`);
+      yield* Console.log(`${chalk.dim("│")} ${cells.join(" ")}`);
     }
 
     // Footer if provided

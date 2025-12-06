@@ -1,14 +1,14 @@
-import { Effect } from "effect";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { applyChalkStyle } from "../../src/core/colors";
+import { applyChalkStyle } from "@core/colors";
 import {
   clearCleanupHandlers,
   getCleanupHandlerCount,
   registerCleanupHandler,
-} from "../../src/core/signal-handler";
-import type { ChalkStyleOptions } from "../../src/types";
-import { startSpinner, stopSpinner } from "../../src/ui/progress/spinner";
-import { displayTable } from "../../src/ui/tables/table";
+} from "@core/signal-handler";
+import { startSpinner, stopSpinner } from "@ui/progress/spinner";
+import { displayTable } from "@ui/tables/table";
+import { Effect } from "effect";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ChalkStyleOptions } from "@/types";
 
 /**
  * Coverage gaps test - fills in remaining uncovered lines

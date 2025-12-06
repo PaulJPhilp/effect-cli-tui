@@ -1,4 +1,4 @@
-import type { ChalkColor, ChalkStyleOptions } from "../../types";
+import type { ChalkColor, ChalkStyleOptions } from "@/types";
 
 /**
  * Icon value for theme display types

@@ -1,11 +1,11 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
+import { EffectCLI } from "@/cli";
 import {
   MockCLI,
   MockCLIFailure,
   MockCLITimeout,
-} from "../../__tests__/fixtures/test-layers";
-import { EffectCLI } from "../../src/cli";
+} from "../fixtures/test-layers";
 
 /**
  * Comprehensive tests for EffectCLI.stream() method.

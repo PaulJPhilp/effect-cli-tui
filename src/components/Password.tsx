@@ -4,11 +4,11 @@
  * Provides hidden password input field.
  */
 
+import { SYMBOL_BULLET } from "@core/icons";
 import { Box, Text } from "ink";
 import TextInput from "ink-text-input";
 import type React from "react";
 import { useState } from "react";
-import { SYMBOL_BULLET } from "../core/icons";
 
 export interface PasswordProps {
   message: string;

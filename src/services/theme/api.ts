@@ -15,6 +15,15 @@ export interface ThemeService {
   readonly getTheme: () => Theme;
 
   /**
+   * Get the current theme synchronously
+   *
+   * Alias for getTheme() for backward compatibility.
+   *
+   * @returns The current theme
+   */
+  readonly getThemeSync: () => Theme;
+
+  /**
    * Set the current theme
    *
    * @param theme - The theme to set

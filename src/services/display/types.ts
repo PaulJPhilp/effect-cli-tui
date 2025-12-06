@@ -1,4 +1,4 @@
-import type { ChalkStyleOptions } from "../../types";
+import type { ChalkStyleOptions } from "@/types";
 
 /**
  * Display type for message styling

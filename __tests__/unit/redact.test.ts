@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
 import {
   redactArguments,
   redactEnvironment,
   redactSecrets,
   safeCommandLog,
   safeEnvironmentLog,
-} from "../../src/core/redact";
+} from "@core/redact";
+import { describe, expect, it } from "vitest";
 
 const REGEX_NPM_WITH_SPACE = /^npm\s+/;
 

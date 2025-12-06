@@ -1,8 +1,9 @@
 import { EventEmitter } from "node:events";
 import { Effect } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EffectCLI } from "../../src/cli";
-import { CLIError } from "../../src/types";
+
+import { EffectCLI } from "@/cli";
+import { CLIError } from "@/types";
 
 /**
  * Comprehensive tests for EffectCLI service

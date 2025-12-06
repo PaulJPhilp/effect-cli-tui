@@ -1,22 +1,6 @@
-import { Effect, Match } from "effect";
-import type { Theme } from "../services/theme/types";
-import type { ChalkColor } from "../types";
-
-// Lazy import to avoid circular dependency with ThemeService
-let ThemeServiceModule: typeof import("../services/theme/service") | null =
-  null;
-function getThemeService(): typeof import("../services/theme/service").ThemeService {
-  if (!ThemeServiceModule) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    ThemeServiceModule = require("../services/theme/service");
-  }
-  // TypeScript doesn't narrow the type after assignment, so we assert the module exists
-  // This is safe because we just assigned it above if it was null
-  if (!ThemeServiceModule) {
-    throw new Error("Failed to load ThemeService module");
-  }
-  return ThemeServiceModule.ThemeService;
-}
+import type { Theme } from "@services/theme/types";
+import { Match } from "effect";
+import type { ChalkColor } from "@/types";
 
 /** Success/checkmark icon (✓) */
 export const ICON_SUCCESS = "✓";
@@ -95,18 +79,18 @@ export const COLOR_DEFAULT = COLOR_INFO satisfies ChalkColor;
 /**
  * Get the display icon for a given type
  *
- * Uses the provided theme if available, otherwise uses the current theme if available,
- * otherwise falls back to default icons.
+ * Uses the provided theme if available, otherwise falls back to default icons.
+ * Pass a theme explicitly for theme-aware behavior.
  *
  * @param type - The display type
- * @param theme - Optional theme to use
+ * @param theme - Optional theme to use (if not provided, uses defaults)
  * @returns The corresponding icon symbol
  */
 export function getDisplayIcon(
   type: "info" | "success" | "error" | "warning",
   theme?: Theme
 ): string {
-  // Use provided theme first
+  // Use provided theme if it has icons
   if (theme?.icons) {
     return Match.value(type).pipe(
       Match.when("success", () => theme.icons.success),
@@ -115,27 +99,6 @@ export function getDisplayIcon(
       Match.when("info", () => theme.icons.info),
       Match.exhaustive
     );
-  }
-
-  // Try to get theme from ThemeService, fallback to defaults if not available
-  // Use lazy import to avoid circular dependency
-  try {
-    const ThemeService = getThemeService();
-    const themeOption = Effect.runSync(Effect.serviceOption(ThemeService));
-    if (themeOption._tag === "Some") {
-      const currentTheme = themeOption.value.getTheme();
-      if (currentTheme?.icons) {
-        return Match.value(type).pipe(
-          Match.when("success", () => currentTheme.icons.success),
-          Match.when("error", () => currentTheme.icons.error),
-          Match.when("warning", () => currentTheme.icons.warning),
-          Match.when("info", () => currentTheme.icons.info),
-          Match.exhaustive
-        );
-      }
-    }
-  } catch {
-    // ThemeService not available, fall through to defaults
   }
 
   // Fallback to default icons
@@ -151,18 +114,18 @@ export function getDisplayIcon(
 /**
  * Get the display color for a given type
  *
- * Uses the provided theme if available, otherwise uses the current theme if available,
- * otherwise falls back to default colors.
+ * Uses the provided theme if available, otherwise falls back to default colors.
+ * Pass a theme explicitly for theme-aware behavior.
  *
  * @param type - The display type
- * @param theme - Optional theme to use
+ * @param theme - Optional theme to use (if not provided, uses defaults)
  * @returns The corresponding color
  */
 export function getDisplayColor(
   type: "info" | "success" | "error" | "warning",
   theme?: Theme
 ): string {
-  // Use provided theme first
+  // Use provided theme if it has colors
   if (theme?.colors) {
     return Match.value(type).pipe(
       Match.when("success", () => theme.colors.success),
@@ -171,27 +134,6 @@ export function getDisplayColor(
       Match.when("info", () => theme.colors.info),
       Match.exhaustive
     );
-  }
-
-  // Try to get theme from ThemeService, fallback to defaults if not available
-  // Use lazy import to avoid circular dependency
-  try {
-    const ThemeService = getThemeService();
-    const themeOption = Effect.runSync(Effect.serviceOption(ThemeService));
-    if (themeOption._tag === "Some") {
-      const currentTheme = themeOption.value.getTheme();
-      if (currentTheme?.colors) {
-        return Match.value(type).pipe(
-          Match.when("success", () => currentTheme.colors.success),
-          Match.when("error", () => currentTheme.colors.error),
-          Match.when("warning", () => currentTheme.colors.warning),
-          Match.when("info", () => currentTheme.colors.info),
-          Match.exhaustive
-        );
-      }
-    }
-  } catch {
-    // ThemeService not available, fall through to defaults
   }
 
   // Fallback to default colors

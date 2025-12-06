@@ -1,5 +1,6 @@
 import { Effect } from "effect";
-import { withSlashCommands } from "../tui-slash-commands";
+
+import { withSlashCommands } from "@/tui-slash-commands";
 import {
   type MissingSupermemoryApiKey,
   SupermemoryClientService,

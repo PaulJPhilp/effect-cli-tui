@@ -1,8 +1,8 @@
+import { InkService } from "@services/ink/service";
 import { Effect } from "effect";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { InkError } from "../../../types";
-import { InkService } from "../service";
+import { InkError } from "@/types";
 
 /**
  * Comprehensive tests for InkService.

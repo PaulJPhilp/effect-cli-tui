@@ -27,7 +27,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
     name: "status",
     description: "Show current workspace, active kits, mode, and session info",
     run: (
-      context: SlashCommandContext
+      _context: SlashCommandContext
     ): Effect.Effect<
       SlashCommandResult,
       TUIError,
@@ -37,7 +37,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
         const kitRegistry = yield* KitRegistryService;
         const modeService = yield* ModeService;
 
-        yield* Console.log("\n" + "=".repeat(60));
+        yield* Console.log(`\n${"=".repeat(60)}`);
         yield* Console.log("Status");
         yield* Console.log("=".repeat(60));
 
@@ -81,7 +81,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
           `\nSession History: ${historyEntries.length} prompt(s)`
         );
 
-        yield* Console.log("\n" + "=".repeat(60) + "\n");
+        yield* Console.log(`\n${"=".repeat(60)}\n`);
 
         return { kind: "continue" } as const;
       }),
@@ -89,7 +89,8 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
   {
     name: "mode",
     description: "Show or set the current operational mode",
-    getCompletions: () => ["default", "architect", "executor", "explorer"],
+    getCompletions: () =>
+      Effect.succeed(["default", "architect", "executor", "explorer"]),
     run: (
       context: SlashCommandContext
     ): Effect.Effect<SlashCommandResult, TUIError, ModeService> =>
@@ -101,7 +102,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
           const currentMode = yield* modeService.getMode;
           const availableModes = yield* modeService.listModes;
 
-          yield* Console.log("\n" + "=".repeat(60));
+          yield* Console.log(`\n${"=".repeat(60)}`);
           yield* Console.log("Mode Management");
           yield* Console.log("=".repeat(60));
           yield* Console.log(`\nCurrent Mode: ${currentMode}`);
@@ -110,10 +111,10 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
             const marker = mode === currentMode ? " (current)" : "";
             yield* Console.log(`  - ${mode}${marker}`);
           }
-          yield* Console.log("\n" + "=".repeat(60) + "\n");
+          yield* Console.log(`\n${"=".repeat(60)}\n`);
         } else {
           // Set mode
-          const requestedMode = context.args[0]!.toLowerCase() as
+          const requestedMode = context.args[0]?.toLowerCase() as
             | "default"
             | "architect"
             | "executor"
@@ -139,7 +140,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
     name: "config",
     description: "Show current configuration (kits, mode, settings)",
     run: (
-      context: SlashCommandContext
+      _context: SlashCommandContext
     ): Effect.Effect<
       SlashCommandResult,
       TUIError,
@@ -149,7 +150,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
         const kitRegistry = yield* KitRegistryService;
         const modeService = yield* ModeService;
 
-        yield* Console.log("\n" + "=".repeat(60));
+        yield* Console.log(`\n${"=".repeat(60)}`);
         yield* Console.log("Configuration");
         yield* Console.log("=".repeat(60));
 
@@ -202,7 +203,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
           yield* Console.log("  (config file does not exist - using defaults)");
         }
 
-        yield* Console.log("\n" + "=".repeat(60) + "\n");
+        yield* Console.log(`\n${"=".repeat(60)}\n`);
 
         return { kind: "continue" } as const;
       }),
@@ -218,7 +219,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
         const toolLog = yield* ToolCallLogService;
 
         const limit = context.args[0]
-          ? Number.parseInt(context.args[0]!, 10) || 20
+          ? Number.parseInt(context.args[0] ?? "20", 10) || 20
           : 20;
 
         const entries = yield* toolLog.getRecent(limit);
@@ -228,11 +229,11 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
           return { kind: "continue" } as const;
         }
 
-        yield* Console.log("\n" + "=".repeat(60));
+        yield* Console.log(`\n${"=".repeat(60)}`);
         yield* Console.log(
           `Tool Call History (last ${entries.length} entries)`
         );
-        yield* Console.log("=".repeat(60) + "\n");
+        yield* Console.log(`${"=".repeat(60)}\n`);
 
         for (const [index, entry] of entries.entries()) {
           const time = new Date(entry.timestamp).toLocaleTimeString();
@@ -246,7 +247,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
           }
         }
 
-        yield* Console.log("\n" + "=".repeat(60) + "\n");
+        yield* Console.log(`\n${"=".repeat(60)}\n`);
 
         return { kind: "continue" } as const;
       }),

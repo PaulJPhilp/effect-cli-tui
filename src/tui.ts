@@ -31,9 +31,10 @@ import {
   applyShortFlagMapping,
   getGlobalSlashCommandRegistry,
   getSlashCommandHistory,
-  getSlashCommandSuggestionsAsync,
+  getSlashCommandSuggestionsEffect,
   parseSlashCommand,
   type SlashCommandRegistry,
+  type SlashCommandRequirements,
   type SlashCommandResult,
 } from "./tui-slash-commands";
 import {
@@ -107,7 +108,7 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
       );
     };
 
-    const maybeRunSlashCommand = <R = never>({
+    const maybeRunSlashCommand = ({
       input,
       promptMessage,
       promptKind,
@@ -115,7 +116,11 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
       input: string;
       promptMessage: string;
       promptKind: "input" | "password" | "select" | "multiSelect";
-    }): Effect.Effect<SlashCommandResult | null, TUIError, R> =>
+    }): Effect.Effect<
+      SlashCommandResult | null,
+      TUIError,
+      SlashCommandRequirements
+    > =>
       Effect.gen(function* () {
         const parsed = parseSlashCommand(input);
         if (!parsed) {
@@ -158,21 +163,25 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
         addSlashCommandHistoryEntry(input);
 
         // Log tool call (try to get ToolCallLogService, but don't fail if not available)
-        const toolLogResult = yield* Effect.either(
+        const _toolLogResult = yield* Effect.either(
           Effect.gen(function* () {
             const toolLog = yield* ToolCallLogService;
             yield* toolLog.log({
               timestamp: Date.now(),
               commandName: parsed.command,
               args: parsed.args,
-              resultSummary:
-                result?.kind === "continue"
-                  ? "continued"
-                  : result?.kind === "exitSession"
-                    ? "exited session"
-                    : result?.kind === "abortPrompt"
-                      ? "aborted prompt"
-                      : undefined,
+              resultSummary: (() => {
+                if (result?.kind === "continue") {
+                  return "continued";
+                }
+                if (result?.kind === "exitSession") {
+                  return "exited session";
+                }
+                if (result?.kind === "abortPrompt") {
+                  return "aborted prompt";
+                }
+                return;
+              })(),
             });
           })
         );
@@ -215,13 +224,13 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
        * const name = yield* tui.prompt('Enter your name:', { default: 'Guest' })
        * ```
        */
-      prompt: <R = never>(
+      prompt: (
         message: string,
         options?: {
           default?: string;
           validate?: (input: string) => boolean | string;
         }
-      ): Effect.Effect<string, TUIError, R> =>
+      ): Effect.Effect<string, TUIError, SlashCommandRequirements> =>
         Effect.gen(function* () {
           // Loop until we get a non-slash input or a slash command decides to abort/exit
           // eslint-disable-next-line no-constant-condition
@@ -237,15 +246,22 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
                 validate: options?.validate,
                 onSubmit: onComplete,
                 computeSlashSuggestions: (val: string) =>
-                  getSlashCommandSuggestionsAsync(val, slashRegistry),
+                  getSlashCommandSuggestionsEffect(val, slashRegistry),
                 onHistoryPrev: () => {
-                  if (history.length === 0) return;
-                  if (historyIndex === null) historyIndex = history.length - 1;
-                  else historyIndex = Math.max(0, historyIndex - 1);
+                  if (history.length === 0) {
+                    return;
+                  }
+                  if (historyIndex === null) {
+                    historyIndex = history.length - 1;
+                  } else {
+                    historyIndex = Math.max(0, historyIndex - 1);
+                  }
                   currentValue = history[historyIndex] ?? currentValue;
                 },
                 onHistoryNext: () => {
-                  if (history.length === 0 || historyIndex === null) return;
+                  if (history.length === 0 || historyIndex === null) {
+                    return;
+                  }
                   historyIndex = Math.min(history.length - 1, historyIndex + 1);
                   currentValue = history[historyIndex] ?? currentValue;
                 },
@@ -295,10 +311,10 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
        * )
        * ```
        */
-      selectOption: <R = never>(
+      selectOption: (
         message: string,
         choices: string[] | SelectOption[]
-      ): Effect.Effect<string, TUIError, R> =>
+      ): Effect.Effect<string, TUIError, SlashCommandRequirements> =>
         Effect.gen(function* () {
           // Loop until we get a non-slash selection or a slash command decides to abort/exit
           // eslint-disable-next-line no-constant-condition
@@ -354,10 +370,10 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
        * )
        * ```
        */
-      multiSelect: <R = never>(
+      multiSelect: (
         message: string,
         choices: string[] | SelectOption[]
-      ): Effect.Effect<string[], TUIError, R> =>
+      ): Effect.Effect<string[], TUIError, SlashCommandRequirements> =>
         Effect.gen(function* () {
           // Loop until we get selections without slash commands or a slash command decides to abort/exit
           // eslint-disable-next-line no-constant-condition
@@ -430,19 +446,19 @@ export class TUIHandler extends Effect.Service<TUIHandler>()("app/TUIHandler", {
        * })
        * ```
        */
-      password: <R = never>(
+      password: (
         message: string,
         options?: {
           validate?: (input: string) => boolean | string;
         }
-      ): Effect.Effect<string, TUIError, R> =>
+      ): Effect.Effect<string, TUIError, SlashCommandRequirements> =>
         Effect.gen(function* () {
           // Loop until we get a non-slash input or a slash command decides to abort/exit
           // eslint-disable-next-line no-constant-condition
           while (true) {
-            const historyIndex: number | null = null;
-            const history = getSlashCommandHistory();
-            const currentValue = "";
+            const _historyIndex: number | null = null;
+            const _history = getSlashCommandHistory();
+            const _currentValue = "";
             const value = yield* ink.renderWithResult<string>((onComplete) =>
               React.createElement(Password, {
                 message,

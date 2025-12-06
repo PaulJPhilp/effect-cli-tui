@@ -1,9 +1,9 @@
+import { applyChalkStyle } from "@core/colors";
+import type { DisplayType } from "@services/display/types";
 import chalk from "chalk";
 import { Effect } from "effect";
 import { table } from "table";
-import { applyChalkStyle } from "../../core/colors";
-import type { DisplayType } from "../../services/display/types";
-import type { ChalkColor, TableAlignment } from "../../types";
+import type { ChalkColor, TableAlignment } from "@/types";
 
 export interface TableColumn<T = Record<string, unknown>> {
   key: keyof T | string;

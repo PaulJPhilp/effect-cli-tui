@@ -2,8 +2,8 @@
  * Layout service types
  */
 
+import type { OutputItem as LayoutOutputItem } from "@ui/layout/TUILayout";
 import type React from "react";
-import type { OutputItem as LayoutOutputItem } from "../../ui/layout/TUILayout";
 
 /**
  * Re-export OutputItem from layout component
@@ -17,7 +17,7 @@ export interface LayoutState {
   /**
    * Current output items (text + panels)
    */
-  readonly outputItems: ReadonlyArray<OutputItem>;
+  readonly outputItems: readonly OutputItem[];
 
   /**
    * Optional status strip content

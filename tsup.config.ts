@@ -1,3 +1,4 @@
+import { resolve } from "path";
 import { defineConfig } from "tsup";
 
 export default defineConfig({
@@ -25,6 +26,19 @@ export default defineConfig({
     "ink-select-input",
     "pastel",
   ],
+  esbuildOptions(options) {
+    options.alias = {
+      "@": resolve(process.cwd(), "src"),
+      "@services": resolve(process.cwd(), "src/services"),
+      "@components": resolve(process.cwd(), "src/components"),
+      "@ui": resolve(process.cwd(), "src/ui"),
+      "@utils": resolve(process.cwd(), "src/utils"),
+      "@supermemory": resolve(process.cwd(), "src/supermemory"),
+      "@kits": resolve(process.cwd(), "src/kits"),
+      "@core": resolve(process.cwd(), "src/core"),
+    };
+    return options;
+  },
   esbuild: {
     jsx: "automatic",
     jsxImportSource: "react",

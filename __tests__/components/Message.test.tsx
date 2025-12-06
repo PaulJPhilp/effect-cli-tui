@@ -2,9 +2,9 @@
  * Tests for Message component
  */
 
+import { Message } from "@components/Message";
 import { render } from "ink-testing-library";
 import { describe, expect, it } from "vitest";
-import { Message } from "../../src/components/Message";
 
 describe("Message component", () => {
   it("should render info message with info icon", () => {

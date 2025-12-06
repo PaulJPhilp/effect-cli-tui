@@ -7,7 +7,8 @@
 import { Box, Text } from "ink";
 import SelectInput from "ink-select-input";
 import type React from "react";
-import type { SelectOption } from "../types";
+
+import type { SelectOption } from "@/types";
 
 export interface SelectProps {
   message: string;

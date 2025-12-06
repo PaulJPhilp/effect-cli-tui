@@ -1,7 +1,7 @@
-import { applyChalkStyle } from "../../core/colors";
-import { getDisplayColor, getDisplayIcon } from "../../core/icons";
-import type { ChalkColor } from "../../types";
-import type { Theme } from "../theme/types";
+import { applyChalkStyle } from "@core/colors";
+import { getDisplayColor, getDisplayIcon } from "@core/icons";
+import type { Theme } from "@services/theme/types";
+import type { ChalkColor } from "@/types";
 import type { DisplayOptions, DisplayType } from "./types";
 
 /**

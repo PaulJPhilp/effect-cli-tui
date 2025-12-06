@@ -1,5 +1,3 @@
-import { Effect } from "effect";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearCleanupHandlers,
   createTerminalCleanup,
@@ -8,7 +6,9 @@ import {
   hasSignalHandlers,
   registerCleanupHandler,
   withCleanup,
-} from "../../src/core/signal-handler";
+} from "@core/signal-handler";
+import { Effect } from "effect";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * Comprehensive tests for signal handling and cleanup.

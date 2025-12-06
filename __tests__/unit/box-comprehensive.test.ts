@@ -1,6 +1,6 @@
+import { displayBox, displayPanel } from "@ui/boxes/box";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
-import { displayBox, displayPanel } from "../../src/ui/boxes/box";
 
 /**
  * Comprehensive tests for box.ts module

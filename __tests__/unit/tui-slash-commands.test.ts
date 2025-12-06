@@ -1,5 +1,6 @@
 import { Console, Effect } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
 import {
   addSlashCommandHistoryEntry,
   addToHistory,
@@ -16,8 +17,8 @@ import {
   parseSlashCommandName,
   type SlashCommandContext,
   type SlashCommandDefinition,
-} from "../../src/tui-slash-commands";
-import { TUIError } from "../../src/types";
+} from "@/tui-slash-commands";
+import { TUIError } from "@/types";
 
 describe("Slash command parsing", () => {
   it("should parse command name without leading slash", () => {
@@ -410,9 +411,9 @@ describe("Per-command completions", () => {
       description: "Deploy application",
       getCompletions: (context) => {
         if (context.args.length === 0) {
-          return ["production", "staging", "development"];
+          return Effect.succeed(["production", "staging", "development"]);
         }
-        return [];
+        return Effect.succeed([]);
       },
       run: () => Effect.succeed({ kind: "continue" as const }),
     };
@@ -429,13 +430,14 @@ describe("Per-command completions", () => {
     const deployCommand: SlashCommandDefinition = {
       name: "deploy",
       description: "Deploy application",
-      getCompletions: async (context) => {
-        // Simulate async API call
-        await new Promise((resolve) => setTimeout(resolve, 10));
+      getCompletions: (context) => {
+        // Simulate async API call using Effect
         if (context.args.length === 0) {
-          return ["production", "staging", "development"];
+          return Effect.succeed(["production", "staging", "development"]).pipe(
+            Effect.delay("10 millis")
+          );
         }
-        return [];
+        return Effect.succeed([]);
       },
       run: () => Effect.succeed({ kind: "continue" as const }),
     };
@@ -458,12 +460,12 @@ describe("Per-command completions", () => {
       description: "Deploy application",
       getCompletions: (context) => {
         if (context.flags.region) {
-          return ["us-east-1", "us-west-2", "eu-central-1"];
+          return Effect.succeed(["us-east-1", "us-west-2", "eu-central-1"]);
         }
         if (context.args.length === 0) {
-          return ["production", "staging"];
+          return Effect.succeed(["production", "staging"]);
         }
-        return [];
+        return Effect.succeed([]);
       },
       run: () => Effect.succeed({ kind: "continue" as const }),
     };
@@ -493,9 +495,7 @@ describe("Per-command completions", () => {
     const failingCommand: SlashCommandDefinition = {
       name: "failing",
       description: "Command with failing completions",
-      getCompletions: () => {
-        throw new Error("Completion failed");
-      },
+      getCompletions: () => Effect.fail(new Error("Completion failed")),
       run: () => Effect.succeed({ kind: "continue" as const }),
     };
 
@@ -514,14 +514,8 @@ describe("Per-command completions", () => {
     const listCommand: SlashCommandDefinition = {
       name: "list",
       description: "List items",
-      getCompletions: () => [
-        "item1",
-        "item2",
-        "item3",
-        "item4",
-        "item5",
-        "item6",
-      ],
+      getCompletions: () =>
+        Effect.succeed(["item1", "item2", "item3", "item4", "item5", "item6"]),
       run: () => Effect.succeed({ kind: "continue" as const }),
     };
 
@@ -539,7 +533,8 @@ describe("Per-command completions", () => {
     const dupeCommand: SlashCommandDefinition = {
       name: "dupe",
       description: "Command with duplicate completions",
-      getCompletions: () => ["option1", "option2", "option1", "option2"],
+      getCompletions: () =>
+        Effect.succeed(["option1", "option2", "option1", "option2"]),
       run: () => Effect.succeed({ kind: "continue" as const }),
     };
 

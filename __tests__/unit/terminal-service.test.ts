@@ -1,10 +1,6 @@
+import { createCustomTerminal, Terminal, TerminalTest } from "@core/terminal";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
-import {
-  createCustomTerminal,
-  Terminal,
-  TerminalTest,
-} from "../../src/core/terminal";
 
 /**
  * Comprehensive tests for the Output Service abstraction.

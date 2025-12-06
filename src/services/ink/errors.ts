@@ -3,4 +3,4 @@
  *
  * Errors are defined in src/types.ts and re-exported here for convenience.
  */
-export { InkError } from "../../types";
+export { InkError } from "@/types";

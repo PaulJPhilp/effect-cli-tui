@@ -18,12 +18,12 @@ import {
   type Kit,
   withKit,
   withKits,
-} from "../../../src/kits";
-import { KitRegistryService } from "../../../src/kits/registry";
+} from "@kits";
+import { KitRegistryService } from "@kits/registry";
 import {
   createEffectCliSlashCommand,
   getGlobalSlashCommandRegistry,
-} from "../../../src/tui-slash-commands";
+} from "@/tui-slash-commands";
 
 /**
  * Test kit for use in tests

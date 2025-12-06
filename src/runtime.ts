@@ -32,7 +32,7 @@
  */
 
 import { type Effect, Layer, ManagedRuntime } from "effect";
-import { type EffectCLI, EffectCLILive } from "./cli";
+import { EffectCLI } from "./cli";
 import { Terminal } from "./core/terminal";
 import { ApprovalService } from "./services/approval";
 import { DisplayService } from "./services/display";
@@ -63,7 +63,7 @@ import { withSlashCommands } from "./tui-slash-commands";
  * and to ensure it's available for other services that might need it directly.
  */
 export const EffectCLITUILayer = Layer.mergeAll(
-  EffectCLILive,
+  EffectCLI.Default,
   InkService.Default, // Explicitly included (also provided via TUIHandler dependencies)
   TUIHandler.Default, // Automatically includes InkService via dependencies
   DisplayService.Default,
@@ -156,7 +156,7 @@ export const TUIHandlerRuntime = ManagedRuntime.make(
  * ```
  */
 export const EffectCLIOnlyRuntime = ManagedRuntime.make<EffectCLI, never>(
-  EffectCLILive as Layer.Layer<EffectCLI, never, never>
+  EffectCLI.Default as Layer.Layer<EffectCLI, never, never>
 );
 
 /**

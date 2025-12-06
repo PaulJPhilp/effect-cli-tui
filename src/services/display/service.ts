@@ -1,10 +1,10 @@
+import { applyChalkStyle } from "@core/colors";
+import { getDisplayIcon } from "@core/icons";
+import { ThemeService } from "@services/theme/service";
+import type { Theme } from "@services/theme/types";
 import { Console, Effect } from "effect";
-import { DEFAULT_DISPLAY_TYPE } from "../../constants";
-import { applyChalkStyle } from "../../core/colors";
-import { getDisplayIcon } from "../../core/icons";
-import type { ChalkStyleOptions } from "../../types";
-import { ThemeService } from "../theme/service";
-import type { Theme } from "../theme/types";
+import { DEFAULT_DISPLAY_TYPE } from "@/constants";
+import type { ChalkStyleOptions } from "@/types";
 import type { DisplayService as DisplayServiceApi } from "./api";
 import { formatDisplayOutput } from "./helpers";
 import type { DisplayOptions, JsonDisplayOptions } from "./types";

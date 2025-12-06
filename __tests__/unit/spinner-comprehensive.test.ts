@@ -1,12 +1,12 @@
-import { Effect } from "effect";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type SpinnerOptions,
   spinnerEffect,
   startSpinner,
   stopSpinner,
   updateSpinner,
-} from "../../src/ui/progress/spinner";
+} from "@ui/progress/spinner";
+import { Effect } from "effect";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * Comprehensive tests for spinner.ts module

@@ -1,10 +1,10 @@
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import { loadKitConfig, saveKitConfig } from "@kits/config";
+import type { KitConfig } from "@kits/types";
 import { Effect } from "effect";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { loadKitConfig, saveKitConfig } from "../../../src/kits/config";
-import type { KitConfig } from "../../../src/kits/types";
 
 const CONFIG_DIR_NAME = ".effect-cli-tui";
 const CONFIG_FILE_NAME = "kits.json";

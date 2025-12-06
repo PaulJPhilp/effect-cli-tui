@@ -1,8 +1,8 @@
+import { InkService } from "@services/ink";
 import { Effect, Layer } from "effect";
-import { EffectCLI } from "../../src/cli";
-import { InkService } from "../../src/services/ink";
-import { TUIHandler } from "../../src/tui";
-import { CLIError, type CLIResult, TUIError } from "../../src/types";
+import { EffectCLI } from "@/cli";
+import { TUIHandler } from "@/tui";
+import { CLIError, type CLIResult, TUIError } from "@/types";
 
 /**
  * Mock layer for EffectCLI service.

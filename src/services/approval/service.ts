@@ -1,6 +1,7 @@
 import { Console, Effect } from "effect";
-import { TUIHandler } from "../../tui";
-import type { TUIError } from "../../types";
+
+import { TUIHandler } from "@/tui";
+import type { TUIError } from "@/types";
 
 /**
  * Operation kind for approval requests
@@ -49,7 +50,7 @@ export class ApprovalService extends Effect.Service<ApprovalService>()(
         approve: (op: OperationSummary): Effect.Effect<boolean, TUIError> =>
           Effect.gen(function* () {
             // Display operation information
-            yield* Console.log("\n" + "=".repeat(60));
+            yield* Console.log(`\n${"=".repeat(60)}`);
             yield* Console.log(`Operation: ${op.title}`);
             yield* Console.log(`Kind: ${op.kind}`);
             yield* Console.log(`Summary: ${op.summary}`);

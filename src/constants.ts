@@ -38,6 +38,72 @@ export const MAX_TITLE_LENGTH = 100;
 
 import type { BorderStyle, BoxBorderChars } from "./types";
 
+// ============================================================================
+// Slash Command Constants
+// ============================================================================
+
+/** Default maximum suggestions for slash command completion */
+export const DEFAULT_MAX_SUGGESTIONS = 5;
+
+/** Mask displayed for password inputs in history */
+export const PASSWORD_MASK = "********";
+
+/** File prefix for saved session files */
+export const SESSION_FILE_PREFIX = "session-";
+
+/** Prefix for negated boolean flags (--no-xyz) */
+export const NEGATED_FLAG_PREFIX = "no-";
+
+/** Minimum length for negated flag to be valid (prefix + at least 1 char) */
+export const NEGATED_FLAG_MIN_LENGTH = 3;
+
+/** JSON indentation for pretty-printing */
+export const JSON_INDENT = 2;
+
+/** ANSI escape sequence to clear screen and move cursor home */
+export const ANSI_CLEAR_SCREEN = "\x1b[2J\x1b[H";
+
+/** Common short-flag to long-flag mappings */
+export const SHORT_TO_LONG_FLAGS: Readonly<Record<string, string>> = {
+  f: "force",
+  t: "tag",
+  c: "count",
+  v: "verbose",
+  q: "quiet",
+  h: "help",
+} as const;
+
+/** Generic flags suggested for all commands */
+export const GENERIC_FLAGS: readonly string[] = [
+  "--help",
+  "--verbose",
+  "--quiet",
+  "-h",
+  "-v",
+  "-q",
+] as const;
+
+// ============================================================================
+// Table Column Widths
+// ============================================================================
+
+/** Column widths for help command table */
+export const HELP_TABLE_COLUMN_WIDTHS = {
+  command: 20,
+  aliases: 15,
+} as const;
+
+/** Column widths for history command table */
+export const HISTORY_TABLE_COLUMN_WIDTHS = {
+  index: 4,
+  time: 12,
+  type: 12,
+} as const;
+
+// ============================================================================
+// Box Styles
+// ============================================================================
+
 export const BOX_STYLES: Record<BorderStyle, BoxBorderChars> = {
   single: {
     topLeft: "┌",

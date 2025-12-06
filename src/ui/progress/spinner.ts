@@ -1,5 +1,3 @@
-import cliSpinners from "cli-spinners";
-import { Effect } from "effect";
 import {
   ANSI_CARRIAGE_RETURN,
   ANSI_HIDE_CURSOR,
@@ -10,8 +8,10 @@ import {
   SPINNER_DEFAULT_TYPE,
   SPINNER_MESSAGE_DONE,
   SPINNER_MESSAGE_FAILED,
-} from "../../core/icons";
-import type { ChalkColor } from "../../types";
+} from "@core/icons";
+import cliSpinners from "cli-spinners";
+import { Effect } from "effect";
+import type { ChalkColor } from "@/types";
 
 export interface SpinnerOptions {
   message?: string;

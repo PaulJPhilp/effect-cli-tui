@@ -1,8 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { Effect, Layer } from "effect";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MemKit, withKit } from "../../../src/kits";
+import { MemKit, withKit } from "@kits";
 import {
   type Document,
   type Memory,
@@ -10,8 +8,10 @@ import {
   type SupermemoryClient,
   SupermemoryClientService,
   SupermemoryError,
-} from "../../../src/supermemory/client";
-import { getGlobalSlashCommandRegistry } from "../../../src/tui-slash-commands";
+} from "@supermemory/client";
+import { Effect, Layer } from "effect";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getGlobalSlashCommandRegistry } from "@/tui-slash-commands";
 
 // Mock fs operations
 vi.mock("node:fs/promises", () => ({

@@ -1,24 +1,20 @@
 import path from "node:path";
-import { Context, Effect, Layer } from "effect";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { MemKit, withKit } from "../../src/kits";
+import { MemKit, withKit } from "@kits";
 import {
   type Document,
   type Memory,
   MissingSupermemoryApiKey,
   SupermemoryClientService,
-} from "../../src/supermemory/client";
+} from "@supermemory/client";
 import {
   ConfigError,
   loadConfig,
   type SupermemoryTuiConfig,
-} from "../../src/supermemory/config";
-import { getGlobalSlashCommandRegistry } from "../../src/tui-slash-commands";
-
-// Create a test config tag (similar to client.unit.test.ts)
-const TestSupermemoryTuiConfig = Context.GenericTag<SupermemoryTuiConfig>(
-  "TestSupermemoryTuiConfig"
-);
+  SupermemoryTuiConfigService,
+} from "@supermemory/config";
+import { Effect, Layer } from "effect";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getGlobalSlashCommandRegistry } from "@/tui-slash-commands";
 
 // Mock loadConfig - will be set per test
 const mockLoadConfigRef: {
@@ -173,7 +169,7 @@ describe("MemKit Integration Tests", () => {
         })
       ).pipe(
         Effect.provide(
-          Layer.succeed(TestSupermemoryTuiConfig, {
+          Layer.succeed(SupermemoryTuiConfigService, {
             apiKey: "sk_test123",
           })
         ),
@@ -205,7 +201,7 @@ describe("MemKit Integration Tests", () => {
         })
       ).pipe(
         Effect.provide(
-          Layer.succeed(TestSupermemoryTuiConfig, {
+          Layer.succeed(SupermemoryTuiConfigService, {
             apiKey: null,
           })
         ),
@@ -276,7 +272,7 @@ describe("MemKit Integration Tests", () => {
         })
       ).pipe(
         Effect.provide(
-          Layer.succeed(TestSupermemoryTuiConfig, { apiKey: "sk_file456" })
+          Layer.succeed(SupermemoryTuiConfigService, { apiKey: "sk_file456" })
         ),
         Effect.provide(SupermemoryClientService.Default)
       );
@@ -372,7 +368,7 @@ describe("MemKit Integration Tests", () => {
     });
 
     it("should complete full workflow: add text -> search -> show -> delete", async () => {
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 
@@ -500,7 +496,7 @@ describe("MemKit Integration Tests", () => {
     });
 
     it("should handle file ingestion workflow", async () => {
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 
@@ -547,7 +543,7 @@ describe("MemKit Integration Tests", () => {
     });
 
     it("should handle URL ingestion workflow", async () => {
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 
@@ -620,7 +616,7 @@ describe("MemKit Integration Tests", () => {
         }
       );
 
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 
@@ -649,7 +645,7 @@ describe("MemKit Integration Tests", () => {
     });
 
     it("should handle search with multiple filters", async () => {
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 
@@ -728,7 +724,7 @@ describe("MemKit Integration Tests", () => {
 
   describe("Error Handling Integration", () => {
     it("should handle file read errors gracefully", async () => {
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 
@@ -769,7 +765,7 @@ describe("MemKit Integration Tests", () => {
 
       mockSupermemory.make.mockReturnValue(mockClient);
 
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 
@@ -808,7 +804,7 @@ describe("MemKit Integration Tests", () => {
 
       mockSupermemory.make.mockReturnValue(mockClient);
 
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 
@@ -849,7 +845,7 @@ describe("MemKit Integration Tests", () => {
 
       mockSupermemory.make.mockReturnValue(mockClient);
 
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 
@@ -936,7 +932,7 @@ describe("MemKit Integration Tests", () => {
         })
       ).pipe(
         Effect.provide(
-          Layer.succeed(TestSupermemoryTuiConfig, {
+          Layer.succeed(SupermemoryTuiConfigService, {
             apiKey: "sk_test123",
           })
         ),
@@ -988,7 +984,7 @@ describe("MemKit Integration Tests", () => {
 
   describe("Command Chaining", () => {
     it("should chain multiple commands in sequence", async () => {
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 
@@ -1069,7 +1065,7 @@ describe("MemKit Integration Tests", () => {
 
   describe("Edge Cases with Real Services", () => {
     it("should handle very long content", async () => {
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 
@@ -1135,7 +1131,7 @@ describe("MemKit Integration Tests", () => {
     });
 
     it("should handle special characters in all inputs", async () => {
-      const layer = Layer.succeed(TestSupermemoryTuiConfig, {
+      const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
       }).pipe(Layer.provide(SupermemoryClientService.Default));
 

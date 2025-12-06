@@ -1,13 +1,13 @@
+import { COLOR_ERROR, COLOR_SUCCESS, COLOR_WARNING } from "@core/icons";
+import type { DisplayType } from "@services/display/types";
 import { Brand, Match } from "effect";
 import {
   BOX_STYLES,
   DEFAULT_DISPLAY_TYPE,
   MAX_TITLE_LENGTH,
   MIN_TITLE_LENGTH,
-} from "../../constants";
-import { COLOR_ERROR, COLOR_SUCCESS, COLOR_WARNING } from "../../core/icons";
-import type { DisplayType } from "../../services/display/types";
-import type { BorderStyle, BoxBorderChars, ChalkColor } from "../../types";
+} from "@/constants";
+import type { BorderStyle, BoxBorderChars, ChalkColor } from "@/types";
 
 // Branded Title type with validation
 export type Title = string & Brand.Brand<"Title">;

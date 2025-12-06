@@ -1,24 +1,28 @@
-import * as fs from "node:fs/promises";
-import * as path from "node:path";
-import { Console, Effect } from "effect";
-import { redactSecrets } from "../core/redact";
-import {
-  SupermemoryClientService,
-  type SupermemoryError,
-} from "../supermemory/client";
-import { loadConfig } from "../supermemory/config";
+/** biome-ignore-all assist/source/organizeImports: <> */
 import {
   createEffectCliSlashCommand,
   type SlashCommandDefinition,
-} from "../tui-slash-commands";
-import { TUIError } from "../types";
+} from "@/tui-slash-commands";
+import { TUIError } from "@/types";
+import { redactSecrets } from "@core/redact";
+import {
+  SupermemoryClientService,
+  type Memory,
+  type SupermemoryError,
+} from "@supermemory/client";
+import { loadConfig } from "@supermemory/config";
+import { Console, Effect } from "effect";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
 import type { Kit } from "./types";
 
 /**
  * Parse comma-separated tags string into array
  */
 function parseTags(tagsStr: string | undefined): readonly string[] | undefined {
-  if (!tagsStr) return;
+  if (!tagsStr) {
+    return;
+  }
   return tagsStr
     .split(",")
     .map((t) => t.trim())
@@ -30,7 +34,9 @@ function parseTags(tagsStr: string | undefined): readonly string[] | undefined {
  */
 function deriveTitle(text: string, maxLength = 50): string {
   const trimmed = text.trim();
-  if (trimmed.length <= maxLength) return trimmed;
+  if (trimmed.length <= maxLength) {
+    return trimmed;
+  }
   return `${trimmed.slice(0, maxLength - 3)}...`;
 }
 
@@ -38,7 +44,9 @@ function deriveTitle(text: string, maxLength = 50): string {
  * Format date for display
  */
 function formatDate(dateStr: string | undefined): string {
-  if (!dateStr) return "N/A";
+  if (!dateStr) {
+    return "N/A";
+  }
   try {
     const date = new Date(dateStr);
     return date.toLocaleString();
@@ -51,7 +59,9 @@ function formatDate(dateStr: string | undefined): string {
  * Truncate text for display
  */
 function truncate(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
+  if (text.length <= maxLength) {
+    return text;
+  }
   return `${text.slice(0, maxLength - 3)}...`;
 }
 
@@ -59,7 +69,7 @@ function truncate(text: string, maxLength: number): string {
  * Handle /mem-status command
  */
 function handleMemStatus(
-  context: import("../tui-slash-commands").SlashCommandContext
+  _context: import("../tui-slash-commands").SlashCommandContext
 ): Effect.Effect<
   import("../tui-slash-commands").SlashCommandResult,
   TUIError,
@@ -398,6 +408,111 @@ function handleMemAddUrl(
 }
 
 /**
+ * Display a single memory item
+ */
+function displayMemoryItem(mem: Memory, index: number): Effect.Effect<void> {
+  return Effect.gen(function* () {
+    const snippet = truncate(mem.content, 80);
+    const score = mem.score ? ` (score: ${(mem.score * 100).toFixed(1)}%)` : "";
+    yield* Console.log(`\n  ${index + 1}. ${snippet}${score}`);
+    yield* Console.log(`     Memory ID: ${mem.id}`);
+    yield* Console.log(`     Document: ${mem.documentId}`);
+    if (mem.documentTitle) {
+      yield* Console.log(`     Title: ${mem.documentTitle}`);
+    }
+  });
+}
+
+/**
+ * Display search results for memories
+ */
+function displaySearchResults(
+  query: string,
+  memories: readonly Memory[]
+): Effect.Effect<void> {
+  return Effect.gen(function* () {
+    yield* Console.log(`\n🔍 Search results for "${query}":`);
+    yield* Console.log("─".repeat(60));
+
+    if (memories.length === 0) {
+      yield* Console.log("  No memories found matching your query.");
+    } else {
+      for (let i = 0; i < memories.length; i++) {
+        const mem = memories[i];
+        if (mem) {
+          yield* displayMemoryItem(mem, i);
+        }
+      }
+    }
+
+    yield* Console.log("─".repeat(60));
+    yield* Console.log("");
+    yield* Console.log("Tip: Use /mem-show-mem <id> to view full memory");
+    yield* Console.log("");
+  });
+}
+
+/**
+ * Handle missing API key error
+ */
+function handleMissingApiKey(): Effect.Effect<
+  import("../tui-slash-commands").SlashCommandResult
+> {
+  return Effect.gen(function* () {
+    yield* Console.log(
+      "Error: Supermemory API key not configured. Run '/supermemory api-key <key>' first."
+    );
+    return { kind: "continue" } as const;
+  });
+}
+
+/**
+ * Handle Supermemory error
+ */
+function handleSupermemoryError(
+  error: SupermemoryError
+): Effect.Effect<import("../tui-slash-commands").SlashCommandResult> {
+  return Effect.gen(function* () {
+    yield* Console.log(`Error: ${error.message}`);
+    return { kind: "continue" } as const;
+  });
+}
+
+/**
+ * Handle generic search error
+ */
+function handleGenericSearchError(
+  error: unknown
+): Effect.Effect<import("../tui-slash-commands").SlashCommandResult> {
+  return Effect.gen(function* () {
+    yield* Console.log(`Error: Search failed - ${String(error)}`);
+    return { kind: "continue" } as const;
+  });
+}
+
+/**
+ * Handle search errors
+ */
+function handleSearchError(
+  error: unknown
+): Effect.Effect<import("../tui-slash-commands").SlashCommandResult> {
+  const unknownError = error as unknown;
+  if (
+    typeof unknownError === "object" &&
+    unknownError !== null &&
+    "_tag" in unknownError
+  ) {
+    if (unknownError._tag === "MissingSupermemoryApiKey") {
+      return handleMissingApiKey();
+    }
+    if (unknownError._tag === "SupermemoryError") {
+      return handleSupermemoryError(unknownError as SupermemoryError);
+    }
+  }
+  return handleGenericSearchError(error);
+}
+
+/**
  * Handle /mem-search command
  */
 function handleMemSearch(
@@ -432,63 +547,10 @@ function handleMemSearch(
       docId,
     });
 
-    yield* Console.log(`\n🔍 Search results for "${query}":`);
-    yield* Console.log("─".repeat(60));
-
-    if (memories.length === 0) {
-      yield* Console.log("  No memories found matching your query.");
-    } else {
-      for (let i = 0; i < memories.length; i++) {
-        const mem = memories[i]!;
-        const snippet = truncate(mem.content, 80);
-        const score = mem.score
-          ? ` (score: ${(mem.score * 100).toFixed(1)}%)`
-          : "";
-        yield* Console.log(`\n  ${i + 1}. ${snippet}${score}`);
-        yield* Console.log(`     Memory ID: ${mem.id}`);
-        yield* Console.log(`     Document: ${mem.documentId}`);
-        if (mem.documentTitle) {
-          yield* Console.log(`     Title: ${mem.documentTitle}`);
-        }
-      }
-    }
-
-    yield* Console.log("─".repeat(60));
-    yield* Console.log("");
-    yield* Console.log("Tip: Use /mem-show-mem <id> to view full memory");
-    yield* Console.log("");
+    yield* displaySearchResults(query, memories);
 
     return { kind: "continue" } as const;
-  }).pipe(
-    Effect.catchAll((error) => {
-      const unknownError = error as unknown;
-      if (
-        typeof unknownError === "object" &&
-        unknownError !== null &&
-        "_tag" in unknownError
-      ) {
-        if (unknownError._tag === "MissingSupermemoryApiKey") {
-          return Effect.gen(function* () {
-            yield* Console.log(
-              "Error: Supermemory API key not configured. Run '/supermemory api-key <key>' first."
-            );
-            return { kind: "continue" } as const;
-          });
-        }
-        if (unknownError._tag === "SupermemoryError") {
-          return Effect.gen(function* () {
-            const smError = unknownError as SupermemoryError;
-            yield* Console.log(`Error: ${smError.message}`);
-            return { kind: "continue" } as const;
-          });
-        }
-      }
-      return Effect.gen(function* () {
-        yield* Console.log(`Error: Search failed - ${String(error)}`);
-        return { kind: "continue" } as const;
-      });
-    })
-  );
+  }).pipe(Effect.catchAll(handleSearchError));
 }
 
 /**
@@ -728,7 +790,7 @@ function handleMemRmDoc(
  * Handle /mem-stats command
  */
 function handleMemStats(
-  context: import("../tui-slash-commands").SlashCommandContext
+  _context: import("../tui-slash-commands").SlashCommandContext
 ): Effect.Effect<
   import("../tui-slash-commands").SlashCommandResult,
   TUIError,
@@ -751,10 +813,10 @@ function handleMemStats(
       if (doc.createdAt) {
         const created = new Date(doc.createdAt);
         if (created >= oneDayAgo) {
-          docsLastDay++;
+          docsLastDay += 1;
         }
         if (created >= oneWeekAgo) {
-          docsLastWeek++;
+          docsLastWeek += 1;
         }
       }
     }

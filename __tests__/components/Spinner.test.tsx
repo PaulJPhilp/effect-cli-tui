@@ -2,9 +2,9 @@
  * Tests for Spinner component
  */
 
+import { SpinnerComponent } from "@components/Spinner";
 import { render } from "ink-testing-library";
 import { describe, expect, it } from "vitest";
-import { SpinnerComponent } from "../../src/components/Spinner";
 
 describe("SpinnerComponent", () => {
   it("should render spinner with message", () => {

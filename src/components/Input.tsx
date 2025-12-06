@@ -4,6 +4,7 @@
  * Provides a simple text input with optional validation and default value.
  */
 
+import { Effect } from "effect";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import type React from "react";
@@ -16,9 +17,7 @@ export interface InputProps {
   validate?: (value: string) => boolean | string;
   onSubmit: (value: string) => void;
   // Slash command enhancement props (optional)
-  computeSlashSuggestions?: (
-    value: string
-  ) => ReadonlyArray<string> | Promise<ReadonlyArray<string>>; // Suggestion provider
+  computeSlashSuggestions?: (value: string) => Effect.Effect<readonly string[]>; // Suggestion provider (Effect-based)
   onHistoryPrev?: () => void; // Up arrow for slash command history
   onHistoryNext?: () => void; // Down arrow for slash command history
 }
@@ -83,24 +82,23 @@ export const Input: React.FC<InputProps> = ({
     }
     // Recompute suggestions when value changes
     if (input.startsWith("/") && computeSlashSuggestions) {
-      const res = computeSlashSuggestions(input);
-      if (res instanceof Promise) {
-        res
-          .then((list) => setSuggestions(list ?? []))
-          .catch(() => {
-            setSuggestions([]);
-          });
-      } else {
-        setSuggestions(res ?? []);
-      }
+      const effect = computeSlashSuggestions(input);
+      // Convert Effect to Promise for React boundary
+      Effect.runPromise(effect)
+        .then((list) => setSuggestions(list ?? []))
+        .catch(() => {
+          setSuggestions([]);
+        });
     } else {
       setSuggestions([]);
     }
   };
 
   // Key handling for slash command features
-  useInput((inputKey, key) => {
-    if (!value.startsWith("/")) return; // Only active for slash commands
+  useInput((_inputKey, key) => {
+    if (!value.startsWith("/")) {
+      return; // Only active for slash commands
+    }
     if (key.tab) {
       // Auto-complete with first suggestion
       const top = suggestions[0];

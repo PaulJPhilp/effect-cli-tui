@@ -2,9 +2,9 @@
  * Tests for MultiSelect component
  */
 
+import { MultiSelect } from "@components/MultiSelect";
 import { render } from "ink-testing-library";
 import { describe, expect, it, vi } from "vitest";
-import { MultiSelect } from "../../src/components/MultiSelect";
 
 describe("MultiSelect component", () => {
   const choices = ["Item 1", "Item 2", "Item 3", "Item 4"];

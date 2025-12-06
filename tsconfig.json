@@ -16,7 +16,18 @@
     "rootDir": "./src",
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@services/*": ["src/services/*"],
+      "@components/*": ["src/components/*"],
+      "@ui/*": ["src/ui/*"],
+      "@utils/*": ["src/utils/*"],
+      "@supermemory/*": ["src/supermemory/*"],
+      "@kits/*": ["src/kits/*"],
+      "@core/*": ["src/core/*"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]

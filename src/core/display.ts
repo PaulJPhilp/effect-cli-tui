@@ -1,10 +1,10 @@
-import { Effect } from "effect";
-import { DisplayService } from "../services/display";
+import { DisplayService } from "@services/display";
 import type {
   DisplayOptions,
   DisplayType,
   JsonDisplayOptions,
-} from "../services/display/types";
+} from "@services/display/types";
+import { Effect } from "effect";
 
 /**
  * Enhanced display function with style support

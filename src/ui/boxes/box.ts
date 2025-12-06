@@ -1,8 +1,8 @@
+import { applyChalkStyle } from "@core/colors";
 import chalk from "chalk";
 import { Console, Effect } from "effect";
 import stringWidth from "string-width";
-import { applyChalkStyle } from "../../core/colors";
-import type { ChalkColor } from "../../types";
+import type { ChalkColor } from "@/types";
 import type { BoxStyle } from "./box-style";
 import { initializeBoxStyling } from "./box-style";
 

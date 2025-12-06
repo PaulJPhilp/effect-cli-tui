@@ -1,21 +1,19 @@
-import { Effect, Ref } from "effect";
+import { Effect } from "effect";
 import { defaultTheme } from "./presets";
 import type { Theme } from "./types";
 
 /**
- * Ref for theme storage
- *
- * Stored at module level to allow synchronous access from display helpers.
- * Uses Ref for thread-safe access. Note: This is global, not per-fiber.
- * For per-fiber isolation, use the ThemeService.withTheme() method.
+ * Module-level theme storage for synchronous access from display helpers.
+ * Note: This is global, not per-fiber. For per-fiber isolation, use
+ * the ThemeService.withTheme() method.
  */
-const ThemeRef = Ref.unsafeMake<Theme>(defaultTheme);
+let currentTheme: Theme = defaultTheme;
 
 /**
  * Theme service for managing display themes
  *
  * Provides methods to get, set, and scope themes.
- * Note: Theme is stored in a global Ref, so it's shared across all fibers.
+ * Note: Theme is stored globally, so it's shared across all fibers.
  * Use `withTheme()` for scoped theme changes.
  *
  * @example
@@ -31,20 +29,36 @@ export class ThemeService extends Effect.Service<ThemeService>()(
   "app/ThemeService",
   {
     effect: Effect.sync(() => ({
-      getTheme: (): Theme => Effect.runSync(Ref.get(ThemeRef)),
+      /**
+       * Get the current theme
+       * @returns The current theme
+       */
+      getTheme: (): Theme => currentTheme,
 
-      setTheme: (theme: Theme): Effect.Effect<void> => Ref.set(ThemeRef, theme),
+      /**
+       * Get the current theme synchronously (for display utilities)
+       * Alias for getTheme() for backward compatibility.
+       * @returns The current theme
+       */
+      getThemeSync: (): Theme => currentTheme,
+
+      setTheme: (theme: Theme): Effect.Effect<void> =>
+        Effect.sync(() => {
+          currentTheme = theme;
+        }),
 
       withTheme: <A, E, R>(
         theme: Theme,
         effect: Effect.Effect<A, E, R>
       ): Effect.Effect<A, E, R> =>
         Effect.gen(function* () {
-          const currentTheme: Theme = yield* Ref.get(ThemeRef);
-          yield* Ref.set(ThemeRef, theme);
-          const result = yield* effect;
-          yield* Ref.set(ThemeRef, currentTheme);
-          return result;
+          const previousTheme = currentTheme;
+          currentTheme = theme;
+          try {
+            return yield* effect;
+          } finally {
+            currentTheme = previousTheme;
+          }
         }),
     })),
   }
@@ -54,12 +68,11 @@ export class ThemeService extends Effect.Service<ThemeService>()(
  * Get the current theme synchronously
  *
  * Internal helper for display functions that need synchronous theme access.
- * Uses Effect.runSync(Ref.get()) for synchronous access.
  *
  * @returns The current theme
  */
 export function getCurrentThemeSync(): Theme {
-  return defaultTheme;
+  return currentTheme;
 }
 
 /**
@@ -77,8 +90,8 @@ export function getCurrentThemeSync(): Theme {
  */
 export function getCurrentTheme(): Effect.Effect<Theme, never, ThemeService> {
   return Effect.gen(function* () {
-    const theme = yield* ThemeService;
-    return theme.getTheme();
+    const themeService = yield* ThemeService;
+    return themeService.getTheme();
   });
 }
 

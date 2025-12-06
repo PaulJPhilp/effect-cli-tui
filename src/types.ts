@@ -1,5 +1,23 @@
 import { Data } from "effect";
 
+// ============================================================================
+// Slash Command Types
+// ============================================================================
+
+/**
+ * Valid prompt kinds for interactive prompts
+ */
+export type PromptKind = "input" | "password" | "select" | "multiSelect";
+
+/**
+ * Result kinds from slash command execution
+ */
+export type SlashCommandResultKind = "continue" | "abortPrompt" | "exitSession";
+
+// ============================================================================
+// UI Types
+// ============================================================================
+
 export interface SelectOption {
   label: string;
   value: string;

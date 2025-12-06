@@ -83,7 +83,9 @@ export function getStatusSummary(): Effect.Effect<string | null, never> {
 export function isGitClean(): Effect.Effect<boolean | null> {
   return Effect.gen(function* () {
     const status = yield* getStatusSummary();
-    if (status === null) return null;
+    if (status === null) {
+      return null;
+    }
     return status.length === 0;
   });
 }

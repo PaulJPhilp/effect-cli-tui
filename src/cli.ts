@@ -1,237 +1,292 @@
 /** biome-ignore-all assist/source/organizeImports: <> */
-import { Context, Effect, Layer } from "effect";
+import { Effect } from "effect";
 import { spawn } from "node:child_process";
 import { isErrnoException, isError } from "./core/error-utils";
 import { CLIError, type CLIResult, type CLIRunOptions } from "./types";
 
-// Empty layer - we use process.env directly instead of EnvService
-export const CLIEnvLayer = Layer.empty;
+/**
+ * EffectCLI Service API
+ *
+ * Provides methods for executing CLI commands with proper error handling
+ * and Effect composition.
+ */
+export interface EffectCLIApi {
+  /**
+   * Run a command and capture its output
+   *
+   * @param command - The command to execute
+   * @param args - Command arguments
+   * @param options - Execution options (cwd, env, timeout)
+   * @returns Effect that resolves with CLIResult containing exitCode, stdout, stderr
+   *
+   * @example
+   * ```ts
+   * const result = yield* cli.run('echo', ['hello'])
+   * console.log(result.stdout) // 'hello\n'
+   * ```
+   */
+  readonly run: (
+    command: string,
+    args?: string[],
+    options?: CLIRunOptions
+  ) => Effect.Effect<CLIResult, CLIError>;
 
-export class EffectCLI extends Context.Tag("app/EffectCLI")<
-  EffectCLI,
-  {
-    readonly run: (
-      command: string,
-      args?: string[],
-      options?: CLIRunOptions
-    ) => Effect.Effect<CLIResult, CLIError>;
-    readonly stream: (
-      command: string,
-      args?: string[],
-      options?: CLIRunOptions
-    ) => Effect.Effect<void, CLIError>;
-  }
->() {}
+  /**
+   * Run a command with inherited stdio (output streams to terminal)
+   *
+   * @param command - The command to execute
+   * @param args - Command arguments
+   * @param options - Execution options (cwd, env, timeout)
+   * @returns Effect that resolves when command completes
+   *
+   * @example
+   * ```ts
+   * yield* cli.stream('npm', ['install'])
+   * // Output appears directly in terminal
+   * ```
+   */
+  readonly stream: (
+    command: string,
+    args?: string[],
+    options?: CLIRunOptions
+  ) => Effect.Effect<void, CLIError>;
+}
 
-export const EffectCLILive = Layer.succeed(
-  EffectCLI,
-  EffectCLI.of({
-    run: (command: string, args: string[] = [], options: CLIRunOptions = {}) =>
-      Effect.gen(function* () {
-        const processEnv = process.env as Record<string, string>;
-        const cwd = options.cwd || process.cwd();
+/**
+ * EffectCLI Service
+ *
+ * Executes CLI commands with proper error handling and Effect composition.
+ * Supports both captured output (run) and streaming output (stream) modes.
+ *
+ * @example
+ * ```ts
+ * const program = Effect.gen(function* () {
+ *   const cli = yield* EffectCLI
+ *   const result = yield* cli.run('echo', ['hello'])
+ *   return result.stdout
+ * }).pipe(Effect.provide(EffectCLI.Default))
+ * ```
+ */
+export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
+  effect: Effect.sync(
+    (): EffectCLIApi => ({
+      run: (
+        command: string,
+        args: string[] = [],
+        options: CLIRunOptions = {}
+      ) =>
+        Effect.gen(function* () {
+          const processEnv = process.env as Record<string, string>;
+          const cwd = options.cwd || process.cwd();
 
-        return yield* Effect.async<CLIResult, CLIError>((resume) => {
-          let stdout = "";
-          let stderr = "";
-          let hasResumed = false;
+          return yield* Effect.async<CLIResult, CLIError>((resume) => {
+            let stdout = "";
+            let stderr = "";
+            let hasResumed = false;
 
-          const safeResume = (effect: Effect.Effect<CLIResult, CLIError>) => {
-            if (!hasResumed) {
-              hasResumed = true;
-              resume(effect);
-            }
-          };
+            const safeResume = (effect: Effect.Effect<CLIResult, CLIError>) => {
+              if (!hasResumed) {
+                hasResumed = true;
+                resume(effect);
+              }
+            };
 
-          const child = spawn(command, args, {
-            cwd,
-            env: { ...processEnv, ...options.env },
-            stdio: ["pipe", "pipe", "pipe"],
-          });
+            const child = spawn(command, args, {
+              cwd,
+              env: { ...processEnv, ...options.env },
+              stdio: ["pipe", "pipe", "pipe"],
+            });
 
-          if (!(child.stdout && child.stderr)) {
-            safeResume(
-              Effect.fail(
-                new CLIError(
-                  "NotFound",
-                  "Unable to start the command. Please check that the command is available and try again."
-                )
-              )
-            );
-            return;
-          }
-
-          child.stdout.on("data", (data: Buffer) => {
-            stdout += data.toString();
-          });
-
-          child.stderr.on("data", (data: Buffer) => {
-            stderr += data.toString();
-          });
-
-          const timeout = options.timeout
-            ? (() => {
-                const timeoutMs = options.timeout;
-                return setTimeout(() => {
-                  child.kill();
-                  safeResume(
-                    Effect.fail(
-                      new CLIError(
-                        "Timeout",
-                        `The command took too long to complete (timeout: ${Math.round(
-                          timeoutMs / 1000
-                        )}s). Please try again or increase the timeout.`
-                      )
-                    )
-                  );
-                }, timeoutMs);
-              })()
-            : null;
-
-          child.on("close", (exitCode) => {
-            if (timeout) {
-              clearTimeout(timeout);
-            }
-
-            if (exitCode === 0) {
-              safeResume(
-                Effect.succeed({ exitCode: exitCode ?? 0, stdout, stderr })
-              );
-            } else {
-              safeResume(
-                Effect.fail(
-                  new CLIError(
-                    "CommandFailed",
-                    `The command failed (exit code ${exitCode}).\n\nError details:\n${
-                      stderr || "No error details available"
-                    }`,
-                    exitCode ?? undefined
-                  )
-                )
-              );
-            }
-          });
-
-          child.on("error", (err) => {
-            if (timeout) {
-              clearTimeout(timeout);
-            }
-            if (isErrnoException(err) && err.code === "ENOENT") {
+            if (!(child.stdout && child.stderr)) {
               safeResume(
                 Effect.fail(
                   new CLIError(
                     "NotFound",
-                    `The command "${command}" was not found. Please verify it is installed and available in your PATH.`
+                    "Unable to start the command. Please check that the command is available and try again."
                   )
                 )
               );
-            } else {
-              safeResume(
-                Effect.fail(
-                  new CLIError(
-                    "ExecutionError",
-                    `Unable to execute the command: ${
-                      isError(err) ? err.message : globalThis.String(err)
-                    }\n\nPlease verify the command is installed and accessible in your PATH.`
-                  )
-                )
-              );
+              return;
             }
-          });
-        });
-      }),
 
-    stream: (
-      command: string,
-      args: string[] = [],
-      options: CLIRunOptions = {}
-    ) =>
-      Effect.gen(function* () {
-        const processEnv = process.env as Record<string, string>;
-        const cwd = options.cwd || process.cwd();
+            child.stdout.on("data", (data: Buffer) => {
+              stdout += data.toString();
+            });
 
-        return yield* Effect.async<void, CLIError>((resume) => {
-          let hasResumed = false;
+            child.stderr.on("data", (data: Buffer) => {
+              stderr += data.toString();
+            });
 
-          const safeResume = (effect: Effect.Effect<void, CLIError>) => {
-            if (!hasResumed) {
-              hasResumed = true;
-              resume(effect);
-            }
-          };
-
-          const child = spawn(command, args, {
-            cwd,
-            env: { ...processEnv, ...options.env },
-            stdio: "inherit",
-          });
-
-          const timeout = options.timeout
-            ? (() => {
-                const timeoutMs = options.timeout;
-                return setTimeout(() => {
-                  child.kill();
-                  safeResume(
-                    Effect.fail(
-                      new CLIError(
-                        "Timeout",
-                        `The command took too long to complete (timeout: ${Math.round(
-                          timeoutMs / 1000
-                        )}s). Please try again or increase the timeout.`
+            const timeout = options.timeout
+              ? (() => {
+                  const timeoutMs = options.timeout;
+                  return setTimeout(() => {
+                    child.kill();
+                    safeResume(
+                      Effect.fail(
+                        new CLIError(
+                          "Timeout",
+                          `The command took too long to complete (timeout: ${Math.round(
+                            timeoutMs / 1000
+                          )}s). Please try again or increase the timeout.`
+                        )
                       )
+                    );
+                  }, timeoutMs);
+                })()
+              : null;
+
+            child.on("close", (exitCode) => {
+              if (timeout) {
+                clearTimeout(timeout);
+              }
+
+              if (exitCode === 0) {
+                safeResume(
+                  Effect.succeed({ exitCode: exitCode ?? 0, stdout, stderr })
+                );
+              } else {
+                safeResume(
+                  Effect.fail(
+                    new CLIError(
+                      "CommandFailed",
+                      `The command failed (exit code ${exitCode}).\n\nError details:\n${
+                        stderr || "No error details available"
+                      }`,
+                      exitCode ?? undefined
                     )
-                  );
-                }, timeoutMs);
-              })()
-            : null;
-
-          child.on("close", (exitCode) => {
-            if (timeout) {
-              clearTimeout(timeout);
-            }
-
-            if (exitCode === 0) {
-              safeResume(Effect.succeed(undefined));
-            } else {
-              safeResume(
-                Effect.fail(
-                  new CLIError(
-                    "CommandFailed",
-                    `The command failed with exit code ${exitCode}. Please check the command output above for details.`,
-                    exitCode ?? undefined
                   )
-                )
-              );
-            }
+                );
+              }
+            });
+
+            child.on("error", (err) => {
+              if (timeout) {
+                clearTimeout(timeout);
+              }
+              if (isErrnoException(err) && err.code === "ENOENT") {
+                safeResume(
+                  Effect.fail(
+                    new CLIError(
+                      "NotFound",
+                      `The command "${command}" was not found. Please verify it is installed and available in your PATH.`
+                    )
+                  )
+                );
+              } else {
+                safeResume(
+                  Effect.fail(
+                    new CLIError(
+                      "ExecutionError",
+                      `Unable to execute the command: ${
+                        isError(err) ? err.message : globalThis.String(err)
+                      }\n\nPlease verify the command is installed and accessible in your PATH.`
+                    )
+                  )
+                );
+              }
+            });
           });
+        }),
 
-          child.on("error", (err) => {
-            if (timeout) {
-              clearTimeout(timeout);
-            }
-            if (isErrnoException(err) && err.code === "ENOENT") {
-              safeResume(
-                Effect.fail(
-                  new CLIError(
-                    "NotFound",
-                    `The command "${command}" was not found. Please verify it is installed and available in your PATH.`
+      stream: (
+        command: string,
+        args: string[] = [],
+        options: CLIRunOptions = {}
+      ) =>
+        Effect.gen(function* () {
+          const processEnv = process.env as Record<string, string>;
+          const cwd = options.cwd || process.cwd();
+
+          return yield* Effect.async<void, CLIError>((resume) => {
+            let hasResumed = false;
+
+            const safeResume = (effect: Effect.Effect<void, CLIError>) => {
+              if (!hasResumed) {
+                hasResumed = true;
+                resume(effect);
+              }
+            };
+
+            const child = spawn(command, args, {
+              cwd,
+              env: { ...processEnv, ...options.env },
+              stdio: "inherit",
+            });
+
+            const timeout = options.timeout
+              ? (() => {
+                  const timeoutMs = options.timeout;
+                  return setTimeout(() => {
+                    child.kill();
+                    safeResume(
+                      Effect.fail(
+                        new CLIError(
+                          "Timeout",
+                          `The command took too long to complete (timeout: ${Math.round(
+                            timeoutMs / 1000
+                          )}s). Please try again or increase the timeout.`
+                        )
+                      )
+                    );
+                  }, timeoutMs);
+                })()
+              : null;
+
+            child.on("close", (exitCode) => {
+              if (timeout) {
+                clearTimeout(timeout);
+              }
+
+              if (exitCode === 0) {
+                safeResume(Effect.succeed(undefined));
+              } else {
+                safeResume(
+                  Effect.fail(
+                    new CLIError(
+                      "CommandFailed",
+                      `The command failed with exit code ${exitCode}. Please check the command output above for details.`,
+                      exitCode ?? undefined
+                    )
                   )
-                )
-              );
-            } else {
-              safeResume(
-                Effect.fail(
-                  new CLIError(
-                    "ExecutionError",
-                    `Unable to execute the command: ${
-                      isError(err) ? err.message : globalThis.String(err)
-                    }\n\nPlease verify the command is installed and accessible in your PATH.`
+                );
+              }
+            });
+
+            child.on("error", (err) => {
+              if (timeout) {
+                clearTimeout(timeout);
+              }
+              if (isErrnoException(err) && err.code === "ENOENT") {
+                safeResume(
+                  Effect.fail(
+                    new CLIError(
+                      "NotFound",
+                      `The command "${command}" was not found. Please verify it is installed and available in your PATH.`
+                    )
                   )
-                )
-              );
-            }
+                );
+              } else {
+                safeResume(
+                  Effect.fail(
+                    new CLIError(
+                      "ExecutionError",
+                      `Unable to execute the command: ${
+                        isError(err) ? err.message : globalThis.String(err)
+                      }\n\nPlease verify the command is installed and accessible in your PATH.`
+                    )
+                  )
+                );
+              }
+            });
           });
-        });
-      }),
-  })
-).pipe(Layer.provide(CLIEnvLayer));
+        }),
+    })
+  ),
+  dependencies: [],
+}) {}
+
+/**
+ * @deprecated Use `EffectCLI.Default` instead. This alias is provided for backward compatibility.
+ */
+export const EffectCLILive = EffectCLI.Default;

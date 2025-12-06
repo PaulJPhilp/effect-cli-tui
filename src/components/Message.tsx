@@ -4,9 +4,6 @@
  * Provides styled message output with different types.
  */
 
-import { Box, Text } from "ink";
-import type React from "react";
-import { DEFAULT_DISPLAY_TYPE } from "../constants";
 import {
   COLOR_DEFAULT,
   COLOR_ERROR,
@@ -17,8 +14,11 @@ import {
   ICON_INFO,
   ICON_SUCCESS,
   ICON_WARNING,
-} from "../core/icons";
-import type { DisplayTypeColor } from "../types";
+} from "@core/icons";
+import { Box, Text } from "ink";
+import type React from "react";
+import { DEFAULT_DISPLAY_TYPE } from "@/constants";
+import type { DisplayTypeColor } from "@/types";
 
 export interface MessageProps {
   message: string;

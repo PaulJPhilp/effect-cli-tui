@@ -1,8 +1,9 @@
 /** biome-ignore-all assist/source/organizeImports: <> */
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
-import { MockTUI, createMockTUI } from "../../__tests__/fixtures/test-layers";
-import { TUIHandler } from "../../src/tui";
+
+import { MockTUI, createMockTUI } from "../fixtures/test-layers";
+import { TUIHandler } from "@/tui";
 
 /**
  * Comprehensive tests for TUIHandler service.

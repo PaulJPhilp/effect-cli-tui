@@ -33,7 +33,7 @@ export function showOnboardingIfNeeded(): Effect.Effect<void> {
       return;
     }
 
-    yield* Console.log("\n" + "=".repeat(60));
+    yield* Console.log(`\n${"=".repeat(60)}`);
     yield* Console.log("Welcome to effect-cli-tui!");
     yield* Console.log("=".repeat(60));
     yield* Console.log("\nThis is your first time using effect-cli-tui.");
@@ -45,6 +45,6 @@ export function showOnboardingIfNeeded(): Effect.Effect<void> {
     yield* Console.log(
       "\nTip: Enable kits (like MemKit) to extend functionality"
     );
-    yield* Console.log("=".repeat(60) + "\n");
+    yield* Console.log(`${"=".repeat(60)}\n`);
   });
 }
