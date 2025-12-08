@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.2.0
+
+### Minor Changes
+
+- 5f553a4: Minor release
+
+### Patch Changes
+
+- 0143407: Fix lint errors, resolve tsup configuration issues, update `displayTable` to use `Terminal` service, and fix prompt-builder validation logic.
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

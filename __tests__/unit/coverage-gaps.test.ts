@@ -1,4 +1,3 @@
-import type { ChalkStyleOptions } from "@/types";
 import { applyChalkStyle } from "@core/colors";
 import {
   clearCleanupHandlers,
@@ -10,6 +9,7 @@ import { startSpinner, stopSpinner } from "@ui/progress/spinner";
 import { displayTable } from "@ui/tables/table";
 import { Effect } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ChalkStyleOptions } from "@/types";
 
 /**
  * Coverage gaps test - fills in remaining uncovered lines

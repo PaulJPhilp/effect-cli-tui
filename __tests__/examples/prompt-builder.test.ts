@@ -10,6 +10,9 @@
  * - Error handling
  */
 
+import { Terminal } from "@core/terminal";
+import { Effect, Layer } from "effect";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   displayError,
   displayLines,
@@ -17,9 +20,6 @@ import {
   displaySuccess,
   displayTable,
 } from "@/index";
-import { Terminal } from "@core/terminal";
-import { Effect, Layer } from "effect";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getTemplate,
   templates,
