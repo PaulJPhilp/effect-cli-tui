@@ -39,7 +39,9 @@ export const handleValidationWithRetry = Effect.gen(function* () {
   const tui = yield* TUIHandler;
 
   const validateEmail = (input: string) => {
-    if (input.includes("@")) return true;
+    if (input.includes("@")) {
+      return true;
+    }
     return "Please enter a valid email address";
   };
 
@@ -55,7 +57,7 @@ export const handleValidationWithRetry = Effect.gen(function* () {
       .pipe(
         Effect.catchTag("TUIError", (err) => {
           if (err.reason === "ValidationFailed") {
-            attempts++;
+            attempts += 1;
             if (attempts < maxAttempts) {
               return displayError(
                 `Validation failed: ${err.message}. Try again.`
@@ -98,6 +100,8 @@ export const handleCLIErrors = Effect.gen(function* () {
           return displayError(`Execution error: ${err.message}`).pipe(
             Effect.flatMap(() => Effect.fail(err))
           );
+        default:
+          return Effect.fail(err);
       }
     })
   );

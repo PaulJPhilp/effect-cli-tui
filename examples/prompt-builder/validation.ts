@@ -30,28 +30,33 @@ export const validateField = (
       return yield* Effect.fail(`${field.label} is required`);
     }
 
-    if (typeof value === "string") {
-      if (value.length === 0 && field.required) {
-        return yield* Effect.fail(`${field.label} cannot be empty`);
-      }
-
-      if (
-        field.type === "choice" &&
-        field.choices &&
-        !field.choices.includes(value)
-      ) {
-        return yield* Effect.fail(
-          `${field.label} must be one of: ${field.choices.join(", ")}`
-        );
-      }
-    }
-
     if (field.type === "boolean" && typeof value !== "boolean") {
       return yield* Effect.fail(
         `${field.label} must be answered with yes (y) or no (n)`
       );
     }
 
+    if (typeof value === "string") {
+      if (field.required && value.length === 0) {
+        return yield* Effect.fail(`${field.label} cannot be empty`);
+      }
+      return yield* validateChoice(field, value);
+    }
+
+    return true;
+  });
+
+const validateChoice = (field: TemplateField, value: string) =>
+  Effect.gen(function* () {
+    if (
+      field.type === "choice" &&
+      field.choices &&
+      !field.choices.includes(value)
+    ) {
+      return yield* Effect.fail(
+        `${field.label} must be one of: ${field.choices.join(", ")}`
+      );
+    }
     return true;
   });
 

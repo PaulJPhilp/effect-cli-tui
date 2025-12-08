@@ -1,4 +1,5 @@
 import { applyChalkStyle } from "@core/colors";
+import { Terminal } from "@core/terminal";
 import type { DisplayType } from "@services/display/types";
 import chalk from "chalk";
 import { Effect } from "effect";
@@ -35,10 +36,12 @@ export interface TableOptions<T> {
 export function displayTable<T>(
   data: T[],
   options: TableOptions<T>
-): Effect.Effect<void> {
-  return Effect.sync(() => {
+): Effect.Effect<void, never, Terminal> {
+  return Effect.gen(function* () {
+    const terminal = yield* Terminal;
+
     if (!data || data.length === 0) {
-      console.log("\nℹ No data to display\n");
+      yield* terminal.line("\nℹ No data to display");
       return;
     }
 
@@ -138,6 +141,6 @@ export function displayTable<T>(
     }
 
     const output = table(tableData, tableConfig);
-    console.log(`\n${output}\n`);
+    yield* terminal.line(`\n${output}`);
   });
 }

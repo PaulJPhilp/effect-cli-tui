@@ -18,6 +18,8 @@ interface SetupConfig {
   installDeps: boolean;
 }
 
+const PROJECT_NAME_REGEX = /^[a-z0-9-]+$/;
+
 /**
  * Step 1: Collect project name
  */
@@ -29,7 +31,7 @@ const step1ProjectName = Effect.gen(function* () {
       message="Project name:"
       onSubmit={onComplete}
       validate={(v) => {
-        if (!v.match(/^[a-z0-9-]+$/)) {
+        if (!v.match(PROJECT_NAME_REGEX)) {
           return "Use lowercase letters, numbers, and dashes";
         }
         if (v.length < 3) {

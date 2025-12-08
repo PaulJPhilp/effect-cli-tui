@@ -1,14 +1,15 @@
+import type { ChalkStyleOptions } from "@/types";
 import { applyChalkStyle } from "@core/colors";
 import {
   clearCleanupHandlers,
   getCleanupHandlerCount,
   registerCleanupHandler,
 } from "@core/signal-handler";
+import { Terminal } from "@core/terminal";
 import { startSpinner, stopSpinner } from "@ui/progress/spinner";
 import { displayTable } from "@ui/tables/table";
 import { Effect } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ChalkStyleOptions } from "@/types";
 
 /**
  * Coverage gaps test - fills in remaining uncovered lines
@@ -73,7 +74,7 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
         }
       );
 
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(Terminal.Default)));
 
       expect(consoleSpy).toHaveBeenCalled();
       const output = consoleSpy.mock.calls[0][0];
@@ -101,7 +102,7 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
         ],
       });
 
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(Terminal.Default)));
       expect(consoleSpy).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
@@ -122,7 +123,7 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
         ],
       });
 
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(Terminal.Default)));
       expect(consoleSpy).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
@@ -148,7 +149,7 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
         ],
       });
 
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(Terminal.Default)));
       expect(consoleSpy).toHaveBeenCalled();
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("TEST");
@@ -368,7 +369,7 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
         }
       );
 
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(Terminal.Default)));
       expect(consoleSpy).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
@@ -389,7 +390,7 @@ describe("Coverage Gaps - Fill Missing Lines", () => {
         ],
       });
 
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(Terminal.Default)));
       expect(consoleSpy).toHaveBeenCalled();
 
       consoleSpy.mockRestore();

@@ -57,9 +57,9 @@ export const zeroShotTemplate: PromptTemplate = {
     },
   ],
   generatePrompt: (responses: UserResponses): string => {
-    const task = responses["task"] as string;
-    const format = responses["format"] as string;
-    const style = (responses["style"] as string) || "Professional";
+    const task = responses.task as string;
+    const format = responses.format as string;
+    const style = (responses.style as string) || "Professional";
 
     return `Task: ${task}
 
@@ -124,10 +124,10 @@ export const oneShotTemplate: PromptTemplate = {
     },
   ],
   generatePrompt: (responses: UserResponses): string => {
-    const task = responses["task"] as string;
-    const exampleInput = responses["exampleInput"] as string;
-    const exampleOutput = responses["exampleOutput"] as string;
-    const format = responses["format"] as string;
+    const task = responses.task as string;
+    const exampleInput = responses.exampleInput as string;
+    const exampleOutput = responses.exampleOutput as string;
+    const format = responses.format as string;
 
     return `Task: ${task}
 
@@ -318,10 +318,10 @@ export const chainOfThoughtTemplate: PromptTemplate = {
     },
   ],
   generatePrompt: (responses: UserResponses): string => {
-    const problem = responses["problem"] as string;
-    const context = (responses["context"] as string) || "No additional context";
-    const steps = responses["steps"] as string;
-    const finalAnswer = responses["finalAnswer"] as string;
+    const problem = responses.problem as string;
+    const context = (responses.context as string) || "No additional context";
+    const steps = responses.steps as string;
+    const finalAnswer = responses.finalAnswer as string;
 
     return `Problem: ${problem}
 

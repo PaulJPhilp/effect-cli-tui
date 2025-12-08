@@ -42,61 +42,69 @@ const program = Effect.gen(function* () {
       }
 
       case "Search memories": {
-        const query = yield* tui.prompt("Search for:");
-        const memories = yield* supermemory.search(query, { topK: 5 });
-
-        if (memories.length === 0) {
-          yield* tui.display(
-            "No memories found matching your query.",
-            "warning"
-          );
-        } else {
-          yield* tui.display(`Found ${memories.length} memories:`, "success");
-          for (let i = 0; i < memories.length; i++) {
-            const memory = memories[i];
-            const score = memory.score
-              ? (memory.score * 100).toFixed(1)
-              : "N/A";
-            const snippet =
-              memory.content.length > 80
-                ? `${memory.content.slice(0, 80)}...`
-                : memory.content;
-
-            yield* tui.display(
-              `  ${i + 1}. "${snippet}" (score: ${score})`,
-              "info"
-            );
-          }
-        }
+        yield* handleSearch(tui, supermemory);
         break;
       }
 
       case "Test direct API": {
-        yield* tui.display("Testing direct Supermemory API...", "info");
-        yield* supermemory.addText("Test memory from effect-cli-tui example");
-        const testMemories = yield* supermemory.search("test memory", {
-          topK: 3,
-        });
-        yield* tui.display(
-          `✅ API test complete. Found ${testMemories.length} test memories.`,
-          "success"
-        );
+        yield* handleTestApi(tui, supermemory);
         break;
       }
 
       case "Exit":
         yield* tui.display("👋 Goodbye!", "success");
         return;
+
+      default:
+        break;
     }
 
     yield* tui.display("");
   }
 });
 
+const handleSearch = (tui: TUIHandler, supermemory: SupermemoryClient) =>
+  Effect.gen(function* () {
+    const query = yield* tui.prompt("Search for:");
+    const memories = yield* supermemory.search(query, { topK: 5 });
+
+    if (memories.length === 0) {
+      yield* tui.display("No memories found matching your query.", "warning");
+    } else {
+      yield* tui.display(`Found ${memories.length} memories:`, "success");
+      for (let i = 0; i < memories.length; i++) {
+        const memory = memories[i];
+        const score = memory.score ? (memory.score * 100).toFixed(1) : "N/A";
+        const snippet =
+          memory.content.length > 80
+            ? `${memory.content.slice(0, 80)}...`
+            : memory.content;
+
+        yield* tui.display(
+          `  ${i + 1}. "${snippet}" (score: ${score})`,
+          "info"
+        );
+      }
+    }
+  });
+
+const handleTestApi = (tui: TUIHandler, supermemory: SupermemoryClient) =>
+  Effect.gen(function* () {
+    yield* tui.display("Testing direct Supermemory API...", "info");
+    yield* supermemory.addText("Test memory from effect-cli-tui example");
+    const testMemories = yield* supermemory.search("test memory", {
+      topK: 3,
+    });
+    yield* tui.display(
+      `✅ API test complete. Found ${testMemories.length} test memories.`,
+      "success"
+    );
+  });
+
 // Run with Supermemory integration
 console.log("🚀 Starting Supermemory Integration Example...\n");
 
-await Effect.runPromise(withSupermemory(runWithTUI(program))).catch((error) => {
+await runWithTUI(withSupermemory(program)).catch((error) => {
   Console.error(`Error: ${error.message}`);
   process.exit(1);
 });

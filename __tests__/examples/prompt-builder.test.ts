@@ -10,8 +10,6 @@
  * - Error handling
  */
 
-import { Effect, Layer } from "effect";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   displayError,
   displayLines,
@@ -19,6 +17,9 @@ import {
   displaySuccess,
   displayTable,
 } from "@/index";
+import { Terminal } from "@core/terminal";
+import { Effect, Layer } from "effect";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getTemplate,
   templates,
@@ -444,7 +445,7 @@ describe("Prompt Builder Example - Workflow Tests", () => {
             { key: "field", header: "Field", width: 20 },
             { key: "value", header: "Value", width: 50 },
           ],
-        })
+        }).pipe(Effect.provide(Terminal.Default))
       );
 
       expect(consoleSpy).toHaveBeenCalled();
@@ -603,7 +604,9 @@ describe("Prompt Builder Example - Workflow Tests", () => {
         return { template, responses, promptText };
       }).pipe(Effect.provide(Layer.merge(MockCLI, MockSlashDependencies)));
 
-      const result = await Effect.runPromise(workflow);
+      const result = await Effect.runPromise(
+        workflow.pipe(Effect.provide(Terminal.Default))
+      );
 
       expect(result.template).toBe(zeroShotTemplate);
       expect(result.responses).toEqual({
