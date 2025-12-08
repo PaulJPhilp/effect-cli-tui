@@ -1,12 +1,12 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
-
 import { EffectCLI } from "@/cli";
 import {
   createMockCLI,
   MockCLI,
   MockCLIFailure,
   MockCLITimeout,
+  MockGlobalTestLayer,
 } from "../fixtures/test-layers";
 
 /**
@@ -31,7 +31,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return result.exitCode;
       }).pipe(Effect.provide(customMock));
 
-      const exitCode = await Effect.runPromise(program);
+      const exitCode = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(exitCode).toBe(0);
     });
 
@@ -48,7 +50,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return result.stdout.length > 0;
       }).pipe(Effect.provide(customMock));
 
-      const success = await Effect.runPromise(program);
+      const success = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(success).toBe(true);
     });
 
@@ -68,7 +72,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return result.stdout.length;
       }).pipe(Effect.provide(customMock));
 
-      const length = await Effect.runPromise(program);
+      const length = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(length).toBe(1024);
     });
 
@@ -85,7 +91,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return result.stdout + result.stderr;
       }).pipe(Effect.provide(customMock));
 
-      const combined = await Effect.runPromise(program);
+      const combined = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(combined).toContain("output");
       expect(combined).toContain("warning");
     });
@@ -99,7 +107,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeUndefined();
     });
 
@@ -110,7 +120,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return "ok";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("ok");
     });
 
@@ -121,7 +133,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return "ok";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("ok");
     });
 
@@ -135,7 +149,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
           );
       }).pipe(Effect.provide(MockCLIFailure));
 
-      const reason = await Effect.runPromise(program);
+      const reason = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(reason).toBe("CommandFailed");
     });
 
@@ -149,7 +165,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
           );
       }).pipe(Effect.provide(MockCLITimeout));
 
-      const reason = await Effect.runPromise(program);
+      const reason = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(reason).toBe("Timeout");
     });
 
@@ -164,7 +182,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return "done";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("done");
     });
 
@@ -195,7 +215,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return "executed";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("executed");
     });
 
@@ -211,7 +233,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return "ok";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("ok");
     });
 
@@ -223,7 +247,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         }).pipe(Effect.catchTag("CLIError", () => Effect.succeed("recovered")));
       }).pipe(Effect.provide(MockCLIFailure));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("recovered");
     });
 
@@ -236,7 +262,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return "all-done";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("all-done");
     });
   });
@@ -249,7 +277,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return result.exitCode;
       }).pipe(Effect.provide(MockCLI));
 
-      const exitCode = await Effect.runPromise(program);
+      const exitCode = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(typeof exitCode).toBe("number");
       expect(exitCode).toBe(0);
     });
@@ -267,7 +297,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return result;
       }).pipe(Effect.provide(customMock));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result.stdout).toBe("stdout content");
       expect(result.stderr).toBe("warning message");
     });
@@ -281,15 +313,14 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI;
-        return yield* cli
-          .run("cmd")
-          .pipe(
-            Effect.catchTag("CLIError", (err) => Effect.succeed(err.message))
-          );
+        return yield* cli.run("cmd");
       }).pipe(Effect.provide(customMock));
 
-      const message = await Effect.runPromise(program);
-      expect(message).toContain("exit code 2");
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
+      expect((result as any).exitCode).toBe(2);
+      expect((result as any).stderr).toContain("Error: something went wrong");
     });
 
     it("should handle very large exit codes", async () => {
@@ -301,15 +332,13 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
 
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI;
-        return yield* cli
-          .run("cmd")
-          .pipe(
-            Effect.catchTag("CLIError", (err) => Effect.succeed(err.message))
-          );
+        return yield* cli.run("cmd");
       }).pipe(Effect.provide(customMock));
 
-      const message = await Effect.runPromise(program);
-      expect(message).toContain("exit code 255");
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
+      expect((result as any).exitCode).toBe(255);
     });
   });
 
@@ -320,7 +349,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return yield* cli.run("cmd");
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result.exitCode).toBe(0);
     });
 
@@ -332,7 +363,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
           .pipe(Effect.catchTag("CLIError", () => Effect.succeed(null)));
       }).pipe(Effect.provide(MockCLIFailure));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeNull();
     });
 
@@ -346,7 +379,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
           );
       }).pipe(Effect.provide(MockCLITimeout));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("cleaned-up");
     });
 
@@ -358,7 +393,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         });
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result.exitCode).toBe(0);
     });
   });
@@ -377,7 +414,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return result;
       }).pipe(Effect.provide(customMock));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result.stdout).toBe("");
       expect(result.stderr).toBe("");
     });
@@ -395,7 +434,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return result.stdout.split("\n").length;
       }).pipe(Effect.provide(customMock));
 
-      const lineCount = await Effect.runPromise(program);
+      const lineCount = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(lineCount).toBeGreaterThan(3);
     });
 
@@ -412,7 +453,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return typeof result.stdout === "string";
       }).pipe(Effect.provide(customMock));
 
-      const isString = await Effect.runPromise(program);
+      const isString = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(isString).toBe(true);
     });
 
@@ -427,7 +470,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return results.length;
       }).pipe(Effect.provide(MockCLI));
 
-      const count = await Effect.runPromise(program);
+      const count = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(count).toBe(3);
     });
 
@@ -443,7 +488,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         execution.push("end");
       }).pipe(Effect.provide(MockCLI));
 
-      await Effect.runPromise(program);
+      await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(execution).toEqual(["start", "middle", "end"]);
     });
   });
@@ -459,7 +506,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
           );
       }).pipe(Effect.provide(MockCLITimeout));
 
-      const reason = await Effect.runPromise(program);
+      const reason = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(["Timeout", "CommandFailed"]).toContain(reason);
     });
 
@@ -470,7 +519,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return result.exitCode;
       }).pipe(Effect.provide(MockCLI));
 
-      const exitCode = await Effect.runPromise(program);
+      const exitCode = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(exitCode).toBe(0);
     });
 
@@ -481,7 +532,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return result.exitCode;
       }).pipe(Effect.provide(MockCLI));
 
-      const exitCode = await Effect.runPromise(program);
+      const exitCode = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(exitCode).toBe(0);
     });
 
@@ -492,7 +545,9 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
         return "done";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(program);
+      const result = await Effect.runPromise(
+        program.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("done");
     });
   });
@@ -551,10 +606,10 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
       }).pipe(Effect.provide(MockCLIFailure));
 
       const result = await Effect.runPromise(program);
-      expect(result.isError).toBe(true);
-      expect(result.tag).toBe("CLIError");
-      expect(result.reason).toBe("CommandFailed");
-      expect(result.hasMessage).toBe(true);
+      expect((result as any).isError).toBe(true);
+      expect((result as any).tag).toBe("CLIError");
+      expect((result as any).reason).toBe("CommandFailed");
+      expect((result as any).hasMessage).toBe(true);
     });
 
     it("should preserve error context through catch", async () => {
@@ -569,7 +624,7 @@ describe("EffectCLI Service - Edge Cases & Uncovered Paths", () => {
 
       const message = await Effect.runPromise(program);
       expect(typeof message).toBe("string");
-      expect(message.length).toBeGreaterThan(0);
+      expect((message as any).length).toBeGreaterThan(0);
     });
   });
 });

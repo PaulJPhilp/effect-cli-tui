@@ -6,6 +6,15 @@ import type {
 } from "@/tui-slash-commands";
 import { TUIError } from "@/types";
 import {
+  API_KEY_MIN_VISIBLE_LENGTH,
+  API_KEY_VISIBLE_CHARS,
+  CONTENT_TRUNCATION_LENGTH,
+  DEFAULT_SEARCH_THRESHOLD,
+  DEFAULT_SEARCH_TOP_K,
+  SCORE_PERCENTAGE_MULTIPLIER,
+  SUPERMEMORY_API_KEY_PREFIX,
+} from "../constants";
+import {
   type MissingSupermemoryApiKey,
   SupermemoryClientService,
   type SupermemoryError,
@@ -16,10 +25,10 @@ import { type ConfigError, updateApiKey } from "./config";
  * Mask API key for display - show only first and last 4 characters
  */
 function maskApiKey(apiKey: string): string {
-  if (apiKey.length <= 8) {
+  if (apiKey.length <= API_KEY_MIN_VISIBLE_LENGTH) {
     return "*".repeat(apiKey.length);
   }
-  return `${apiKey.slice(0, 4)}${"*".repeat(apiKey.length - 8)}${apiKey.slice(-4)}`;
+  return `${apiKey.slice(0, API_KEY_VISIBLE_CHARS)}${"*".repeat(apiKey.length - API_KEY_MIN_VISIBLE_LENGTH)}${apiKey.slice(-API_KEY_VISIBLE_CHARS)}`;
 }
 
 /**
@@ -40,9 +49,9 @@ export function handleApiKeyCommand(
     }
 
     // Basic validation for API key format (starts with sk_)
-    if (!apiKey.startsWith("sk_")) {
+    if (!apiKey.startsWith(SUPERMEMORY_API_KEY_PREFIX)) {
       yield* Console.log(
-        "[Supermemory] Warning: API key should typically start with 'sk_'"
+        `[Supermemory] Warning: API key should typically start with '${SUPERMEMORY_API_KEY_PREFIX}'`
       );
     }
 
@@ -122,6 +131,7 @@ export function handleAddCommand(
 export function handleSearchCommand(
   context: SlashCommandContext
 ): Effect.Effect<SlashCommandResult, TUIError, SupermemoryClientService> {
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: command handler combines validation, API call, and formatted output
   return Effect.gen(function* () {
     const query = context.args.join(" ");
 
@@ -133,8 +143,8 @@ export function handleSearchCommand(
 
     const supermemoryClient = yield* SupermemoryClientService;
     const memories = yield* supermemoryClient.search(query, {
-      topK: 5,
-      threshold: 0.5,
+      topK: DEFAULT_SEARCH_TOP_K,
+      threshold: DEFAULT_SEARCH_THRESHOLD,
     });
 
     yield* Console.log(`[Supermemory] Results for "${query}":`);
@@ -144,10 +154,12 @@ export function handleSearchCommand(
     } else {
       for (let i = 0; i < memories.length; i++) {
         const memory = memories[i];
-        const score = memory.score ? (memory.score * 100).toFixed(1) : "N/A";
+        const score = memory.score
+          ? (memory.score * SCORE_PERCENTAGE_MULTIPLIER).toFixed(1)
+          : "N/A";
         const snippet =
-          memory.content.length > 80
-            ? `${memory.content.slice(0, 80)}...`
+          memory.content.length > CONTENT_TRUNCATION_LENGTH
+            ? `${memory.content.slice(0, CONTENT_TRUNCATION_LENGTH)}...`
             : memory.content;
 
         yield* Console.log(`  ${i + 1}. "${snippet}" (score: ${score})`);

@@ -71,7 +71,7 @@ const defaultMockClient: SupermemoryClient = {
 describe("Supermemory Integration Suite", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete process.env.SUPERMEMORY_API_KEY;
+    process.env.SUPERMEMORY_API_KEY = undefined;
   });
 
   afterEach(() => {

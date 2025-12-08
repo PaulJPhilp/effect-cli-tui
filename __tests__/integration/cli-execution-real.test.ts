@@ -2,6 +2,7 @@ import { Effect } from "effect";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { EffectCLI } from "@/cli";
+import { MockThemeService } from "../fixtures/test-layers";
 
 /**
  * Real Command Execution Tests
@@ -38,7 +39,10 @@ describe.skipIf(!shouldRun)(
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI;
         return yield* cli.run("echo", ["hello world"], { timeout: 10_000 });
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(EffectCLI.Default),
+        Effect.provide(MockThemeService)
+      );
 
       const result = await Effect.runPromise(program);
       expect(result.exitCode).toBe(0);
@@ -55,10 +59,13 @@ describe.skipIf(!shouldRun)(
               Effect.succeed(errorFromCli)
             )
           );
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(EffectCLI.Default),
+        Effect.provide(MockThemeService)
+      );
 
       const cliError = await Effect.runPromise(program);
-      expect(cliError.reason).toBe("NotFound");
+      expect((cliError as any).reason).toBe("NotFound");
     }, 15_000);
 
     it("should capture both stdout and stderr from command", async () => {
@@ -73,7 +80,10 @@ describe.skipIf(!shouldRun)(
             timeout: 10_000,
           }
         );
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(EffectCLI.Default),
+        Effect.provide(MockThemeService)
+      );
 
       const result = await Effect.runPromise(program);
       expect(result.exitCode).toBe(0);
@@ -89,7 +99,10 @@ describe.skipIf(!shouldRun)(
           env: { TEST_VAR: "test-value-123" },
           timeout: 10_000,
         });
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(EffectCLI.Default),
+        Effect.provide(MockThemeService)
+      );
 
       const result = await Effect.runPromise(program);
       expect(result.exitCode).toBe(0);
@@ -107,7 +120,10 @@ describe.skipIf(!shouldRun)(
             timeout: 10_000,
           }
         );
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(EffectCLI.Default),
+        Effect.provide(MockThemeService)
+      );
 
       const result = await Effect.runPromise(program);
       expect(result.exitCode).toBe(0);

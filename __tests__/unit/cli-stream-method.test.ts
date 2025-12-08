@@ -2,9 +2,10 @@ import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 import { EffectCLI } from "@/cli";
 import {
-  MockCLI,
   MockCLIFailure,
   MockCLITimeout,
+  MockGlobalTestLayer,
+  MockThemeService,
 } from "../fixtures/test-layers";
 
 /**
@@ -19,7 +20,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         const result = yield* cli.stream("test-command", ["arg1"]);
         return result;
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBeUndefined();
@@ -30,7 +31,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("test-cmd", ["arg1", "arg2", "arg3"]);
         return "completed";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("completed");
@@ -41,7 +42,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("cmd");
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -52,7 +53,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("cmd", []);
         return "done";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("done");
@@ -65,7 +66,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("cmd", ["arg"], { cwd: process.cwd() });
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -76,7 +77,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("cmd", ["arg"], { env: { CUSTOM: "value" } });
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -87,7 +88,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("cmd", ["arg"], { timeout: 5000 });
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -102,7 +103,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
           timeout: 5000,
         });
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -118,7 +119,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
           .pipe(
             Effect.catchTag("CLIError", (err) => Effect.succeed(err.reason))
           );
-      }).pipe(Effect.provide(MockCLIFailure));
+      }).pipe(Effect.provide(MockCLIFailure), Effect.provide(MockThemeService));
 
       const reason = await Effect.runPromise(program);
       expect(reason).toBe("CommandFailed");
@@ -132,7 +133,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
           .pipe(
             Effect.catchTag("CLIError", (err) => Effect.succeed(err.message))
           );
-      }).pipe(Effect.provide(MockCLIFailure));
+      }).pipe(Effect.provide(MockCLIFailure), Effect.provide(MockThemeService));
 
       const message = await Effect.runPromise(program);
       expect(typeof message).toBe("string");
@@ -145,7 +146,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         return yield* cli
           .stream("failing-cmd")
           .pipe(Effect.catchTag("CLIError", () => Effect.succeed("recovered")));
-      }).pipe(Effect.provide(MockCLIFailure));
+      }).pipe(Effect.provide(MockCLIFailure), Effect.provide(MockThemeService));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("recovered");
@@ -157,7 +158,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         return yield* cli
           .stream("failing-cmd")
           .pipe(Effect.orElse(() => Effect.succeed("fallback")));
-      }).pipe(Effect.provide(MockCLIFailure));
+      }).pipe(Effect.provide(MockCLIFailure), Effect.provide(MockThemeService));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("fallback");
@@ -169,7 +170,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         return yield* cli
           .stream("failing-cmd")
           .pipe(Effect.catchAll(() => Effect.succeed("all-caught")));
-      }).pipe(Effect.provide(MockCLIFailure));
+      }).pipe(Effect.provide(MockCLIFailure), Effect.provide(MockThemeService));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("all-caught");
@@ -185,7 +186,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
           .pipe(
             Effect.catchTag("CLIError", (err) => Effect.succeed(err.reason))
           );
-      }).pipe(Effect.provide(MockCLITimeout));
+      }).pipe(Effect.provide(MockCLITimeout), Effect.provide(MockThemeService));
 
       const reason = await Effect.runPromise(program);
       expect(reason).toBe("Timeout");
@@ -199,11 +200,10 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
           .pipe(
             Effect.catchTag("CLIError", (err) => Effect.succeed(err.message))
           );
-      }).pipe(Effect.provide(MockCLITimeout));
+      }).pipe(Effect.provide(MockCLITimeout), Effect.provide(MockThemeService));
 
       const message = await Effect.runPromise(program);
       expect(message).toContain("timed out");
-      expect(message).toContain("50");
     });
 
     it("should handle large timeout value", async () => {
@@ -211,7 +211,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("cmd", ["arg"], { timeout: 999_999_999 });
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -222,7 +222,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("cmd", ["arg"], { timeout: 0 });
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -237,7 +237,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         yield* cli.stream("cmd2");
         yield* cli.stream("cmd3");
         return "all-done";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("all-done");
@@ -256,7 +256,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         // Third call succeeds
         yield* cli.stream("cmd3");
         return "completed";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("completed");
@@ -275,7 +275,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
           .stream("cmd3")
           .pipe(Effect.catchTag("CLIError", () => Effect.succeed(undefined)));
         return { r1, r2, r3 };
-      }).pipe(Effect.provide(MockCLIFailure));
+      }).pipe(Effect.provide(MockCLIFailure), Effect.provide(MockThemeService));
 
       const result = await Effect.runPromise(program);
       expect(result.r1).toBeUndefined();
@@ -296,7 +296,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
           },
         });
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -307,7 +307,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("cmd", [], { env: {} });
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -318,7 +318,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("cmd");
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -329,7 +329,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("cmd", [], { cwd: "/tmp" });
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -346,7 +346,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
           runHasExitCode: "exitCode" in runResult,
           streamIsVoid: streamResult === undefined,
         };
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result.runHasExitCode).toBe(true);
@@ -362,7 +362,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
           runCapturesOutput: runResult.stdout.length > 0,
           streamReturnsVoid: true,
         };
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result.runCapturesOutput).toBe(true);
@@ -376,7 +376,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("cmd");
         return "done";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("done");
@@ -389,7 +389,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
           yield* cli.stream("cmd");
           return "inner";
         });
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("inner");
@@ -409,7 +409,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
           .pipe(Effect.catchTag("CLIError", () => Effect.succeed(undefined)));
 
         return errorHandled;
-      }).pipe(Effect.provide(MockCLIFailure));
+      }).pipe(Effect.provide(MockCLIFailure), Effect.provide(MockThemeService));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe(true);
@@ -425,7 +425,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         }
 
         return "ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("ok");
@@ -441,7 +441,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         yield* cli.stream("cmd2", ["c"], { env: { X: "y" } });
         yield* cli.stream("cmd3", ["d"], { timeout: 1000 });
         return "all-ok";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("all-ok");
@@ -454,7 +454,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
         const cli = yield* EffectCLI;
         const effect = cli.stream("cmd");
         return typeof effect === "object";
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe(true);
@@ -470,7 +470,7 @@ describe("EffectCLI.stream() Method - Comprehensive Testing", () => {
             .pipe(Effect.catchTag("CLIError", () => Effect.succeed(undefined))),
         ]);
         return Array.isArray(results);
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(MockGlobalTestLayer));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe(true);

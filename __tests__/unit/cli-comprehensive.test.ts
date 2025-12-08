@@ -1,9 +1,10 @@
 import { EventEmitter } from "node:events";
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EffectCLI } from "@/cli";
 import { CLIError } from "@/types";
+import { MockSlashDependencies } from "../fixtures/test-layers";
 
 /**
  * Comprehensive tests for EffectCLI service
@@ -13,6 +14,7 @@ import { CLIError } from "@/types";
 // Mock child_process
 vi.mock("child_process", () => ({
   spawn: vi.fn(),
+  execFile: vi.fn(),
 }));
 
 import { spawn } from "node:child_process";
@@ -28,7 +30,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
 
   describe("run() - Basic Execution", () => {
     it("should execute command successfully", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -40,7 +42,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         const result = yield* cli.run("echo", ["hello"]);
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "hello\n");
@@ -55,7 +59,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should execute command with arguments", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -67,7 +71,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         const result = yield* cli.run("echo", ["arg1", "arg2"]);
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "arg1 arg2\n");
@@ -81,7 +87,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should execute without arguments", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -93,7 +99,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         const result = yield* cli.run("true");
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "");
@@ -106,7 +114,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should capture stdout and stderr", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -118,7 +126,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         const result = yield* cli.run("test");
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "output");
@@ -132,7 +142,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should capture multiple stdout chunks", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -144,7 +154,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         const result = yield* cli.run("echo");
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "chunk1");
@@ -161,7 +173,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
 
   describe("run() - Options", () => {
     it("should use custom working directory", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -173,7 +185,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         const result = yield* cli.run("pwd", [], { cwd: "/tmp" });
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "/tmp\n");
@@ -190,7 +204,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should use custom environment variables", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -202,7 +216,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         const result = yield* cli.run("echo", [], { env: { CUSTOM: "value" } });
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "output");
@@ -221,7 +237,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should combine cwd and env options", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -236,7 +252,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
           env: { VAR: "val" },
         });
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "");
@@ -258,7 +276,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
 
   describe("run() - Error Handling", () => {
     it("should fail with CommandFailed on non-zero exit code", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -271,7 +289,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const result = yield* cli.run("failing-command");
         return result;
       }).pipe(
-        Effect.provide(EffectCLI.Default),
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies)),
         Effect.catchTag("CLIError", (err) => Effect.succeed(err))
       );
 
@@ -283,11 +301,11 @@ describe("EffectCLI - Comprehensive Coverage", () => {
 
       const result = await Effect.runPromise(program);
       expect(result).toBeInstanceOf(CLIError);
-      expect(result.reason).toBe("CommandFailed");
+      expect((result as CLIError).reason).toBe("CommandFailed");
     });
 
     it("should fail with NotFound on ENOENT error", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -300,7 +318,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const result = yield* cli.run("nonexistent-command");
         return result;
       }).pipe(
-        Effect.provide(EffectCLI.Default),
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies)),
         Effect.catchTag("CLIError", (err) => Effect.succeed(err))
       );
 
@@ -312,12 +330,12 @@ describe("EffectCLI - Comprehensive Coverage", () => {
 
       const result = await Effect.runPromise(program);
       expect(result).toBeInstanceOf(CLIError);
-      expect(result.reason).toBe("NotFound");
-      expect(result.message).toContain("nonexistent-command");
+      expect((result as CLIError).reason).toBe("NotFound");
+      expect((result as CLIError).message).toContain("nonexistent-command");
     });
 
     it("should fail with ExecutionError on spawn error", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -330,7 +348,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const result = yield* cli.run("command");
         return result;
       }).pipe(
-        Effect.provide(EffectCLI.Default),
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies)),
         Effect.catchTag("CLIError", (err) => Effect.succeed(err))
       );
 
@@ -342,11 +360,11 @@ describe("EffectCLI - Comprehensive Coverage", () => {
 
       const result = await Effect.runPromise(program);
       expect(result).toBeInstanceOf(CLIError);
-      expect(result.reason).toBe("ExecutionError");
+      expect((result as CLIError).reason).toBe("ExecutionError");
     });
 
     it("should handle stderr with large buffer limit", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -358,7 +376,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         const result = yield* cli.run("command", [], { maxBuffer: 1024 });
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "output");
@@ -371,7 +391,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should handle maxBuffer = 0 (unlimited)", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -383,7 +403,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         const result = yield* cli.run("command", [], { maxBuffer: 0 });
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "a".repeat(1_000_000)); // Very large output
@@ -396,7 +418,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should handle missing stdout gracefully", async () => {
-      const mockChild = new (EventEmitter.EventEmitter as any)();
+      const mockChild: any = new (EventEmitter.EventEmitter as any)();
       mockChild.stdout = null;
       mockChild.stderr = new (EventEmitter.EventEmitter as any)();
       mockChild.killed = false;
@@ -409,7 +431,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const result = yield* cli.run("command");
         return result;
       }).pipe(
-        Effect.provide(EffectCLI.Default),
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies)),
         Effect.catchTag("CLIError", (err) => Effect.succeed(err))
       );
 
@@ -419,13 +441,13 @@ describe("EffectCLI - Comprehensive Coverage", () => {
 
       const result = await Effect.runPromise(program);
       expect(result).toBeInstanceOf(CLIError);
-      expect(result.reason).toBe("NotFound");
+      expect((result as CLIError).reason).toBe("NotFound");
     });
   });
 
   describe("stream() - Basic Execution", () => {
     it("should stream command output with inherited stdio", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.killed = false;
       mockChild.kill = vi.fn();
 
@@ -434,7 +456,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI;
         yield* cli.stream("test-command");
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.emit("close", 0);
@@ -449,7 +473,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should stream command with arguments", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.killed = false;
       mockChild.kill = vi.fn();
 
@@ -458,7 +482,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI;
         yield* cli.stream("build", ["--release"]);
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.emit("close", 0);
@@ -473,7 +499,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should stream with working directory option", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.killed = false;
       mockChild.kill = vi.fn();
 
@@ -482,7 +508,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI;
         yield* cli.stream("command", [], { cwd: "/workspace" });
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.emit("close", 0);
@@ -497,7 +525,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should fail on non-zero exit code in stream", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.killed = false;
       mockChild.kill = vi.fn();
 
@@ -507,7 +535,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("failing-cmd");
       }).pipe(
-        Effect.provide(EffectCLI.Default),
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies)),
         Effect.catchTag("CLIError", (err) => Effect.succeed(err))
       );
 
@@ -517,11 +545,11 @@ describe("EffectCLI - Comprehensive Coverage", () => {
 
       const result = await Effect.runPromise(program);
       expect(result).toBeInstanceOf(CLIError);
-      expect(result.reason).toBe("CommandFailed");
+      expect((result as CLIError).reason).toBe("CommandFailed");
     });
 
     it("should handle NotFound error in stream", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.killed = false;
       mockChild.kill = vi.fn();
 
@@ -531,7 +559,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("nonexistent");
       }).pipe(
-        Effect.provide(EffectCLI.Default),
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies)),
         Effect.catchTag("CLIError", (err) => Effect.succeed(err))
       );
 
@@ -543,11 +571,11 @@ describe("EffectCLI - Comprehensive Coverage", () => {
 
       const result = await Effect.runPromise(program);
       expect(result).toBeInstanceOf(CLIError);
-      expect(result.reason).toBe("NotFound");
+      expect((result as CLIError).reason).toBe("NotFound");
     });
 
     it("should timeout on stream", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.killed = false;
       mockChild.kill = vi.fn();
 
@@ -557,7 +585,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         yield* cli.stream("slow", [], { timeout: 50 });
       }).pipe(
-        Effect.provide(EffectCLI.Default),
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies)),
         Effect.catchTag("CLIError", (err) => Effect.succeed(err))
       );
 
@@ -565,13 +593,13 @@ describe("EffectCLI - Comprehensive Coverage", () => {
 
       const result = await Effect.runPromise(program);
       expect(result).toBeInstanceOf(CLIError);
-      expect(result.reason).toBe("Timeout");
+      expect((result as CLIError).reason).toBe("Timeout");
     });
   });
 
   describe("Resource Management", () => {
     it("should clear timeouts on completion", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -582,7 +610,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI;
         yield* cli.run("command", [], { timeout: 1000 });
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "");
@@ -597,7 +627,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should not kill process twice", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -608,7 +638,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
       const program = Effect.gen(function* () {
         const cli = yield* EffectCLI;
         yield* cli.run("command");
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "");
@@ -624,13 +656,13 @@ describe("EffectCLI - Comprehensive Coverage", () => {
 
   describe("Edge Cases", () => {
     it("should handle sequential command executions", async () => {
-      const mockChild1 = new EventEmitter();
+      const mockChild1: any = new EventEmitter();
       mockChild1.stdout = new EventEmitter();
       mockChild1.stderr = new EventEmitter();
       mockChild1.killed = false;
       mockChild1.kill = vi.fn();
 
-      const mockChild2 = new EventEmitter();
+      const mockChild2: any = new EventEmitter();
       mockChild2.stdout = new EventEmitter();
       mockChild2.stderr = new EventEmitter();
       mockChild2.killed = false;
@@ -645,7 +677,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const result1 = yield* cli.run("cmd1");
         const result2 = yield* cli.run("cmd2");
         return [result1, result2];
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild1.stdout.emit("data", "output1");
@@ -665,7 +699,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should handle immediate command completion", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -677,7 +711,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const cli = yield* EffectCLI;
         const result = yield* cli.run("true");
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       // Emit close immediately
       setImmediate(() => {
@@ -691,7 +727,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should handle large combined stdout and stderr", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -705,7 +741,9 @@ describe("EffectCLI - Comprehensive Coverage", () => {
           maxBuffer: 1024 * 1024,
         });
         return result;
-      }).pipe(Effect.provide(EffectCLI.Default));
+      }).pipe(
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies))
+      );
 
       setImmediate(() => {
         mockChild.stdout.emit("data", "x".repeat(500_000));
@@ -719,7 +757,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
     });
 
     it("should prevent double completion from close and error", async () => {
-      const mockChild = new EventEmitter();
+      const mockChild: any = new EventEmitter();
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.killed = false;
@@ -732,7 +770,7 @@ describe("EffectCLI - Comprehensive Coverage", () => {
         const result = yield* cli.run("command");
         return result;
       }).pipe(
-        Effect.provide(EffectCLI.Default),
+        Effect.provide(Layer.merge(EffectCLI.Default, MockSlashDependencies)),
         Effect.catchTag("CLIError", (err) =>
           Effect.succeed({ error: err.reason })
         )

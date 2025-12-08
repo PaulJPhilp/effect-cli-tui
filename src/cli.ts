@@ -1,8 +1,10 @@
 /** biome-ignore-all assist/source/organizeImports: <> */
 import { Effect } from "effect";
 import { spawn } from "node:child_process";
+import { MILLISECONDS_PER_SECOND } from "./constants";
 import { isErrnoException, isError } from "./core/error-utils";
 import { CLIError, type CLIResult, type CLIRunOptions } from "./types";
+import { ERROR_CODE_ENOENT } from "./types/system-signals";
 
 /**
  * EffectCLI Service API
@@ -127,7 +129,7 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
                         new CLIError(
                           "Timeout",
                           `The command took too long to complete (timeout: ${Math.round(
-                            timeoutMs / 1000
+                            timeoutMs / MILLISECONDS_PER_SECOND
                           )}s). Please try again or increase the timeout.`
                         )
                       )
@@ -160,11 +162,12 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
               }
             });
 
+            // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: error handler needs multiple branches for different error types
             child.on("error", (err) => {
               if (timeout) {
                 clearTimeout(timeout);
               }
-              if (isErrnoException(err) && err.code === "ENOENT") {
+              if (isErrnoException(err) && err.code === ERROR_CODE_ENOENT) {
                 safeResume(
                   Effect.fail(
                     new CLIError(
@@ -224,7 +227,7 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
                         new CLIError(
                           "Timeout",
                           `The command took too long to complete (timeout: ${Math.round(
-                            timeoutMs / 1000
+                            timeoutMs / MILLISECONDS_PER_SECOND
                           )}s). Please try again or increase the timeout.`
                         )
                       )
@@ -253,11 +256,12 @@ export class EffectCLI extends Effect.Service<EffectCLI>()("app/EffectCLI", {
               }
             });
 
+            // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: error handler needs multiple branches for different error types
             child.on("error", (err) => {
               if (timeout) {
                 clearTimeout(timeout);
               }
-              if (isErrnoException(err) && err.code === "ENOENT") {
+              if (isErrnoException(err) && err.code === ERROR_CODE_ENOENT) {
                 safeResume(
                   Effect.fail(
                     new CLIError(

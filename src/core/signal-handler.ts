@@ -1,4 +1,5 @@
 import { Effect } from "effect";
+import { SIGNAL_SIGINT, SIGNAL_SIGTERM } from "../types/system-signals";
 import {
   ANSI_CARRIAGE_RETURN_CLEAR,
   ANSI_SHOW_CURSOR,
@@ -67,6 +68,7 @@ export function registerCleanupHandler(
  * Setup SIGINT and SIGTERM handlers
  */
 function setupSignalHandlers(): void {
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: cleanup handler needs comprehensive error handling for each step
   const handleSignal = async (signal: string) => {
     // Run all cleanup handlers in reverse order
     for (let i = cleanupHandlers.length - 1; i >= 0; i--) {
@@ -91,16 +93,18 @@ function setupSignalHandlers(): void {
     }
 
     // Exit with standard exit codes
-    process.exit(signal === "SIGINT" ? EXIT_CODE_SIGINT : EXIT_CODE_SIGTERM);
+    process.exit(
+      signal === SIGNAL_SIGINT ? EXIT_CODE_SIGINT : EXIT_CODE_SIGTERM
+    );
   };
 
-  process.on("SIGINT", () => {
-    handleSignal("SIGINT").catch(() => {
+  process.on(SIGNAL_SIGINT, () => {
+    handleSignal(SIGNAL_SIGINT).catch(() => {
       // Ignore errors in signal handler
     });
   });
-  process.on("SIGTERM", () => {
-    handleSignal("SIGTERM").catch(() => {
+  process.on(SIGNAL_SIGTERM, () => {
+    handleSignal(SIGNAL_SIGTERM).catch(() => {
       // Ignore errors in signal handler
     });
   });

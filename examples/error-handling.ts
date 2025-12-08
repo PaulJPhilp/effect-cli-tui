@@ -20,8 +20,9 @@ export const handleCancellation = Effect.gen(function* () {
   const name = yield* tui.prompt("Enter your name:").pipe(
     Effect.catchTag("TUIError", (err) => {
       if (err.reason === "Cancelled") {
-        yield * tui.display("Operation cancelled by user", "warning");
-        return Effect.succeed("Anonymous");
+        return tui
+          .display("Operation cancelled by user", "warning")
+          .pipe(Effect.flatMap(() => Effect.succeed("Anonymous")));
       }
       return Effect.fail(err);
     })
@@ -56,12 +57,13 @@ export const handleValidationWithRetry = Effect.gen(function* () {
           if (err.reason === "ValidationFailed") {
             attempts++;
             if (attempts < maxAttempts) {
-              yield *
-                displayError(`Validation failed: ${err.message}. Try again.`);
-              return Effect.fail(err); // Retry
+              return displayError(
+                `Validation failed: ${err.message}. Try again.`
+              ).pipe(Effect.flatMap(() => Effect.fail(err)));
             }
-            yield * displayError("Max attempts reached. Using default email.");
-            return Effect.succeed("user@example.com");
+            return displayError(
+              "Max attempts reached. Using default email."
+            ).pipe(Effect.flatMap(() => Effect.succeed("user@example.com")));
           }
           return Effect.fail(err);
         })
@@ -81,24 +83,21 @@ export const handleCLIErrors = Effect.gen(function* () {
     Effect.catchTag("CLIError", (err) => {
       switch (err.reason) {
         case "NotFound":
-          yield *
-            displayError("Command not found: git. Please install Git first.");
-          return Effect.fail(err);
+          return displayError(
+            "Command not found: git. Please install Git first."
+          ).pipe(Effect.flatMap(() => Effect.fail(err)));
         case "Timeout":
-          yield *
-            displayError(
-              `Command timed out after ${err.message}. Please try again.`
-            );
-          return Effect.fail(err);
+          return displayError(
+            `Command timed out after ${err.message}. Please try again.`
+          ).pipe(Effect.flatMap(() => Effect.fail(err)));
         case "CommandFailed":
-          yield *
-            displayError(
-              `Command failed with exit code ${err.exitCode}: ${err.message}`
-            );
-          return Effect.fail(err);
+          return displayError(
+            `Command failed with exit code ${err.exitCode}: ${err.message}`
+          ).pipe(Effect.flatMap(() => Effect.fail(err)));
         case "ExecutionError":
-          yield * displayError(`Execution error: ${err.message}`);
-          return Effect.fail(err);
+          return displayError(`Execution error: ${err.message}`).pipe(
+            Effect.flatMap(() => Effect.fail(err))
+          );
       }
     })
   );
@@ -118,8 +117,9 @@ export const comprehensiveErrorHandling = Effect.gen(function* () {
   const projectName = yield* tui.prompt("Project name:").pipe(
     Effect.catchTag("TUIError", (err) => {
       if (err.reason === "Cancelled") {
-        yield * tui.display("Setup cancelled", "warning");
-        return Effect.fail(new Error("User cancelled"));
+        return tui
+          .display("Setup cancelled", "warning")
+          .pipe(Effect.flatMap(() => Effect.fail(new Error("User cancelled"))));
       }
       return Effect.fail(err);
     })
@@ -134,17 +134,20 @@ export const comprehensiveErrorHandling = Effect.gen(function* () {
     .pipe(
       Effect.catchTag("CLIError", (err) => {
         if (err.reason === "NotFound") {
-          yield * displayError("npm not found. Please install Node.js.");
-          return Effect.fail(err);
+          return displayError("npm not found. Please install Node.js.").pipe(
+            Effect.flatMap(() => Effect.fail(err))
+          );
         }
         if (err.reason === "Timeout") {
-          yield * displayError("Build timed out. Try increasing timeout.");
-          return Effect.fail(err);
+          return displayError("Build timed out. Try increasing timeout.").pipe(
+            Effect.flatMap(() => Effect.fail(err))
+          );
         }
         if (err.reason === "CommandFailed") {
-          yield * displayError(`Build failed: ${err.message}`);
-          yield * displayError(`Exit code: ${err.exitCode}`);
-          return Effect.fail(err);
+          return displayError(`Build failed: ${err.message}`).pipe(
+            Effect.flatMap(() => displayError(`Exit code: ${err.exitCode}`)),
+            Effect.flatMap(() => Effect.fail(err))
+          );
         }
         return Effect.fail(err);
       })
@@ -200,8 +203,9 @@ export const errorRecoveryWithFallback = Effect.gen(function* () {
     .pipe(
       Effect.catchTag("TUIError", (err) => {
         if (err.reason === "Cancelled") {
-          yield * tui.display("Using default template: basic", "info");
-          return Effect.succeed("basic");
+          return tui
+            .display("Using default template: basic", "info")
+            .pipe(Effect.flatMap(() => Effect.succeed("basic")));
         }
         return Effect.fail(err);
       })

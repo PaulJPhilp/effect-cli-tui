@@ -45,7 +45,7 @@ function createMockClientLayer(mockClient: SupermemoryClient) {
 describe("Supermemory Config", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete process.env.SUPERMEMORY_API_KEY;
+    process.env.SUPERMEMORY_API_KEY = undefined;
   });
 
   afterAll(() => {

@@ -3,13 +3,23 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { createKit, KitRegistryService, MemKit, withKit } from "@kits";
 import { Effect } from "effect";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createEffectCliSlashCommand,
   DEFAULT_SLASH_COMMANDS,
   getGlobalSlashCommandRegistry,
   setGlobalSlashCommandRegistry,
 } from "@/tui-slash-commands";
+
+const TEST_HOMEDIR = path.join(os.tmpdir(), "effect-cli-tui-test-integration");
+
+vi.mock("node:os", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:os")>();
+  return {
+    ...actual,
+    homedir: () => TEST_HOMEDIR,
+  };
+});
 
 const CONFIG_DIR_NAME = ".effect-cli-tui";
 const CONFIG_FILE_NAME = "kits.json";
@@ -55,7 +65,7 @@ describe("Kit Integration Tests", () => {
 
         // 3. Use kit commands
         const globalRegistry = getGlobalSlashCommandRegistry();
-        const hasCommand = globalRegistry.lookup.has("memkit-add");
+        const hasCommand = globalRegistry.lookup.has("mem-add-text");
         expect(hasCommand).toBe(true);
 
         // 4. Disable kit
@@ -64,7 +74,7 @@ describe("Kit Integration Tests", () => {
         expect(stillEnabled).toBe(false);
 
         const globalRegistry2 = getGlobalSlashCommandRegistry();
-        const hasCommandAfter = globalRegistry2.lookup.has("memkit-add");
+        const hasCommandAfter = globalRegistry2.lookup.has("mem-add-text");
         expect(hasCommandAfter).toBe(false);
 
         return "success";
@@ -119,8 +129,8 @@ describe("Kit Integration Tests", () => {
       const customKit = createKit(
         "customkit",
         "Custom Kit",
-        "Custom test kit",
         "1.0.0",
+        "Custom test kit",
         [
           createEffectCliSlashCommand({
             name: "custom-command",
@@ -153,7 +163,7 @@ describe("Kit Integration Tests", () => {
         const globalRegistry = getGlobalSlashCommandRegistry();
         return {
           ...result,
-          hasMemkitAfter: globalRegistry.lookup.has("memkit-add"),
+          hasMemkitAfter: globalRegistry.lookup.has("mem-add-text"),
           hasCustomAfter: globalRegistry.lookup.has("custom-command"),
         };
       }).pipe(Effect.provide(KitRegistryService.Default));
@@ -167,7 +177,7 @@ describe("Kit Integration Tests", () => {
 
   describe("Multiple Kits Integration", () => {
     it("should handle multiple kits with registry and runtime", async () => {
-      const kit1 = createKit("kit1", "Kit 1", "First kit", "1.0.0", [
+      const kit1 = createKit("kit1", "Kit 1", "1.0.0", "First kit", [
         createEffectCliSlashCommand({
           name: "kit1-cmd",
           description: "Kit 1 command",
@@ -175,7 +185,7 @@ describe("Kit Integration Tests", () => {
         }),
       ]);
 
-      const kit2 = createKit("kit2", "Kit 2", "Second kit", "1.0.0", [
+      const kit2 = createKit("kit2", "Kit 2", "1.0.0", "Second kit", [
         createEffectCliSlashCommand({
           name: "kit2-cmd",
           description: "Kit 2 command",
@@ -235,7 +245,7 @@ describe("Kit Integration Tests", () => {
         // State should still be maintained
         const enabled = yield* registry.isEnabled("memkit");
         const globalRegistry = getGlobalSlashCommandRegistry();
-        const hasCommand = globalRegistry.lookup.has("memkit-add");
+        const hasCommand = globalRegistry.lookup.has("mem-add-text");
 
         return { enabled, hasCommand };
       }).pipe(Effect.provide(KitRegistryService.Default));
@@ -251,8 +261,8 @@ describe("Kit Integration Tests", () => {
       const kit = createKit(
         "helperkit",
         "Helper Kit",
-        "Kit created with helper",
         "2.0.0",
+        "Kit created with helper",
         [
           createEffectCliSlashCommand({
             name: "helper-cmd",
@@ -271,7 +281,7 @@ describe("Kit Integration Tests", () => {
     });
 
     it("should work with kit created via createKit", async () => {
-      const customKit = createKit("custom", "Custom", "Custom kit", "1.0.0", [
+      const customKit = createKit("custom", "Custom", "1.0.0", "Custom kit", [
         createEffectCliSlashCommand({
           name: "custom-cmd",
           description: "Custom",

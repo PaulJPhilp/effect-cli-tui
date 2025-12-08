@@ -10,7 +10,7 @@
  * - Error handling
  */
 
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   displayError,
@@ -35,7 +35,7 @@ import {
   validateGeneratedPrompt,
   validateResponses,
 } from "../../examples/prompt-builder/validation";
-import { MockCLI } from "../fixtures/test-layers";
+import { MockCLI, MockSlashDependencies } from "../fixtures/test-layers";
 
 describe("Prompt Builder Example - Workflow Tests", () => {
   beforeEach(() => {
@@ -601,7 +601,7 @@ describe("Prompt Builder Example - Workflow Tests", () => {
         }
 
         return { template, responses, promptText };
-      }).pipe(Effect.provide(MockCLI));
+      }).pipe(Effect.provide(Layer.merge(MockCLI, MockSlashDependencies)));
 
       const result = await Effect.runPromise(workflow);
 

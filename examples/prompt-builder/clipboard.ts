@@ -7,7 +7,7 @@
  * - Windows: clip
  */
 
-import { execSync, spawn } from "child_process";
+import { execSync, spawn } from "node:child_process";
 import { Effect } from "effect";
 
 /**

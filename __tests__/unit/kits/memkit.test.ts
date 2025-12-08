@@ -11,7 +11,15 @@ import {
 } from "@supermemory/client";
 import { Effect, Layer } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getGlobalSlashCommandRegistry } from "@/tui-slash-commands";
+import {
+  getGlobalSlashCommandRegistry,
+  type SlashCommandDefinition,
+} from "@/tui-slash-commands";
+import {
+  MockKitRegistryService,
+  MockModeService,
+  MockToolCallLogService,
+} from "../../fixtures/test-layers";
 
 // Mock fs operations
 vi.mock("node:fs/promises", () => ({
@@ -92,7 +100,9 @@ describe("MemKit", () => {
     });
 
     it("should have all expected commands", () => {
-      const commandNames = MemKit.commands.map((cmd) => cmd.name);
+      const commandNames = MemKit.commands.map(
+        (cmd: SlashCommandDefinition) => cmd.name
+      );
       expect(commandNames).toContain("mem-status");
       expect(commandNames).toContain("mem-add-text");
       expect(commandNames).toContain("mem-add-file");
@@ -105,12 +115,16 @@ describe("MemKit", () => {
     });
 
     it("should have command descriptions", () => {
-      const statusCmd = MemKit.commands.find((c) => c.name === "mem-status");
+      const statusCmd = MemKit.commands.find(
+        (c: { name: string }) => c.name === "mem-status"
+      );
       expect(statusCmd?.description).toBe(
         "Check Supermemory connectivity and status"
       );
 
-      const addTextCmd = MemKit.commands.find((c) => c.name === "mem-add-text");
+      const addTextCmd = MemKit.commands.find(
+        (c: { name: string }) => c.name === "mem-add-text"
+      );
       expect(addTextCmd?.description).toBe(
         "Add a text note as a Supermemory document"
       );
@@ -137,7 +151,17 @@ describe("MemKit", () => {
         })
       );
 
-      const result = await Effect.runPromise(program);
+      const result: {
+        hasStatus: boolean;
+        hasAddText: boolean;
+        hasAddFile: boolean;
+        hasAddUrl: boolean;
+        hasSearch: boolean;
+        hasShowDoc: boolean;
+        hasShowMem: boolean;
+        hasRmDoc: boolean;
+        hasStats: boolean;
+      } = await Effect.runPromise(program);
       expect(result.hasStatus).toBe(true);
       expect(result.hasAddText).toBe(true);
       expect(result.hasAddFile).toBe(true);
@@ -152,14 +176,22 @@ describe("MemKit", () => {
 
   describe("/mem-status command", () => {
     const mockClient = createMockClient();
-    const mockLayer = Layer.succeed(SupermemoryClientService, mockClient);
+    const mockLayer = Layer.mergeAll(
+      Layer.succeed(
+        SupermemoryClientService,
+        mockClient as unknown as SupermemoryClientService
+      ),
+      MockKitRegistryService,
+      MockModeService,
+      MockToolCallLogService
+    );
 
     beforeEach(() => {
       vi.clearAllMocks();
     });
 
     it("should show connected status when client works", async () => {
-      mockClient.listDocuments = vi.fn(() =>
+      (mockClient as any).listDocuments = vi.fn(() =>
         Effect.succeed([
           {
             id: "doc1",
@@ -177,7 +209,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-status");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-status"));
         })
@@ -189,7 +221,7 @@ describe("MemKit", () => {
     });
 
     it("should show disconnected status when client fails", async () => {
-      mockClient.listDocuments = vi.fn(() =>
+      (mockClient as any).listDocuments = vi.fn(() =>
         Effect.fail(new SupermemoryError({ message: "Connection failed" }))
       );
 
@@ -199,7 +231,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-status");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-status"));
         })
@@ -210,7 +242,7 @@ describe("MemKit", () => {
     });
 
     it("should handle MissingSupermemoryApiKey error", async () => {
-      mockClient.listDocuments = vi.fn(() =>
+      (mockClient as any).listDocuments = vi.fn(() =>
         Effect.fail(
           new MissingSupermemoryApiKey({
             message: "No Supermemory API key configured",
@@ -224,7 +256,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-status");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-status"));
         })
@@ -251,7 +283,7 @@ describe("MemKit", () => {
           updatedAt: new Date().toISOString(),
         },
       ];
-      mockClient.listDocuments = vi.fn(() => Effect.succeed(docs));
+      (mockClient as any).listDocuments = vi.fn(() => Effect.succeed(docs));
 
       const program = withKit(
         MemKit,
@@ -259,7 +291,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-status");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-status"));
         })
@@ -278,7 +310,7 @@ describe("MemKit", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }));
-      mockClient.listDocuments = vi.fn(() => Effect.succeed(docs));
+      (mockClient as any).listDocuments = vi.fn(() => Effect.succeed(docs));
 
       const program = withKit(
         MemKit,
@@ -286,7 +318,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-status");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-status"));
         })
@@ -299,7 +331,15 @@ describe("MemKit", () => {
 
   describe("/mem-add-text command", () => {
     const mockClient = createMockClient();
-    const mockLayer = Layer.succeed(SupermemoryClientService, mockClient);
+    const mockLayer = Layer.mergeAll(
+      Layer.succeed(
+        SupermemoryClientService,
+        mockClient as unknown as SupermemoryClientService
+      ),
+      MockKitRegistryService,
+      MockModeService,
+      MockToolCallLogService
+    );
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -312,7 +352,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["This is test content"])
@@ -338,7 +378,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-text", [shortText]));
         })
@@ -362,7 +402,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-text", [longText]));
         })
@@ -382,7 +422,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["Content"], {
@@ -409,7 +449,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["Content"], {
@@ -436,7 +476,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["Content"], {
@@ -464,7 +504,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-text", words));
         })
@@ -486,7 +526,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", [specialText])
@@ -509,7 +549,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-text", []));
         })
@@ -527,7 +567,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["   ", "  "])
@@ -547,7 +587,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["Content"], {
@@ -574,7 +614,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["Content"], { tags: "" })
@@ -596,7 +636,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["Content"], {
@@ -623,7 +663,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["Content"], {
@@ -648,7 +688,7 @@ describe("MemKit", () => {
     });
 
     it("should handle MissingSupermemoryApiKey error", async () => {
-      mockClient.addDocument = vi.fn(() =>
+      (mockClient as any).addDocument = vi.fn(() =>
         Effect.fail(
           new MissingSupermemoryApiKey({
             message: "No Supermemory API key configured",
@@ -662,7 +702,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["Test content"])
@@ -675,7 +715,7 @@ describe("MemKit", () => {
     });
 
     it("should handle SupermemoryError", async () => {
-      mockClient.addDocument = vi.fn(() =>
+      (mockClient as any).addDocument = vi.fn(() =>
         Effect.fail(new SupermemoryError({ message: "Rate limit exceeded" }))
       );
 
@@ -685,7 +725,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["Test content"])
@@ -700,7 +740,15 @@ describe("MemKit", () => {
 
   describe("/mem-add-file command", () => {
     const mockClient = createMockClient();
-    const mockLayer = Layer.succeed(SupermemoryClientService, mockClient);
+    const mockLayer = Layer.mergeAll(
+      Layer.succeed(
+        SupermemoryClientService,
+        mockClient as unknown as SupermemoryClientService
+      ),
+      MockKitRegistryService,
+      MockModeService,
+      MockToolCallLogService
+    );
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -717,7 +765,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-file");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-file", ["test.txt"])
@@ -747,7 +795,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-file");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-file", ["test.txt"], {
@@ -779,7 +827,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-file");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-file", [absPath]));
         })
@@ -802,7 +850,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-file");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-file", [relPath]));
         })
@@ -824,7 +872,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-file");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-file", ["nonexistent.txt"])
@@ -844,7 +892,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-file");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-file", []));
         })
@@ -867,7 +915,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-file");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-file", ["test.txt"], {
@@ -901,7 +949,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-file");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-file", ["large.txt"])
@@ -929,7 +977,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-file");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-file", [fileName]));
         })
@@ -943,7 +991,15 @@ describe("MemKit", () => {
 
   describe("/mem-add-url command", () => {
     const mockClient = createMockClient();
-    const mockLayer = Layer.succeed(SupermemoryClientService, mockClient);
+    const mockLayer = Layer.mergeAll(
+      Layer.succeed(
+        SupermemoryClientService,
+        mockClient as unknown as SupermemoryClientService
+      ),
+      MockKitRegistryService,
+      MockModeService,
+      MockToolCallLogService
+    );
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -957,7 +1013,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-url");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-url", [url]));
         })
@@ -979,7 +1035,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-url");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-url", [url]));
         })
@@ -1001,7 +1057,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-url");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-url", [url]));
         })
@@ -1020,7 +1076,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-url");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-url", [url]));
         })
@@ -1039,7 +1095,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-url");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-url", [url]));
         })
@@ -1058,7 +1114,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-url");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-url", [url]));
         })
@@ -1077,7 +1133,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-url");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-url", [url]));
         })
@@ -1095,7 +1151,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-url");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-url", []));
         })
@@ -1114,7 +1170,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-url");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-url", [url], {
@@ -1144,7 +1200,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-url");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-add-url", [url]));
         })
@@ -1160,7 +1216,15 @@ describe("MemKit", () => {
 
   describe("/mem-search command", () => {
     const mockClient = createMockClient();
-    const mockLayer = Layer.succeed(SupermemoryClientService, mockClient);
+    const mockLayer = Layer.mergeAll(
+      Layer.succeed(
+        SupermemoryClientService,
+        mockClient as unknown as SupermemoryClientService
+      ),
+      MockKitRegistryService,
+      MockModeService,
+      MockToolCallLogService
+    );
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -1173,7 +1237,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-search", ["test query"])
@@ -1198,7 +1262,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-search", ["query"], { limit: "5" })
@@ -1223,7 +1287,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-search", ["query"], { tags: "tag1,tag2" })
@@ -1248,7 +1312,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-search", ["query"], { docId: "doc_123" })
@@ -1273,7 +1337,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-search", ["query"], {
@@ -1304,7 +1368,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-search", []));
         })
@@ -1323,7 +1387,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-search", words));
         })
@@ -1353,7 +1417,9 @@ describe("MemKit", () => {
           score: 0.85,
         },
       ];
-      mockClient.searchMemories = vi.fn(() => Effect.succeed(memories));
+      (mockClient as any).searchMemories = vi.fn(() =>
+        Effect.succeed(memories)
+      );
 
       const program = withKit(
         MemKit,
@@ -1361,7 +1427,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-search", ["test"]));
         })
@@ -1372,7 +1438,7 @@ describe("MemKit", () => {
     });
 
     it("should handle empty search results", async () => {
-      mockClient.searchMemories = vi.fn(() => Effect.succeed([]));
+      (mockClient as any).searchMemories = vi.fn(() => Effect.succeed([]));
 
       const program = withKit(
         MemKit,
@@ -1380,7 +1446,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-search", ["nonexistent"])
@@ -1402,7 +1468,9 @@ describe("MemKit", () => {
           score: 0.9,
         },
       ];
-      mockClient.searchMemories = vi.fn(() => Effect.succeed(memories));
+      (mockClient as any).searchMemories = vi.fn(() =>
+        Effect.succeed(memories)
+      );
 
       const program = withKit(
         MemKit,
@@ -1410,7 +1478,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-search", ["test"]));
         })
@@ -1428,7 +1496,9 @@ describe("MemKit", () => {
           documentId: "doc1",
         },
       ];
-      mockClient.searchMemories = vi.fn(() => Effect.succeed(memories));
+      (mockClient as any).searchMemories = vi.fn(() =>
+        Effect.succeed(memories)
+      );
 
       const program = withKit(
         MemKit,
@@ -1436,7 +1506,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-search", ["test"]));
         })
@@ -1449,7 +1519,15 @@ describe("MemKit", () => {
 
   describe("/mem-show-doc command", () => {
     const mockClient = createMockClient();
-    const mockLayer = Layer.succeed(SupermemoryClientService, mockClient);
+    const mockLayer = Layer.mergeAll(
+      Layer.succeed(
+        SupermemoryClientService,
+        mockClient as unknown as SupermemoryClientService
+      ),
+      MockKitRegistryService,
+      MockModeService,
+      MockToolCallLogService
+    );
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -1465,7 +1543,7 @@ describe("MemKit", () => {
         createdAt: "2024-01-01T00:00:00Z",
         updatedAt: "2024-01-02T00:00:00Z",
       };
-      mockClient.getDocument = vi.fn(() => Effect.succeed(doc));
+      (mockClient as any).getDocument = vi.fn(() => Effect.succeed(doc));
 
       const program = withKit(
         MemKit,
@@ -1473,7 +1551,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-doc", ["doc_123"]));
         })
@@ -1492,7 +1570,7 @@ describe("MemKit", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      mockClient.getDocument = vi.fn(() => Effect.succeed(doc));
+      (mockClient as any).getDocument = vi.fn(() => Effect.succeed(doc));
 
       const program = withKit(
         MemKit,
@@ -1500,7 +1578,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-doc", ["doc_123"]));
         })
@@ -1518,7 +1596,7 @@ describe("MemKit", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      mockClient.getDocument = vi.fn(() => Effect.succeed(doc));
+      (mockClient as any).getDocument = vi.fn(() => Effect.succeed(doc));
 
       const program = withKit(
         MemKit,
@@ -1526,7 +1604,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-doc", ["doc_123"]));
         })
@@ -1544,7 +1622,7 @@ describe("MemKit", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      mockClient.getDocument = vi.fn(() => Effect.succeed(doc));
+      (mockClient as any).getDocument = vi.fn(() => Effect.succeed(doc));
 
       const program = withKit(
         MemKit,
@@ -1552,7 +1630,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-doc", ["doc_123"]));
         })
@@ -1569,7 +1647,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-doc", []));
         })
@@ -1581,7 +1659,7 @@ describe("MemKit", () => {
     });
 
     it("should handle document not found error", async () => {
-      mockClient.getDocument = vi.fn(() =>
+      (mockClient as any).getDocument = vi.fn(() =>
         Effect.fail(new SupermemoryError({ message: "Document not found" }))
       );
 
@@ -1591,7 +1669,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-show-doc", ["nonexistent"])
@@ -1618,8 +1696,10 @@ describe("MemKit", () => {
           documentId: "doc_123",
         },
       ];
-      mockClient.getDocument = vi.fn(() => Effect.succeed(doc));
-      mockClient.searchMemories = vi.fn(() => Effect.succeed(memories));
+      (mockClient as any).getDocument = vi.fn(() => Effect.succeed(doc));
+      (mockClient as any).searchMemories = vi.fn(() =>
+        Effect.succeed(memories)
+      );
 
       const program = withKit(
         MemKit,
@@ -1627,7 +1707,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-doc", ["doc_123"]));
         })
@@ -1645,7 +1725,7 @@ describe("MemKit", () => {
         createdAt: "invalid-date",
         updatedAt: "also-invalid",
       };
-      mockClient.getDocument = vi.fn(() => Effect.succeed(doc));
+      (mockClient as any).getDocument = vi.fn(() => Effect.succeed(doc));
 
       const program = withKit(
         MemKit,
@@ -1653,7 +1733,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-doc", ["doc_123"]));
         })
@@ -1672,7 +1752,7 @@ describe("MemKit", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      mockClient.getDocument = vi.fn(() => Effect.succeed(doc));
+      (mockClient as any).getDocument = vi.fn(() => Effect.succeed(doc));
 
       const program = withKit(
         MemKit,
@@ -1680,7 +1760,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-doc", ["doc_123"]));
         })
@@ -1693,7 +1773,15 @@ describe("MemKit", () => {
 
   describe("/mem-show-mem command", () => {
     const mockClient = createMockClient();
-    const mockLayer = Layer.succeed(SupermemoryClientService, mockClient);
+    const mockLayer = Layer.mergeAll(
+      Layer.succeed(
+        SupermemoryClientService,
+        mockClient as unknown as SupermemoryClientService
+      ),
+      MockKitRegistryService,
+      MockModeService,
+      MockToolCallLogService
+    );
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -1708,7 +1796,7 @@ describe("MemKit", () => {
         score: 0.95,
         tags: ["tag1"],
       };
-      mockClient.getMemory = vi.fn(() => Effect.succeed(memory));
+      (mockClient as any).getMemory = vi.fn(() => Effect.succeed(memory));
 
       const program = withKit(
         MemKit,
@@ -1716,7 +1804,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-mem");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-mem", ["mem_123"]));
         })
@@ -1733,7 +1821,7 @@ describe("MemKit", () => {
         content: "Content",
         documentId: "doc_123",
       };
-      mockClient.getMemory = vi.fn(() => Effect.succeed(memory));
+      (mockClient as any).getMemory = vi.fn(() => Effect.succeed(memory));
 
       const program = withKit(
         MemKit,
@@ -1741,7 +1829,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-mem");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-mem", ["mem_123"]));
         })
@@ -1757,7 +1845,7 @@ describe("MemKit", () => {
         content: "Content",
         documentId: "doc_123",
       };
-      mockClient.getMemory = vi.fn(() => Effect.succeed(memory));
+      (mockClient as any).getMemory = vi.fn(() => Effect.succeed(memory));
 
       const program = withKit(
         MemKit,
@@ -1765,7 +1853,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-mem");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-mem", ["mem_123"]));
         })
@@ -1782,7 +1870,7 @@ describe("MemKit", () => {
         documentId: "doc_123",
         score: 0.9,
       };
-      mockClient.getMemory = vi.fn(() => Effect.succeed(memory));
+      (mockClient as any).getMemory = vi.fn(() => Effect.succeed(memory));
 
       const program = withKit(
         MemKit,
@@ -1790,7 +1878,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-mem");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-mem", ["mem_123"]));
         })
@@ -1807,7 +1895,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-mem");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-mem", []));
         })
@@ -1819,7 +1907,7 @@ describe("MemKit", () => {
     });
 
     it("should handle memory not found error", async () => {
-      mockClient.getMemory = vi.fn(() =>
+      (mockClient as any).getMemory = vi.fn(() =>
         Effect.fail(new SupermemoryError({ message: "Memory not found" }))
       );
 
@@ -1829,7 +1917,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-mem");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-show-mem", ["nonexistent"])
@@ -1848,7 +1936,7 @@ describe("MemKit", () => {
         content: longContent,
         documentId: "doc_123",
       };
-      mockClient.getMemory = vi.fn(() => Effect.succeed(memory));
+      (mockClient as any).getMemory = vi.fn(() => Effect.succeed(memory));
 
       const program = withKit(
         MemKit,
@@ -1856,7 +1944,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-mem");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-mem", ["mem_123"]));
         })
@@ -1869,7 +1957,15 @@ describe("MemKit", () => {
 
   describe("/mem-rm-doc command", () => {
     const mockClient = createMockClient();
-    const mockLayer = Layer.succeed(SupermemoryClientService, mockClient);
+    const mockLayer = Layer.mergeAll(
+      Layer.succeed(
+        SupermemoryClientService,
+        mockClient as unknown as SupermemoryClientService
+      ),
+      MockKitRegistryService,
+      MockModeService,
+      MockToolCallLogService
+    );
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -1882,7 +1978,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-rm-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-rm-doc", ["doc_123"], { force: true })
@@ -1902,7 +1998,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-rm-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-rm-doc", ["doc_123"], { f: true })
@@ -1922,7 +2018,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-rm-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-rm-doc", ["doc_123"]));
         })
@@ -1940,7 +2036,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-rm-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-rm-doc", []));
         })
@@ -1952,7 +2048,7 @@ describe("MemKit", () => {
     });
 
     it("should handle delete errors", async () => {
-      mockClient.deleteDocument = vi.fn(() =>
+      (mockClient as any).deleteDocument = vi.fn(() =>
         Effect.fail(new SupermemoryError({ message: "Delete failed" }))
       );
 
@@ -1962,7 +2058,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-rm-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-rm-doc", ["doc_123"], { force: true })
@@ -1977,7 +2073,15 @@ describe("MemKit", () => {
 
   describe("/mem-stats command", () => {
     const mockClient = createMockClient();
-    const mockLayer = Layer.succeed(SupermemoryClientService, mockClient);
+    const mockLayer = Layer.mergeAll(
+      Layer.succeed(
+        SupermemoryClientService,
+        mockClient as unknown as SupermemoryClientService
+      ),
+      MockKitRegistryService,
+      MockModeService,
+      MockToolCallLogService
+    );
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -2012,7 +2116,7 @@ describe("MemKit", () => {
           updatedAt: now.toISOString(),
         },
       ];
-      mockClient.listDocuments = vi.fn(() => Effect.succeed(docs));
+      (mockClient as any).listDocuments = vi.fn(() => Effect.succeed(docs));
 
       const program = withKit(
         MemKit,
@@ -2020,7 +2124,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-stats");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-stats"));
         })
@@ -2060,7 +2164,7 @@ describe("MemKit", () => {
           updatedAt: now.toISOString(),
         },
       ];
-      mockClient.listDocuments = vi.fn(() => Effect.succeed(docs));
+      (mockClient as any).listDocuments = vi.fn(() => Effect.succeed(docs));
 
       const program = withKit(
         MemKit,
@@ -2068,7 +2172,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-stats");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-stats"));
         })
@@ -2079,7 +2183,7 @@ describe("MemKit", () => {
     });
 
     it("should handle empty document list", async () => {
-      mockClient.listDocuments = vi.fn(() => Effect.succeed([]));
+      (mockClient as any).listDocuments = vi.fn(() => Effect.succeed([]));
 
       const program = withKit(
         MemKit,
@@ -2087,7 +2191,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-stats");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-stats"));
         })
@@ -2106,7 +2210,7 @@ describe("MemKit", () => {
           updatedAt: new Date().toISOString(),
         },
       ];
-      mockClient.listDocuments = vi.fn(() => Effect.succeed(docs));
+      (mockClient as any).listDocuments = vi.fn(() => Effect.succeed(docs));
 
       const program = withKit(
         MemKit,
@@ -2114,7 +2218,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-stats");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-stats"));
         })
@@ -2125,7 +2229,7 @@ describe("MemKit", () => {
     });
 
     it("should handle errors gracefully", async () => {
-      mockClient.listDocuments = vi.fn(() =>
+      (mockClient as any).listDocuments = vi.fn(() =>
         Effect.fail(new SupermemoryError({ message: "Failed" }))
       );
 
@@ -2135,7 +2239,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-stats");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-stats"));
         })
@@ -2153,7 +2257,7 @@ describe("MemKit", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }));
-      mockClient.listDocuments = vi.fn(() => Effect.succeed(docs));
+      (mockClient as any).listDocuments = vi.fn(() => Effect.succeed(docs));
 
       const program = withKit(
         MemKit,
@@ -2161,7 +2265,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-stats");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-stats"));
         })
@@ -2221,7 +2325,15 @@ describe("MemKit", () => {
         ),
       };
 
-      const errorLayer = Layer.succeed(SupermemoryClientService, errorClient);
+      const errorLayer = Layer.mergeAll(
+        Layer.succeed(
+          SupermemoryClientService,
+          errorClient as unknown as SupermemoryClientService
+        ),
+        MockKitRegistryService,
+        MockModeService,
+        MockToolCallLogService
+      );
       const commands = [
         "mem-add-text",
         "mem-add-file",
@@ -2240,7 +2352,7 @@ describe("MemKit", () => {
             const registry = getGlobalSlashCommandRegistry();
             const command = registry.lookup.get(cmdName);
             if (!command) {
-              return Effect.fail(new Error("Command not found"));
+              return yield* Effect.fail(new Error("Command not found"));
             }
             return yield* command.run(createContext(cmdName, ["test"]));
           })
@@ -2271,7 +2383,15 @@ describe("MemKit", () => {
         searchMemories: vi.fn(() => Effect.succeed([])),
       };
 
-      const errorLayer = Layer.succeed(SupermemoryClientService, errorClient);
+      const errorLayer = Layer.mergeAll(
+        Layer.succeed(
+          SupermemoryClientService,
+          errorClient as unknown as SupermemoryClientService
+        ),
+        MockKitRegistryService,
+        MockModeService,
+        MockToolCallLogService
+      );
 
       const testCases = [
         { cmd: "mem-add-text", args: ["content"] },
@@ -2289,7 +2409,7 @@ describe("MemKit", () => {
             const registry = getGlobalSlashCommandRegistry();
             const command = registry.lookup.get(cmd);
             if (!command) {
-              return Effect.fail(new Error("Command not found"));
+              return yield* Effect.fail(new Error("Command not found"));
             }
             return yield* command.run(createContext(cmd, args, flags));
           })
@@ -2303,7 +2423,15 @@ describe("MemKit", () => {
 
   describe("Integration Scenarios", () => {
     const mockClient = createMockClient();
-    const mockLayer = Layer.succeed(SupermemoryClientService, mockClient);
+    const mockLayer = Layer.mergeAll(
+      Layer.succeed(
+        SupermemoryClientService,
+        mockClient as unknown as SupermemoryClientService
+      ),
+      MockKitRegistryService,
+      MockModeService,
+      MockToolCallLogService
+    );
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -2312,7 +2440,7 @@ describe("MemKit", () => {
     it("should handle workflow: add -> search -> show", async () => {
       const docId = "doc_123";
       const memId = "mem_456";
-      mockClient.addDocument = vi.fn(() =>
+      (mockClient as any).addDocument = vi.fn(() =>
         Effect.succeed({
           id: docId,
           title: "Test Doc",
@@ -2321,7 +2449,7 @@ describe("MemKit", () => {
           updatedAt: new Date().toISOString(),
         })
       );
-      mockClient.searchMemories = vi.fn(() =>
+      (mockClient as any).searchMemories = vi.fn(() =>
         Effect.succeed([
           {
             id: memId,
@@ -2332,7 +2460,7 @@ describe("MemKit", () => {
           },
         ])
       );
-      mockClient.getMemory = vi.fn(() =>
+      (mockClient as any).getMemory = vi.fn(() =>
         Effect.succeed({
           id: memId,
           content: "Found memory",
@@ -2349,7 +2477,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-text");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-text", ["Test content"])
@@ -2367,7 +2495,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-search");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-search", ["Test"]));
         })
@@ -2383,7 +2511,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-mem");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-mem", [memId]));
         })
@@ -2400,7 +2528,7 @@ describe("MemKit", () => {
       const _filePath = path.join(process.cwd(), "test.txt");
       (fs.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(fileContent);
 
-      mockClient.addDocument = vi.fn(() =>
+      (mockClient as any).addDocument = vi.fn(() =>
         Effect.succeed({
           id: docId,
           title: "test.txt",
@@ -2409,7 +2537,7 @@ describe("MemKit", () => {
           updatedAt: new Date().toISOString(),
         })
       );
-      mockClient.getDocument = vi.fn(() =>
+      (mockClient as any).getDocument = vi.fn(() =>
         Effect.succeed({
           id: docId,
           title: "test.txt",
@@ -2426,7 +2554,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-add-file");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-add-file", ["test.txt"])
@@ -2444,7 +2572,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-show-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-show-doc", [docId]));
         })
@@ -2460,7 +2588,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-rm-doc");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(
             createContext("mem-rm-doc", [docId], { force: true })
@@ -2475,8 +2603,8 @@ describe("MemKit", () => {
 
     it("should handle multiple operations in sequence", async () => {
       let docCounter = 0;
-      mockClient.addDocument = vi.fn(() => {
-        docCounter++;
+      (mockClient as any).addDocument = vi.fn(() => {
+        docCounter += 1;
         return Effect.succeed({
           id: `doc_${docCounter}`,
           title: `Doc ${docCounter}`,
@@ -2485,7 +2613,7 @@ describe("MemKit", () => {
           updatedAt: new Date().toISOString(),
         });
       });
-      mockClient.listDocuments = vi.fn(() =>
+      (mockClient as any).listDocuments = vi.fn(() =>
         Effect.succeed(
           Array.from({ length: docCounter }, (_, i) => ({
             id: `doc_${i + 1}`,
@@ -2505,7 +2633,7 @@ describe("MemKit", () => {
             const registry = getGlobalSlashCommandRegistry();
             const command = registry.lookup.get("mem-add-text");
             if (!command) {
-              return Effect.fail(new Error("Command not found"));
+              return yield* Effect.fail(new Error("Command not found"));
             }
             return yield* command.run(
               createContext("mem-add-text", [`Content ${i + 1}`])
@@ -2525,7 +2653,7 @@ describe("MemKit", () => {
           const registry = getGlobalSlashCommandRegistry();
           const command = registry.lookup.get("mem-stats");
           if (!command) {
-            return Effect.fail(new Error("Command not found"));
+            return yield* Effect.fail(new Error("Command not found"));
           }
           return yield* command.run(createContext("mem-stats"));
         })

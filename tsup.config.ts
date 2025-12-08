@@ -1,4 +1,4 @@
-import { resolve } from "path";
+import { resolve } from "node:path";
 import { defineConfig } from "tsup";
 
 export default defineConfig({
@@ -10,10 +10,10 @@ export default defineConfig({
     "src/constants.ts",
   ],
   format: "esm",
-  dts: { extension: ".d.ts" },
+  dts: true,
   sourcemap: true,
   clean: true,
-  outExtension: ({ format }) => ({
+  outExtension: () => ({
     js: ".js",
     dts: ".d.ts",
   }),
@@ -37,10 +37,8 @@ export default defineConfig({
       "@kits": resolve(process.cwd(), "src/kits"),
       "@core": resolve(process.cwd(), "src/core"),
     };
+    options.jsx = "automatic";
+    options.jsxImportSource = "react";
     return options;
-  },
-  esbuild: {
-    jsx: "automatic",
-    jsxImportSource: "react",
   },
 });

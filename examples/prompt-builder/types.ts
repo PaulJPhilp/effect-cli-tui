@@ -39,7 +39,7 @@ export class PromptTemplate extends Schema.Class<PromptTemplate>(
     "chain-of-thought"
   ),
   fields: Schema.Array(TemplateField),
-  generatePrompt: Schema.Function,
+  generatePrompt: Schema.Any,
 }) {}
 
 /**

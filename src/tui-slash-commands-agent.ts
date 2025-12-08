@@ -2,6 +2,7 @@ import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { Console, Effect } from "effect";
+import { DEFAULT_HISTORY_LIMIT, SEPARATOR_WIDTH } from "./constants";
 import { KitRegistryService } from "./kits/registry";
 import { ToolCallLogService } from "./services/logs";
 import { ModeService } from "./services/mode";
@@ -37,9 +38,9 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
         const kitRegistry = yield* KitRegistryService;
         const modeService = yield* ModeService;
 
-        yield* Console.log(`\n${"=".repeat(60)}`);
+        yield* Console.log(`\n${"=".repeat(SEPARATOR_WIDTH)}`);
         yield* Console.log("Status");
-        yield* Console.log("=".repeat(60));
+        yield* Console.log("=".repeat(SEPARATOR_WIDTH));
 
         // Workspace info
         const cwd = process.cwd();
@@ -81,7 +82,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
           `\nSession History: ${historyEntries.length} prompt(s)`
         );
 
-        yield* Console.log(`\n${"=".repeat(60)}\n`);
+        yield* Console.log(`\n${"=".repeat(SEPARATOR_WIDTH)}\n`);
 
         return { kind: "continue" } as const;
       }),
@@ -102,16 +103,16 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
           const currentMode = yield* modeService.getMode;
           const availableModes = yield* modeService.listModes;
 
-          yield* Console.log(`\n${"=".repeat(60)}`);
+          yield* Console.log(`\n${"=".repeat(SEPARATOR_WIDTH)}`);
           yield* Console.log("Mode Management");
-          yield* Console.log("=".repeat(60));
+          yield* Console.log("=".repeat(SEPARATOR_WIDTH));
           yield* Console.log(`\nCurrent Mode: ${currentMode}`);
           yield* Console.log("\nAvailable Modes:");
           for (const mode of availableModes) {
             const marker = mode === currentMode ? " (current)" : "";
             yield* Console.log(`  - ${mode}${marker}`);
           }
-          yield* Console.log(`\n${"=".repeat(60)}\n`);
+          yield* Console.log(`\n${"=".repeat(SEPARATOR_WIDTH)}\n`);
         } else {
           // Set mode
           const requestedMode = context.args[0]?.toLowerCase() as
@@ -146,13 +147,14 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
       TUIError,
       KitRegistryService | ModeService
     > =>
+      // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: config display needs multiple sections for comprehensive view
       Effect.gen(function* () {
         const kitRegistry = yield* KitRegistryService;
         const modeService = yield* ModeService;
 
-        yield* Console.log(`\n${"=".repeat(60)}`);
+        yield* Console.log(`\n${"=".repeat(SEPARATOR_WIDTH)}`);
         yield* Console.log("Configuration");
-        yield* Console.log("=".repeat(60));
+        yield* Console.log("=".repeat(SEPARATOR_WIDTH));
 
         // Mode
         const mode = yield* modeService.getMode;
@@ -203,7 +205,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
           yield* Console.log("  (config file does not exist - using defaults)");
         }
 
-        yield* Console.log(`\n${"=".repeat(60)}\n`);
+        yield* Console.log(`\n${"=".repeat(SEPARATOR_WIDTH)}\n`);
 
         return { kind: "continue" } as const;
       }),
@@ -219,8 +221,11 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
         const toolLog = yield* ToolCallLogService;
 
         const limit = context.args[0]
-          ? Number.parseInt(context.args[0] ?? "20", 10) || 20
-          : 20;
+          ? Number.parseInt(
+              context.args[0] ?? String(DEFAULT_HISTORY_LIMIT),
+              10
+            ) || DEFAULT_HISTORY_LIMIT
+          : DEFAULT_HISTORY_LIMIT;
 
         const entries = yield* toolLog.getRecent(limit);
 
@@ -229,11 +234,11 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
           return { kind: "continue" } as const;
         }
 
-        yield* Console.log(`\n${"=".repeat(60)}`);
+        yield* Console.log(`\n${"=".repeat(SEPARATOR_WIDTH)}`);
         yield* Console.log(
-          `Tool Call History (last ${entries.length} entries)`
+          `Recent Tool Calls (last ${entries.length} of ${limit}):`
         );
-        yield* Console.log(`${"=".repeat(60)}\n`);
+        yield* Console.log(`${"=".repeat(SEPARATOR_WIDTH)}\n`);
 
         for (const [index, entry] of entries.entries()) {
           const time = new Date(entry.timestamp).toLocaleTimeString();
@@ -247,7 +252,7 @@ export const AGENT_HARNESS_SLASH_COMMANDS = [
           }
         }
 
-        yield* Console.log(`\n${"=".repeat(60)}\n`);
+        yield* Console.log(`\n${"=".repeat(SEPARATOR_WIDTH)}\n`);
 
         return { kind: "continue" } as const;
       }),

@@ -14,7 +14,7 @@ export interface SupermemoryTuiConfig {
 export class SupermemoryTuiConfigService extends Effect.Service<SupermemoryTuiConfigService>()(
   "SupermemoryTuiConfig",
   {
-    sync: () => ({ apiKey: null }),
+    sync: (): SupermemoryTuiConfig => ({ apiKey: null }),
   }
 ) {}
 

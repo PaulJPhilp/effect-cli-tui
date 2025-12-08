@@ -194,11 +194,10 @@ export const instructionFirstTemplate: PromptTemplate = {
     },
   ],
   generatePrompt: (responses: UserResponses): string => {
-    const goal = responses["goal"] as string;
-    const constraints =
-      (responses["constraints"] as string) || "None specified";
-    const format = responses["format"] as string;
-    const audience = (responses["audience"] as string) || "General";
+    const goal = responses.goal as string;
+    const constraints = (responses.constraints as string) || "None specified";
+    const format = responses.format as string;
+    const audience = (responses.audience as string) || "General";
 
     return `Goal: ${goal}
 
@@ -255,10 +254,10 @@ export const contractFirstTemplate: PromptTemplate = {
     },
   ],
   generatePrompt: (responses: UserResponses): string => {
-    const description = responses["description"] as string;
-    const inputSpec = responses["inputSpec"] as string;
-    const outputSpec = responses["outputSpec"] as string;
-    const requirements = (responses["requirements"] as string) || "None";
+    const description = responses.description as string;
+    const inputSpec = responses.inputSpec as string;
+    const outputSpec = responses.outputSpec as string;
+    const requirements = (responses.requirements as string) || "None";
 
     return `Task: ${description}
 

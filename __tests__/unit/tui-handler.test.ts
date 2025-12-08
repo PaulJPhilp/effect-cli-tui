@@ -1,9 +1,14 @@
 /** biome-ignore-all assist/source/organizeImports: <> */
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
-import { MockTUI, createMockTUI } from "../fixtures/test-layers";
 import { TUIHandler } from "@/tui";
+import {
+  createMockTUI,
+  MockSlashDependencies,
+  MockThemeService,
+  MockTUI,
+} from "../fixtures/test-layers";
 
 /**
  * Comprehensive tests for TUIHandler service.
@@ -26,7 +31,15 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         yield* tui.display("This is an info message", "info");
-      }).pipe(Effect.provide(TUIHandler.Default));
+      }).pipe(
+        Effect.provide(
+          Layer.mergeAll(
+            TUIHandler.Default,
+            MockSlashDependencies,
+            MockThemeService
+          )
+        )
+      );
 
       await Effect.runPromise(program);
       expect(consoleSpy).toHaveBeenCalledWith("\nℹ This is an info message");
@@ -41,7 +54,15 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         yield* tui.display("Operation successful", "success");
-      }).pipe(Effect.provide(TUIHandler.Default));
+      }).pipe(
+        Effect.provide(
+          Layer.mergeAll(
+            TUIHandler.Default,
+            MockSlashDependencies,
+            MockThemeService
+          )
+        )
+      );
 
       await Effect.runPromise(program);
       expect(consoleSpy).toHaveBeenCalledWith("\n✓ Operation successful");
@@ -56,7 +77,15 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         yield* tui.display("Operation failed", "error");
-      }).pipe(Effect.provide(TUIHandler.Default));
+      }).pipe(
+        Effect.provide(
+          Layer.mergeAll(
+            TUIHandler.Default,
+            MockSlashDependencies,
+            MockThemeService
+          )
+        )
+      );
 
       await Effect.runPromise(program);
       expect(consoleSpy).toHaveBeenCalledWith("\n✗ Operation failed");
@@ -68,7 +97,15 @@ describe("TUIHandler Service", () => {
         const tui = yield* TUIHandler;
         const result = yield* tui.display("Test message", "info");
         return result;
-      }).pipe(Effect.provide(TUIHandler.Default));
+      }).pipe(
+        Effect.provide(
+          Layer.mergeAll(
+            TUIHandler.Default,
+            MockSlashDependencies,
+            MockThemeService
+          )
+        )
+      );
 
       const result = await Effect.runPromise(program);
       expect(result).toBeUndefined();
@@ -80,7 +117,7 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         return yield* tui.prompt("Enter your name:");
-      }).pipe(Effect.provide(MockTUI));
+      }).pipe(Effect.provide(Layer.merge(MockTUI, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("mock-input");
@@ -90,7 +127,7 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         return yield* tui.prompt("Enter your name:", { default: "John" });
-      }).pipe(Effect.provide(MockTUI));
+      }).pipe(Effect.provide(Layer.merge(MockTUI, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("mock-input");
@@ -103,7 +140,7 @@ describe("TUIHandler Service", () => {
           validate: (input: string | any[]) =>
             input.length > 0 || "Name cannot be empty",
         });
-      }).pipe(Effect.provide(MockTUI));
+      }).pipe(Effect.provide(Layer.merge(MockTUI, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("mock-input");
@@ -114,7 +151,7 @@ describe("TUIHandler Service", () => {
         const tui = yield* TUIHandler;
         const input = yield* tui.prompt("Enter your name:");
         return typeof input === "string";
-      }).pipe(Effect.provide(MockTUI));
+      }).pipe(Effect.provide(Layer.merge(MockTUI, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe(true);
@@ -132,7 +169,7 @@ describe("TUIHandler Service", () => {
           "option2",
           "option3",
         ]);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("option1");
@@ -144,7 +181,7 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         return yield* tui.selectOption("Choose one:", ["a", "b", "c"]);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("choice-a");
@@ -157,7 +194,7 @@ describe("TUIHandler Service", () => {
         const tui = yield* TUIHandler;
         const choice = yield* tui.selectOption("Pick:", ["yes", "no"]);
         return typeof choice === "string";
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe(true);
@@ -169,7 +206,7 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         return yield* tui.selectOption("Pick:", ["opt1", "opt2", "opt3"]);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("custom-choice");
@@ -196,7 +233,7 @@ describe("TUIHandler Service", () => {
           "option1",
           "option2",
         ]);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       // Mock returns "/help" directly, but real implementation would intercept it
@@ -215,7 +252,7 @@ describe("TUIHandler Service", () => {
         const tui = yield* TUIHandler;
         // In real usage, "/quit" would be intercepted and cause SlashCommandExit
         return yield* tui.selectOption("Choose one:", ["/quit", "option1"]);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       // Mock returns "/quit" directly, but real implementation would fail with SlashCommandExit
       const result = await Effect.runPromise(program);
@@ -232,7 +269,7 @@ describe("TUIHandler Service", () => {
           "/help",
           "another-option",
         ]);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("normal-option");
@@ -246,7 +283,7 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         return yield* tui.multiSelect("Choose options:", ["a", "b", "c"]);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(Array.isArray(result)).toBe(true);
@@ -274,7 +311,7 @@ describe("TUIHandler Service", () => {
           "option1",
           "option2",
         ]);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       // Mock returns ["/help", "option1"] directly, but real implementation would intercept "/help"
@@ -297,7 +334,7 @@ describe("TUIHandler Service", () => {
           "option1",
           "option2",
         ]);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       // Mock returns ["/quit", "option1"] directly, but real implementation would fail with SlashCommandExit
       const result = await Effect.runPromise(program);
@@ -314,7 +351,7 @@ describe("TUIHandler Service", () => {
           "option2",
           "/help",
         ]);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toEqual(["option1", "option2"]);
@@ -331,7 +368,7 @@ describe("TUIHandler Service", () => {
           "z",
         ]);
         return Array.isArray(choices);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe(true);
@@ -343,7 +380,7 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         return yield* tui.multiSelect("Pick multiple:", ["a", "b", "c", "d"]);
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(Array.isArray(result)).toBe(true);
@@ -358,7 +395,7 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         return yield* tui.confirm("Are you sure?");
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(typeof result).toBe("boolean");
@@ -371,7 +408,7 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         return yield* tui.confirm("Continue?", { default: true });
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe(true);
@@ -384,7 +421,7 @@ describe("TUIHandler Service", () => {
         const tui = yield* TUIHandler;
         const confirmed = yield* tui.confirm("Proceed?");
         return typeof confirmed === "boolean";
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe(true);
@@ -396,7 +433,7 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         return yield* tui.confirm("Are you sure?");
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe(false);
@@ -410,7 +447,7 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         return yield* tui.password("Enter password:");
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(typeof result).toBe("string");
@@ -426,7 +463,7 @@ describe("TUIHandler Service", () => {
           validate: (pwd: string) =>
             pwd.length >= 8 || "Password must be at least 8 characters",
         });
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("password123");
@@ -439,7 +476,7 @@ describe("TUIHandler Service", () => {
         const tui = yield* TUIHandler;
         const pwd = yield* tui.password("Password:");
         return typeof pwd === "string";
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe(true);
@@ -451,7 +488,7 @@ describe("TUIHandler Service", () => {
       const program = Effect.gen(function* () {
         const tui = yield* TUIHandler;
         return yield* tui.password("Enter password:");
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("secret123");
@@ -468,7 +505,7 @@ describe("TUIHandler Service", () => {
         const name = yield* tui.prompt("Your name:");
         yield* tui.display(`Hello ${name}`, "success");
         return name;
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("user-input");
@@ -482,7 +519,7 @@ describe("TUIHandler Service", () => {
         const name = yield* tui.prompt("Name:");
         const confirmed = yield* tui.confirm("Is correct?");
         return { name, confirmed };
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result.name).toBe("john");
@@ -496,7 +533,7 @@ describe("TUIHandler Service", () => {
         const tui = yield* TUIHandler;
         const choice = yield* tui.selectOption("Pick:", ["a", "b", "c"]);
         return choice;
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("option-b");
@@ -509,7 +546,7 @@ describe("TUIHandler Service", () => {
         const tui = yield* TUIHandler;
         const pwd = yield* tui.password("Password:");
         return pwd;
-      }).pipe(Effect.provide(customMock));
+      }).pipe(Effect.provide(Layer.merge(customMock, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result).toBe("secret");
@@ -528,7 +565,7 @@ describe("TUIHandler Service", () => {
           confirm: typeof tui.confirm === "function",
           password: typeof tui.password === "function",
         };
-      }).pipe(Effect.provide(MockTUI));
+      }).pipe(Effect.provide(Layer.merge(MockTUI, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       expect(result.display).toBe(true);
@@ -550,7 +587,7 @@ describe("TUIHandler Service", () => {
           confirm: tui.confirm("test"),
           password: tui.password("test"),
         };
-      }).pipe(Effect.provide(MockTUI));
+      }).pipe(Effect.provide(Layer.merge(MockTUI, MockSlashDependencies)));
 
       const result = await Effect.runPromise(program);
       for (const effect of Object.values(result)) {

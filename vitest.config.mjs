@@ -29,14 +29,14 @@ export default defineConfig({
   resolve: {
     alias: {
       "effect-cli-tui": join(__dirname, "dist/index.js"),
-      "@": join(__dirname, "src"),
-      "@services": join(__dirname, "src/services"),
-      "@components": join(__dirname, "src/components"),
-      "@ui": join(__dirname, "src/ui"),
-      "@utils": join(__dirname, "src/utils"),
-      "@supermemory": join(__dirname, "src/supermemory"),
+      "@/": join(__dirname, "src/"),
+      "@services/": join(__dirname, "src/services/"),
+      "@components/": join(__dirname, "src/components/"),
+      "@ui/": join(__dirname, "src/ui/"),
+      "@utils/": join(__dirname, "src/utils/"),
+      "@supermemory/": join(__dirname, "src/supermemory/"),
       "@kits": join(__dirname, "src/kits"),
-      "@core": join(__dirname, "src/core"),
+      "@core/": join(__dirname, "src/core/"),
     },
   },
   // Enable ESM support for tests

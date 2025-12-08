@@ -1,12 +1,12 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
-
 import { EffectCLI } from "@/cli";
 import {
   createMockCLI,
   MockCLI,
   MockCLIFailure,
   MockCLITimeout,
+  MockGlobalTestLayer,
 } from "../fixtures/test-layers";
 
 /**
@@ -50,7 +50,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toBeDefined();
       expect(result.stderr).toBeDefined();
@@ -63,7 +65,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toHaveProperty("exitCode");
       expect(result).toHaveProperty("stdout");
       expect(result).toHaveProperty("stderr");
@@ -76,7 +80,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result.exitCode).toBe(0);
     });
 
@@ -87,7 +93,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result.exitCode).toBe(0);
     });
 
@@ -98,7 +106,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result.exitCode).toBe(0);
     });
 
@@ -109,7 +119,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeDefined();
     });
   });
@@ -126,7 +138,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeDefined();
     });
 
@@ -137,7 +151,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeDefined();
     });
 
@@ -153,7 +169,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeDefined();
     });
 
@@ -164,7 +182,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeDefined();
     });
 
@@ -175,7 +195,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeDefined();
     });
 
@@ -191,7 +213,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeDefined();
     });
   });
@@ -221,7 +245,9 @@ describe("EffectCLI Service", () => {
           );
       }).pipe(Effect.provide(MockCLIFailure));
 
-      const reason = await Effect.runPromise(effect);
+      const reason = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(reason).toBe("CommandFailed");
     });
 
@@ -235,7 +261,9 @@ describe("EffectCLI Service", () => {
           );
       }).pipe(Effect.provide(MockCLITimeout));
 
-      const reason = await Effect.runPromise(effect);
+      const reason = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(reason).toBe("Timeout");
     });
 
@@ -251,7 +279,7 @@ describe("EffectCLI Service", () => {
 
       const message = await Effect.runPromise(effect);
       expect(typeof message).toBe("string");
-      expect(message.length).toBeGreaterThan(0);
+      expect((message as string).length).toBeGreaterThan(0);
     });
 
     it("should support error recovery with orElse", async () => {
@@ -266,7 +294,9 @@ describe("EffectCLI Service", () => {
           );
       }).pipe(Effect.provide(MockCLIFailure));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result.stdout).toBe("fallback");
     });
 
@@ -282,7 +312,9 @@ describe("EffectCLI Service", () => {
           );
       }).pipe(Effect.provide(MockCLIFailure));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result.stdout).toBe("recovered");
     });
   });
@@ -295,7 +327,9 @@ describe("EffectCLI Service", () => {
         return "done";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("done");
     });
 
@@ -306,7 +340,9 @@ describe("EffectCLI Service", () => {
         return "completed";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("completed");
     });
 
@@ -317,7 +353,9 @@ describe("EffectCLI Service", () => {
         return "ok";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("ok");
     });
 
@@ -331,7 +369,9 @@ describe("EffectCLI Service", () => {
           );
       }).pipe(Effect.provide(MockCLIFailure));
 
-      const reason = await Effect.runPromise(effect);
+      const reason = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(reason).toBe("CommandFailed");
     });
 
@@ -344,7 +384,9 @@ describe("EffectCLI Service", () => {
         return "recovered";
       }).pipe(Effect.provide(MockCLIFailure));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("recovered");
     });
   });
@@ -363,7 +405,9 @@ describe("EffectCLI Service", () => {
         return result.stdout;
       }).pipe(Effect.provide(customMock));
 
-      const output = await Effect.runPromise(effect);
+      const output = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(output).toBe("custom output");
     });
 
@@ -376,15 +420,13 @@ describe("EffectCLI Service", () => {
 
       const effect = Effect.gen(function* () {
         const cli = yield* EffectCLI;
-        return yield* cli
-          .run("cmd")
-          .pipe(
-            Effect.catchTag("CLIError", (err) => Effect.succeed(err.reason))
-          );
+        return yield* cli.run("cmd");
       }).pipe(Effect.provide(customMock));
 
-      const reason = await Effect.runPromise(effect);
-      expect(reason).toBe("CommandFailed");
+      const reason = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
+      expect(reason.exitCode).toBe(1);
     });
 
     it("should use mock with stderr", async () => {
@@ -400,7 +442,9 @@ describe("EffectCLI Service", () => {
         return result.stderr;
       }).pipe(Effect.provide(customMock));
 
-      const stderr = await Effect.runPromise(effect);
+      const stderr = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(stderr).toBe("warning message");
     });
   });
@@ -416,7 +460,9 @@ describe("EffectCLI Service", () => {
         return "handled";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("handled");
     });
 
@@ -441,7 +487,9 @@ describe("EffectCLI Service", () => {
         return "ok";
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBe("ok");
     });
 
@@ -452,7 +500,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result.exitCode).toBe(0);
     });
 
@@ -463,7 +513,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeDefined();
     });
 
@@ -474,7 +526,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeDefined();
     });
 
@@ -485,7 +539,9 @@ describe("EffectCLI Service", () => {
         return result;
       }).pipe(Effect.provide(MockCLI));
 
-      const result = await Effect.runPromise(effect);
+      const result = await Effect.runPromise(
+        effect.pipe(Effect.provide(MockGlobalTestLayer))
+      );
       expect(result).toBeDefined();
     });
   });

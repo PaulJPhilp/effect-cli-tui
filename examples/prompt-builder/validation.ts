@@ -63,7 +63,7 @@ export const validateField = (
  * @returns Effect with validation result or error message
  */
 export const validateResponses = (
-  fields: TemplateField[],
+  fields: readonly TemplateField[],
   responses: UserResponses
 ): Effect.Effect<UserResponses, string> =>
   Effect.gen(function* () {

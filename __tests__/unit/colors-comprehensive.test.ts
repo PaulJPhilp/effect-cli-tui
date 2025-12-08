@@ -1,6 +1,5 @@
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
-
 import {
   applyChalkStyle,
   displayHighlight,
@@ -9,6 +8,7 @@ import {
   displayMuted,
   displayWarning,
 } from "@/index";
+import { MockThemeService } from "../fixtures/test-layers";
 
 /**
  * Comprehensive tests for colors.ts module
@@ -337,7 +337,7 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     it("should return Effect<void>", async () => {
       const effect = displayMuted("test");
       expect(effect).toBeDefined();
-      await Effect.runPromise(effect);
+      await Effect.runPromise(effect.pipe(Effect.provide(MockThemeService)));
     });
   });
 
@@ -421,7 +421,7 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     it("should return Effect<void>", async () => {
       const effect = displayInfo("test");
       expect(effect).toBeDefined();
-      await Effect.runPromise(effect);
+      await Effect.runPromise(effect.pipe(Effect.provide(MockThemeService)));
     });
   });
 
@@ -430,7 +430,11 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
         /* Mock implementation - no-op */
       });
-      await Effect.runPromise(displayListItem("First item", "-"));
+      await Effect.runPromise(
+        displayListItem("First item", "-").pipe(
+          Effect.provide(MockThemeService)
+        )
+      );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -439,7 +443,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
         /* Mock implementation - no-op */
       });
-      await Effect.runPromise(displayListItem("Next step", "→"));
+      await Effect.runPromise(
+        displayListItem("Next step", "→").pipe(Effect.provide(MockThemeService))
+      );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -448,7 +454,11 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
         /* Mock implementation - no-op */
       });
-      await Effect.runPromise(displayListItem("Numbered item", "1."));
+      await Effect.runPromise(
+        displayListItem("Numbered item", "1.").pipe(
+          Effect.provide(MockThemeService)
+        )
+      );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -458,7 +468,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
         /* Mock implementation - no-op */
       });
       await Effect.runPromise(
-        displayListItem("Error item", "✗", { color: "red" })
+        displayListItem("Error item", "✗", { color: "red" }).pipe(
+          Effect.provide(MockThemeService)
+        )
       );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -469,7 +481,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
         /* Mock implementation - no-op */
       });
       await Effect.runPromise(
-        displayListItem("Success item", "✓", { color: "green" })
+        displayListItem("Success item", "✓", { color: "green" }).pipe(
+          Effect.provide(MockThemeService)
+        )
       );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -480,7 +494,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
         /* Mock implementation - no-op */
       });
       await Effect.runPromise(
-        displayListItem("Warning item", "!", { color: "yellow" })
+        displayListItem("Warning item", "!", { color: "yellow" }).pipe(
+          Effect.provide(MockThemeService)
+        )
       );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -491,7 +507,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
         /* Mock implementation - no-op */
       });
       await Effect.runPromise(
-        displayListItem("Info item", "i", { color: "blue" })
+        displayListItem("Info item", "i", { color: "blue" }).pipe(
+          Effect.provide(MockThemeService)
+        )
       );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -502,7 +520,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
         /* Mock implementation - no-op */
       });
       await Effect.runPromise(
-        displayListItem("Custom item", "*", { color: "magenta" })
+        displayListItem("Custom item", "*", { color: "magenta" }).pipe(
+          Effect.provide(MockThemeService)
+        )
       );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -513,7 +533,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
         /* Mock implementation - no-op */
       });
       await Effect.runPromise(
-        displayListItem("Bright item", "+", { color: "white" })
+        displayListItem("Bright item", "+", { color: "white" }).pipe(
+          Effect.provide(MockThemeService)
+        )
       );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -524,7 +546,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
         /* Mock implementation - no-op */
       });
       const longItem = `Item: ${"a".repeat(150)}`;
-      await Effect.runPromise(displayListItem(longItem));
+      await Effect.runPromise(
+        displayListItem(longItem).pipe(Effect.provide(MockThemeService))
+      );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -533,7 +557,11 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
         /* Mock implementation - no-op */
       });
-      await Effect.runPromise(displayListItem("Task [COMPLETED] - Done!"));
+      await Effect.runPromise(
+        displayListItem("Task [COMPLETED] - Done!").pipe(
+          Effect.provide(MockThemeService)
+        )
+      );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -542,7 +570,9 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
         /* Mock implementation - no-op */
       });
-      await Effect.runPromise(displayListItem("Project 🚀"));
+      await Effect.runPromise(
+        displayListItem("Project 🚀").pipe(Effect.provide(MockThemeService))
+      );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -550,7 +580,7 @@ describe("Colors & Styling - Comprehensive Coverage", () => {
     it("should return Effect<void>", async () => {
       const effect = displayListItem("test");
       expect(effect).toBeDefined();
-      await Effect.runPromise(effect);
+      await Effect.runPromise(effect.pipe(Effect.provide(MockThemeService)));
     });
   });
 

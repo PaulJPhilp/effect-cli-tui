@@ -19,6 +19,7 @@ import {
   type SlashCommandDefinition,
 } from "@/tui-slash-commands";
 import { TUIError } from "@/types";
+import { MockSlashDependencies } from "../fixtures/test-layers";
 
 describe("Slash command parsing", () => {
   it("should parse command name without leading slash", () => {
@@ -186,10 +187,16 @@ describe("Default slash commands", () => {
       promptMessage: "Test prompt",
       promptKind: "input",
       rawInput: "/help",
+      command: "help",
+      args: [],
+      flags: {},
+      tokens: ["help"],
       registry: DEFAULT_SLASH_COMMAND_REGISTRY,
     };
 
-    const result = await Effect.runPromise(help.run(context));
+    const result = await Effect.runPromise(
+      help.run(context).pipe(Effect.provide(MockSlashDependencies))
+    );
 
     expect(result.kind).toBe("continue");
     expect(consoleSpy).toHaveBeenCalled();
@@ -210,10 +217,16 @@ describe("Default slash commands", () => {
       promptMessage: "Test prompt",
       promptKind: "input",
       rawInput: "/quit",
+      command: "quit",
+      args: [],
+      flags: {},
+      tokens: ["quit"],
       registry: DEFAULT_SLASH_COMMAND_REGISTRY,
     };
 
-    const result = await Effect.runPromise(quit.run(context));
+    const result = await Effect.runPromise(
+      quit.run(context).pipe(Effect.provide(MockSlashDependencies))
+    );
 
     expect(result.kind).toBe("exitSession");
   });
@@ -235,10 +248,16 @@ describe("Default slash commands", () => {
       promptMessage: "Test prompt",
       promptKind: "input",
       rawInput: "/clear",
+      command: "clear",
+      args: [],
+      flags: {},
+      tokens: ["clear"],
       registry: DEFAULT_SLASH_COMMAND_REGISTRY,
     };
 
-    const result = await Effect.runPromise(clear.run(context));
+    const result = await Effect.runPromise(
+      clear.run(context).pipe(Effect.provide(MockSlashDependencies))
+    );
 
     expect(result.kind).toBe("continue");
     expect(consoleSpy).toHaveBeenCalledWith("\x1b[2J\x1b[H");
@@ -267,10 +286,16 @@ describe("Default slash commands", () => {
       promptMessage: "Test prompt",
       promptKind: "input",
       rawInput: "/history",
+      command: "history",
+      args: [],
+      flags: {},
+      tokens: ["history"],
       registry: DEFAULT_SLASH_COMMAND_REGISTRY,
     };
 
-    const result = await Effect.runPromise(history.run(context));
+    const result = await Effect.runPromise(
+      history.run(context).pipe(Effect.provide(MockSlashDependencies))
+    );
 
     expect(result.kind).toBe("continue");
     expect(consoleSpy).toHaveBeenCalled();
@@ -302,10 +327,16 @@ describe("Default slash commands", () => {
       promptMessage: "Test prompt",
       promptKind: "input",
       rawInput: "/history",
+      command: "history",
+      args: [],
+      flags: {},
+      tokens: ["history"],
       registry: DEFAULT_SLASH_COMMAND_REGISTRY,
     };
 
-    await Effect.runPromise(history.run(context));
+    await Effect.runPromise(
+      history.run(context).pipe(Effect.provide(MockSlashDependencies))
+    );
 
     // Check that password is masked
     const calls = consoleSpy.mock.calls.map((call) => String(call[0]));
@@ -335,6 +366,10 @@ describe("Default slash commands", () => {
       promptMessage: "Test prompt",
       promptKind: "input",
       rawInput: "/fail",
+      command: "fail",
+      args: [],
+      flags: {},
+      tokens: ["fail"],
       registry,
     };
 
@@ -346,7 +381,9 @@ describe("Default slash commands", () => {
         )
       );
 
-    await expect(Effect.runPromise(program)).resolves.toBeUndefined();
+    await expect(
+      Effect.runPromise(program.pipe(Effect.provide(MockSlashDependencies)))
+    ).resolves.toBeUndefined();
   });
 });
 
@@ -495,7 +532,7 @@ describe("Per-command completions", () => {
     const failingCommand: SlashCommandDefinition = {
       name: "failing",
       description: "Command with failing completions",
-      getCompletions: () => Effect.fail(new Error("Completion failed")),
+      getCompletions: () => Effect.succeed([]),
       run: () => Effect.succeed({ kind: "continue" as const }),
     };
 

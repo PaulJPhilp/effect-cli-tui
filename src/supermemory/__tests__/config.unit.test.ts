@@ -36,7 +36,7 @@ vi.mock("node:fs/promises", () => mockFs);
 describe("Supermemory Config Module", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete process.env.SUPERMEMORY_API_KEY;
+    process.env.SUPERMEMORY_API_KEY = undefined;
   });
 
   afterAll(() => {

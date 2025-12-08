@@ -12,6 +12,10 @@ export class MissingSupermemoryApiKey extends Data.TaggedError(
   readonly message: string;
 }> {}
 
+export type SupermemoryClientError =
+  | SupermemoryError
+  | MissingSupermemoryApiKey;
+
 /**
  * Document metadata
  */
@@ -58,35 +62,46 @@ export interface SearchOptions {
 }
 
 /**
+ * Search result from Supermemory
+ */
+export interface SearchResult {
+  readonly id: string;
+  readonly content: string;
+  readonly score?: number;
+}
+
+/**
  * Supermemory client interface
  */
 export interface SupermemoryClient {
-  readonly addText: (text: string) => Effect.Effect<void, SupermemoryError>;
+  readonly addText: (
+    text: string
+  ) => Effect.Effect<void, SupermemoryClientError>;
   readonly search: (
     query: string,
     options?: { topK?: number; threshold?: number }
-  ) => Effect.Effect<readonly any[], SupermemoryError>;
+  ) => Effect.Effect<readonly SearchResult[], SupermemoryClientError>;
   readonly addDocument: (
     content: string,
     options?: AddDocumentOptions
-  ) => Effect.Effect<Document, SupermemoryError>;
+  ) => Effect.Effect<Document, SupermemoryClientError>;
   readonly listDocuments: (options?: {
     limit?: number;
     offset?: number;
-  }) => Effect.Effect<readonly Document[], SupermemoryError>;
+  }) => Effect.Effect<readonly Document[], SupermemoryClientError>;
   readonly getDocument: (
     docId: string
-  ) => Effect.Effect<Document, SupermemoryError>;
+  ) => Effect.Effect<Document, SupermemoryClientError>;
   readonly getMemory: (
     memId: string
-  ) => Effect.Effect<Memory, SupermemoryError>;
+  ) => Effect.Effect<Memory, SupermemoryClientError>;
   readonly deleteDocument: (
     docId: string
-  ) => Effect.Effect<void, SupermemoryError>;
+  ) => Effect.Effect<void, SupermemoryClientError>;
   readonly searchMemories: (
     query: string,
     options?: SearchOptions
-  ) => Effect.Effect<readonly Memory[], SupermemoryError>;
+  ) => Effect.Effect<readonly Memory[], SupermemoryClientError>;
 }
 
 export class SupermemoryClientService extends Effect.Service<SupermemoryClientService>()(

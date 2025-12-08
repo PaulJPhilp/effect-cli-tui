@@ -4,7 +4,17 @@ import * as path from "node:path";
 import { loadKitConfig, saveKitConfig } from "@kits/config";
 import type { KitConfig } from "@kits/types";
 import { Effect } from "effect";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const TEST_HOMEDIR = path.join(os.tmpdir(), "effect-cli-tui-test-config");
+
+vi.mock("node:os", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:os")>();
+  return {
+    ...actual,
+    homedir: () => TEST_HOMEDIR,
+  };
+});
 
 const CONFIG_DIR_NAME = ".effect-cli-tui";
 const CONFIG_FILE_NAME = "kits.json";

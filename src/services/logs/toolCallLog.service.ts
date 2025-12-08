@@ -1,4 +1,5 @@
 import { Effect, Ref } from "effect";
+import { MAX_LOG_ENTRIES } from "../../constants";
 
 /**
  * Tool call log entry
@@ -30,11 +31,6 @@ export interface ToolCallLogServiceApi {
    */
   getRecent: (limit: number) => Effect.Effect<readonly ToolCallLogEntry[]>;
 }
-
-/**
- * Default maximum log entries to keep in memory
- */
-const MAX_LOG_ENTRIES = 1000;
 
 /**
  * Tool Call Log Service

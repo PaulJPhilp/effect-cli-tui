@@ -23,20 +23,15 @@ export {
  *
  * @example
  * ```ts
- * const myKit = createKit(
- *   'mykit',
- *   'My Kit',
- *   'Provides useful commands',
- *   '1.0.0',
- *   [myCommand1, myCommand2]
- * )
+ * const myKit = createKit('my-kit', 'My Kit', '1.0.0', 'Description', commands)
  * ```
  */
+// biome-ignore lint/nursery/useMaxParams: public API with distinct parameters, changing to options object would be breaking
 export function createKit(
   id: string,
   name: string,
-  description: string,
   version: string,
+  description: string,
   commands: readonly import("../tui-slash-commands").SlashCommandDefinition[]
 ): Kit {
   return {

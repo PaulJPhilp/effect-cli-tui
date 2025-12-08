@@ -1,6 +1,8 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { Effect } from "effect";
+import { GIT_COMMAND_TIMEOUT_MS } from "../constants";
+import { GIT_COMMANDS } from "../types/system-signals";
 
 const execFileAsync = promisify(execFile);
 
@@ -14,10 +16,10 @@ export function getGitRoot(): Effect.Effect<string | null, never> {
     try: async (): Promise<string> => {
       const { stdout } = await execFileAsync(
         "git",
-        ["rev-parse", "--show-toplevel"],
+        GIT_COMMANDS.REV_PARSE_TOPLEVEL,
         {
           cwd: process.cwd(),
-          timeout: 5000,
+          timeout: GIT_COMMAND_TIMEOUT_MS,
         }
       );
       return stdout.trim();
@@ -39,10 +41,10 @@ export function getCurrentBranch(): Effect.Effect<string | null, never> {
     try: async (): Promise<string> => {
       const { stdout } = await execFileAsync(
         "git",
-        ["rev-parse", "--abbrev-ref", "HEAD"],
+        GIT_COMMANDS.REV_PARSE_BRANCH,
         {
           cwd: process.cwd(),
-          timeout: 5000,
+          timeout: GIT_COMMAND_TIMEOUT_MS,
         }
       );
       return stdout.trim();
@@ -62,9 +64,9 @@ export function getCurrentBranch(): Effect.Effect<string | null, never> {
 export function getStatusSummary(): Effect.Effect<string | null, never> {
   return Effect.tryPromise({
     try: async (): Promise<string | null> => {
-      const { stdout } = await execFileAsync("git", ["status", "--short"], {
+      const { stdout } = await execFileAsync("git", GIT_COMMANDS.STATUS_SHORT, {
         cwd: process.cwd(),
-        timeout: 5000,
+        timeout: GIT_COMMAND_TIMEOUT_MS,
       });
       return stdout.trim() || null;
     },

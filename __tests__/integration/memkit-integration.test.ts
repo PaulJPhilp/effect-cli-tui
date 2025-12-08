@@ -171,7 +171,7 @@ describe("MemKit Integration Tests", () => {
         Effect.provide(
           Layer.succeed(SupermemoryTuiConfigService, {
             apiKey: "sk_test123",
-          })
+          } as unknown as SupermemoryTuiConfigService)
         ),
         Effect.provide(SupermemoryClientService.Default)
       );
@@ -203,7 +203,7 @@ describe("MemKit Integration Tests", () => {
         Effect.provide(
           Layer.succeed(SupermemoryTuiConfigService, {
             apiKey: null,
-          })
+          } as unknown as SupermemoryTuiConfigService)
         ),
         Effect.provide(SupermemoryClientService.Default)
       );
@@ -272,7 +272,9 @@ describe("MemKit Integration Tests", () => {
         })
       ).pipe(
         Effect.provide(
-          Layer.succeed(SupermemoryTuiConfigService, { apiKey: "sk_file456" })
+          Layer.succeed(SupermemoryTuiConfigService, {
+            apiKey: "sk_file456",
+          } as unknown as SupermemoryTuiConfigService)
         ),
         Effect.provide(SupermemoryClientService.Default)
       );
@@ -343,7 +345,7 @@ describe("MemKit Integration Tests", () => {
                 return false;
               }
               if (options?.tags && mem.tags) {
-                const hasTag = options.tags.some((tag) =>
+                const hasTag = options.tags.some((tag: string) =>
                   mem.tags?.includes(tag)
                 );
                 if (!hasTag) {
@@ -370,7 +372,9 @@ describe("MemKit Integration Tests", () => {
     it("should complete full workflow: add text -> search -> show -> delete", async () => {
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       // Step 1: Add text document
       const addProgram = withKit(
@@ -498,7 +502,9 @@ describe("MemKit Integration Tests", () => {
     it("should handle file ingestion workflow", async () => {
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       const fileContent = "This is test file content\nWith multiple lines";
       const fileName = "test-document.md";
@@ -545,7 +551,9 @@ describe("MemKit Integration Tests", () => {
     it("should handle URL ingestion workflow", async () => {
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       const url = "https://example.com/article?param=value#section";
 
@@ -618,7 +626,9 @@ describe("MemKit Integration Tests", () => {
 
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       const statsProgram = withKit(
         MemKit,
@@ -647,7 +657,9 @@ describe("MemKit Integration Tests", () => {
     it("should handle search with multiple filters", async () => {
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       // Add documents and memories
       const doc1: Document = {
@@ -726,7 +738,9 @@ describe("MemKit Integration Tests", () => {
     it("should handle file read errors gracefully", async () => {
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       mockFs.readFile.mockRejectedValue(new Error("Permission denied"));
 
@@ -767,7 +781,9 @@ describe("MemKit Integration Tests", () => {
 
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       const program = withKit(
         MemKit,
@@ -806,7 +822,9 @@ describe("MemKit Integration Tests", () => {
 
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       const program = withKit(
         MemKit,
@@ -847,7 +865,9 @@ describe("MemKit Integration Tests", () => {
 
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       const program = withKit(
         MemKit,
@@ -934,7 +954,7 @@ describe("MemKit Integration Tests", () => {
         Effect.provide(
           Layer.succeed(SupermemoryTuiConfigService, {
             apiKey: "sk_test123",
-          })
+          } as unknown as SupermemoryTuiConfigService)
         ),
         Effect.provide(SupermemoryClientService.Default)
       );
@@ -986,7 +1006,9 @@ describe("MemKit Integration Tests", () => {
     it("should chain multiple commands in sequence", async () => {
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       const mockClient = {
         addText: vi.fn(() => Effect.void),
@@ -1067,7 +1089,9 @@ describe("MemKit Integration Tests", () => {
     it("should handle very long content", async () => {
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       const longContent = "A".repeat(1_000_000);
       const mockClient = {
@@ -1133,7 +1157,9 @@ describe("MemKit Integration Tests", () => {
     it("should handle special characters in all inputs", async () => {
       const layer = Layer.succeed(SupermemoryTuiConfigService, {
         apiKey: "sk_test123",
-      }).pipe(Layer.provide(SupermemoryClientService.Default));
+      } as unknown as SupermemoryTuiConfigService).pipe(
+        Layer.provide(SupermemoryClientService.Default)
+      );
 
       const specialContent = "Content with: !@#$%^&*()[]{}|\\/<>?\"'`~";
       const specialTags = "tag1,tag-2,tag_3,tag.4";

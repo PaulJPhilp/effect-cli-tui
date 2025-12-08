@@ -1,5 +1,4 @@
 // This file is the entry point for constants.
-// biome-ignore assist/source/organizeImports: <>
 export {
   ANSI_CARRIAGE_RETURN,
   ANSI_CARRIAGE_RETURN_CLEAR,
@@ -14,6 +13,8 @@ export {
   COLOR_WARNING,
   EXIT_CODE_SIGINT,
   EXIT_CODE_SIGTERM,
+  getDisplayColor,
+  getDisplayIcon,
   ICON_ERROR,
   ICON_INFO,
   ICON_SUCCESS,
@@ -23,8 +24,6 @@ export {
   SPINNER_MESSAGE_DONE,
   SPINNER_MESSAGE_FAILED,
   SYMBOL_BULLET,
-  getDisplayColor,
-  getDisplayIcon,
 } from "./core/icons";
 
 import type { DisplayType } from "./types";
@@ -35,6 +34,61 @@ export const DEFAULT_DISPLAY_TYPE = "info" satisfies DisplayType;
 // Title constraints
 export const MIN_TITLE_LENGTH = 1;
 export const MAX_TITLE_LENGTH = 100;
+
+// ============================================================================
+// UI Formatting Constants
+// ============================================================================
+
+/** Width for separator lines (e.g., "=".repeat(SEPARATOR_WIDTH)) */
+export const SEPARATOR_WIDTH = 60;
+
+/** Minimum length to show partial API key instead of full masking */
+export const API_KEY_MIN_VISIBLE_LENGTH = 8;
+
+/** Number of characters to show at start and end of masked API key */
+export const API_KEY_VISIBLE_CHARS = 4;
+
+/** Maximum content length before truncating with ellipsis */
+export const CONTENT_TRUNCATION_LENGTH = 80;
+
+/** Multiplier to convert decimal score (0-1) to percentage (0-100) */
+export const SCORE_PERCENTAGE_MULTIPLIER = 100;
+
+/** Number of decimal places for score display */
+export const SCORE_DECIMAL_PLACES = 1;
+
+// ============================================================================
+// Timeout Constants
+// ============================================================================
+
+/** Timeout in milliseconds for git command operations */
+export const GIT_COMMAND_TIMEOUT_MS = 5000;
+
+/** Conversion factor from milliseconds to seconds */
+export const MILLISECONDS_PER_SECOND = 1000;
+
+// ============================================================================
+// Logging Constants
+// ============================================================================
+
+/** Maximum number of entries to keep in tool call log */
+export const MAX_LOG_ENTRIES = 1000;
+
+// ============================================================================
+// Supermemory Constants
+// ============================================================================
+
+/** Default number of results to return from search */
+export const DEFAULT_SEARCH_TOP_K = 5;
+
+/** Default similarity threshold for search results (0-1) */
+export const DEFAULT_SEARCH_THRESHOLD = 0.5;
+
+/** Expected prefix for Supermemory API keys */
+export const SUPERMEMORY_API_KEY_PREFIX = "sk_";
+
+/** Default limit for history display */
+export const DEFAULT_HISTORY_LIMIT = 20;
 
 import type { BorderStyle, BoxBorderChars } from "./types";
 

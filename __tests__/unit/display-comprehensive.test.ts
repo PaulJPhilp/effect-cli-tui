@@ -8,6 +8,7 @@ import {
 } from "@core/display";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
+import { MockThemeService } from "../fixtures/test-layers";
 
 /**
  * Comprehensive tests for display.ts module
@@ -22,7 +23,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = display("Test message");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalledWith("\nℹ Test message");
       consoleSpy.mockRestore();
@@ -34,7 +35,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = display("Info message", { type: "info" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -46,7 +47,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = display("Custom prefix message", { prefix: "▶" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("▶"));
       consoleSpy.mockRestore();
@@ -58,7 +59,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = display("No newline", { newline: false });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -71,8 +72,8 @@ describe("Display - Comprehensive Coverage", () => {
         /* Mock implementation - no-op */
       });
 
-      const program = displayOutput("Output message");
-      await Effect.runPromise(program);
+      const program = displayOutput("Output message", "info");
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -84,7 +85,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayOutput("Success", "success");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("✓"));
       consoleSpy.mockRestore();
@@ -98,7 +99,7 @@ describe("Display - Comprehensive Coverage", () => {
         });
 
       const program = displayOutput("Error", "error");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining("✗")
@@ -114,7 +115,7 @@ describe("Display - Comprehensive Coverage", () => {
       const program = displayOutput("Styled message", "info", {
         style: { color: "red", bold: true },
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -128,7 +129,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayLines(["Line 1"]);
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -140,7 +141,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayLines(["Line 1", "Line 2", "Line 3"]);
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy.mock.calls.length).toBeGreaterThanOrEqual(3);
       consoleSpy.mockRestore();
@@ -152,7 +153,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayLines([]);
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).not.toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -164,7 +165,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayLines(["Line 1", "Line 2"], { type: "success" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -176,7 +177,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayLines(["Item 1", "Item 2"], { prefix: "→" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -190,7 +191,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayJson({ name: "Test", value: 123 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       const output = consoleSpy.mock.calls[0][0];
@@ -206,7 +207,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayJson({ a: 1, b: 2 }, { spaces: 4 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -218,7 +219,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayJson({ test: "data" }, { showPrefix: false });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -230,7 +231,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayJson({ status: "ok" }, { type: "success" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -242,7 +243,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayJson({ error: "Failed" }, { type: "error" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -254,7 +255,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayJson([1, 2, 3, 4, 5]);
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -273,7 +274,7 @@ describe("Display - Comprehensive Coverage", () => {
           },
         },
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -285,7 +286,7 @@ describe("Display - Comprehensive Coverage", () => {
       });
 
       const program = displayJson({ a: null, b: undefined });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();

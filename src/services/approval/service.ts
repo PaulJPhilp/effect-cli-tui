@@ -2,6 +2,7 @@ import { Console, Effect } from "effect";
 
 import { TUIHandler } from "@/tui";
 import type { TUIError } from "@/types";
+import { SEPARATOR_WIDTH } from "../../constants";
 
 /**
  * Operation kind for approval requests
@@ -50,7 +51,7 @@ export class ApprovalService extends Effect.Service<ApprovalService>()(
         approve: (op: OperationSummary): Effect.Effect<boolean, TUIError> =>
           Effect.gen(function* () {
             // Display operation information
-            yield* Console.log(`\n${"=".repeat(60)}`);
+            yield* Console.log(`\n${"=".repeat(SEPARATOR_WIDTH)}`);
             yield* Console.log(`Operation: ${op.title}`);
             yield* Console.log(`Kind: ${op.kind}`);
             yield* Console.log(`Summary: ${op.summary}`);
@@ -58,7 +59,7 @@ export class ApprovalService extends Effect.Service<ApprovalService>()(
               yield* Console.log("\nDetails:");
               yield* Console.log(op.details);
             }
-            yield* Console.log("=".repeat(60));
+            yield* Console.log("=".repeat(SEPARATOR_WIDTH));
 
             // Prompt for confirmation
             const confirmed = yield* tui.confirm("Proceed?", {

@@ -34,6 +34,7 @@ export interface CLIRunOptions {
   cwd?: string;
   env?: Record<string, string>;
   timeout?: number;
+  maxBuffer?: number;
 }
 
 export interface PromptOptions {

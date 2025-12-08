@@ -1,6 +1,7 @@
 import { displayBox, displayPanel } from "@ui/boxes/box";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
+import { MockThemeService } from "../fixtures/test-layers";
 
 /**
  * Comprehensive test suite for box.ts module
@@ -23,7 +24,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Test content");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       expect(consoleSpy).toHaveBeenCalledTimes(1);
       const output = consoleSpy.mock.calls[0][0];
@@ -39,7 +40,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output.startsWith("\n")).toBe(true);
@@ -50,7 +51,9 @@ describe("Box Display Module", () => {
 
     it("should return Effect that completes successfully", async () => {
       const program = displayBox("Content");
-      await expect(Effect.runPromise(program)).resolves.toBeUndefined();
+      await expect(
+        Effect.runPromise(program.pipe(Effect.provide(MockThemeService)))
+      ).resolves.toBeUndefined();
     });
   });
 
@@ -112,7 +115,7 @@ describe("Box Display Module", () => {
         const program = displayBox("Content", {
           borderStyle: style.name as any,
         });
-        await Effect.runPromise(program);
+        await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
         const output = consoleSpy.mock.calls[0][0];
         expect(output).toContain(style.topLeft);
@@ -132,7 +135,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("╭");
@@ -154,14 +157,14 @@ describe("Box Display Module", () => {
         type: "success",
         title: "Success",
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       // Title should be styled (contains ANSI color codes)
       expect(output).toContain("Success");
       // Check that title appears in the output
       const lines = output.split("\n");
-      const topLine = lines.find((line) => line.includes("Success"));
+      const topLine = lines.find((line: string) => line.includes("Success"));
       expect(topLine).toBeDefined();
 
       consoleSpy.mockRestore();
@@ -176,7 +179,7 @@ describe("Box Display Module", () => {
         type: "error",
         title: "Error",
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Error");
@@ -193,7 +196,7 @@ describe("Box Display Module", () => {
         type: "warning",
         title: "Warning",
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Warning");
@@ -210,7 +213,7 @@ describe("Box Display Module", () => {
         type: "info",
         title: "Info",
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Info");
@@ -224,7 +227,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { title: "Title" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Title");
@@ -240,10 +243,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { title: "My Title" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       const topLine = lines[0];
       expect(topLine).toContain("My Title");
 
@@ -256,7 +261,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { title: "A" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("A");
@@ -271,7 +276,7 @@ describe("Box Display Module", () => {
 
       const longTitle = "A".repeat(150); // Exceeds MAX_TITLE_LENGTH
       const program = displayBox("Content", { title: longTitle });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       // Should still render the title even if it exceeds validation limits
@@ -288,7 +293,7 @@ describe("Box Display Module", () => {
       const program = displayBox("Content", {
         title: "My Long Title Here",
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("My Long Title Here");
@@ -304,7 +309,7 @@ describe("Box Display Module", () => {
       const program = displayBox("Content", {
         title: "Title: !@#$%^&*()",
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Title:");
@@ -318,10 +323,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { title: undefined });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       const topLine = lines[0];
       // Top border should not contain title text
       expect(topLine).not.toContain("undefined");
@@ -337,10 +344,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { padding: 2 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       // Should have: top border, 2 padding, content, 2 padding, bottom border = 6 lines
       expect(lines.length).toBeGreaterThanOrEqual(5);
 
@@ -353,10 +362,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { padding: 0 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       // Should have: top border, content, bottom border = 3 lines minimum
       expect(lines.length).toBeGreaterThanOrEqual(3);
 
@@ -369,10 +380,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { padding: 10 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       // Should have many padding lines
       expect(lines.length).toBeGreaterThan(10);
 
@@ -385,10 +398,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       // Without padding, should have minimal lines
       expect(lines.length).toBeLessThan(10);
 
@@ -403,7 +418,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { margin: 2 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       const lines = output.split("\n");
@@ -420,7 +435,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { margin: 0 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       // Output should still be wrapped with newlines
@@ -436,7 +451,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { margin: 5 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       const lines = output.split("\n");
@@ -460,7 +475,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       // Should still have newline wrapper but no extra empty lines
@@ -478,10 +493,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       // Should still render borders
       expect(lines.length).toBeGreaterThanOrEqual(2);
 
@@ -494,7 +511,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Single line");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Single line");
@@ -508,7 +525,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Line 1\nLine 2\nLine 3");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Line 1");
@@ -524,7 +541,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content\n");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Content");
@@ -538,7 +555,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Line 1\n\nLine 3");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Line 1");
@@ -554,7 +571,7 @@ describe("Box Display Module", () => {
 
       const longContent = "A".repeat(200);
       const program = displayBox(longContent);
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("A");
@@ -568,7 +585,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content: !@#$%^&*()_+-=[]{}|;':\",./<>?");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Content:");
@@ -582,7 +599,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Status: ✅ Complete 🎉");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Status:");
@@ -596,7 +613,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Unicode: 你好 世界 🌍");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Unicode:");
@@ -610,7 +627,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("\x1b[31mRed\x1b[0m text");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       // Should handle ANSI codes in content
@@ -627,10 +644,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Short");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       const firstLine = lines[0];
       const lastLine = lines.at(-1);
       // Top and bottom borders should have same width
@@ -645,10 +664,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Short\nVery long line here\nShort");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       const firstLine = lines[0];
       const lastLine = lines.at(-1);
       // Borders should accommodate longest line
@@ -663,10 +684,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Short", { title: "Very Long Title Here" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       const firstLine = lines[0];
       const lastLine = lines.at(-1);
       // Top border with title should be at least as wide as bottom border
@@ -683,10 +706,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { borderStyle: "rounded" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       const firstLine = lines[0];
       const lastLine = lines.at(-1);
 
@@ -704,10 +729,12 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       // Content line (middle) should have vertical borders
       const contentLine = lines[Math.floor(lines.length / 2)];
       expect(contentLine).toContain("│");
@@ -721,14 +748,16 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Short\nLonger line\nShort");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
-      const lines = output.split("\n").filter((line) => line.trim().length > 0);
+      const lines = output
+        .split("\n")
+        .filter((line: string) => line.trim().length > 0);
       // All content lines should have same width (excluding borders)
       const contentLines = lines.slice(1, -1); // Exclude top and bottom borders
-      const widths = contentLines.map((line) => line.length);
-      const allSameWidth = widths.every((w) => w === widths[0]);
+      const widths = contentLines.map((line: string) => line.length);
+      const allSameWidth = widths.every((w: number) => w === widths[0]);
       expect(allSameWidth).toBe(true);
 
       consoleSpy.mockRestore();
@@ -748,7 +777,7 @@ describe("Box Display Module", () => {
         padding: 2,
         margin: 1,
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Complex Box");
@@ -769,7 +798,7 @@ describe("Box Display Module", () => {
       const program = displayBox("Hi", {
         title: "Very Long Title That Exceeds Content Length",
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Very Long Title");
@@ -786,7 +815,7 @@ describe("Box Display Module", () => {
       const program = displayBox("Very long content line here", {
         title: "Hi",
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Hi");
@@ -803,7 +832,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayPanel("Content", "Panel Title");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Panel Title");
@@ -821,7 +850,7 @@ describe("Box Display Module", () => {
         type: "success",
         padding: 1,
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Title");
@@ -838,7 +867,7 @@ describe("Box Display Module", () => {
       const program = displayPanel("Content", "Panel Title", {
         title: "Should be ignored",
       });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Panel Title");
@@ -854,7 +883,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayPanel("Line 1\nLine 2\nLine 3", "Panel");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toContain("Panel");
@@ -873,7 +902,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { padding: 100 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toBeDefined();
@@ -888,7 +917,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { margin: 100 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toBeDefined();
@@ -903,7 +932,7 @@ describe("Box Display Module", () => {
 
       // Negative padding should be treated as 0
       const program = displayBox("Content", { padding: -1 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toBeDefined();
@@ -918,7 +947,7 @@ describe("Box Display Module", () => {
 
       // Negative margin should be treated as 0
       const program = displayBox("Content", { margin: -1 });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toBeDefined();
@@ -932,7 +961,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { title: "" });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toBeDefined();
@@ -946,7 +975,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("   \n  \n   ");
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toBeDefined();
@@ -960,7 +989,7 @@ describe("Box Display Module", () => {
       });
 
       const program = displayBox("Content", { title: "   " });
-      await Effect.runPromise(program);
+      await Effect.runPromise(program.pipe(Effect.provide(MockThemeService)));
 
       const output = consoleSpy.mock.calls[0][0];
       expect(output).toBeDefined();
