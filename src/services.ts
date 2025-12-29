@@ -22,5 +22,3 @@ export { ToolCallLogService } from "./services/logs";
 export type { ToolCallLogEntry, ToolCallLogServiceApi } from "./services/logs";
 export { ModeService } from "./services/mode";
 export type { Mode, ModeServiceApi } from "./services/mode";
-export { SupermemoryClientService } from "./supermemory/client";
-export type { SupermemoryClient as SupermemoryClientType } from "./supermemory/client";

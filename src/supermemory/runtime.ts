@@ -1,12 +1,6 @@
 import { Effect } from "effect";
-
 import { withSlashCommands } from "@/tui-slash-commands";
-import {
-  type MissingSupermemoryApiKey,
-  SupermemoryClientService,
-  type SupermemoryError,
-} from "./client";
-import type { ConfigError } from "./config";
+import { SupermemoryLayer } from "../services/supermemory";
 import { SUPERMEMORY_SLASH_COMMANDS } from "./slash-commands";
 
 /**
@@ -14,12 +8,8 @@ import { SUPERMEMORY_SLASH_COMMANDS } from "./slash-commands";
  */
 export const withSupermemory = <A, E, R>(
   effect: Effect.Effect<A, E, R>
-): Effect.Effect<
-  A,
-  E | SupermemoryError | MissingSupermemoryApiKey | ConfigError,
-  R
-> =>
+): Effect.Effect<A, E, R> =>
   withSlashCommands(
     SUPERMEMORY_SLASH_COMMANDS,
-    effect.pipe(Effect.provide(SupermemoryClientService.Default))
-  );
+    effect.pipe(Effect.provide(SupermemoryLayer))
+  ) as any;

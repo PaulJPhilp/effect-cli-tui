@@ -18,7 +18,6 @@ import {
 import type { KitRegistryService } from "./kits/registry";
 import type { ToolCallLogService } from "./services/logs";
 import type { ModeService } from "./services/mode";
-import type { SupermemoryClientService } from "./supermemory/client";
 import { TUIError, type CLIError, type PromptKind } from "./types";
 import { renderTablePanel } from "./ui/panels/render";
 
@@ -32,8 +31,7 @@ import { renderTablePanel } from "./ui/panels/render";
 export type SlashCommandRequirements =
   | KitRegistryService
   | ModeService
-  | ToolCallLogService
-  | SupermemoryClientService;
+  | ToolCallLogService;
 
 export interface SlashCommandContext {
   readonly promptMessage: string;

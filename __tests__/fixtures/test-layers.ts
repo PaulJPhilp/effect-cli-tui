@@ -4,10 +4,6 @@ import { ToolCallLogService } from "@services/logs";
 import { ModeService } from "@services/mode";
 import { defaultTheme } from "@services/theme/presets";
 import { ThemeService } from "@services/theme/service";
-import {
-  type AddDocumentOptions,
-  SupermemoryClientService,
-} from "@supermemory/client";
 import { Effect, Layer } from "effect";
 import { EffectCLI } from "@/cli";
 import { TUIHandler } from "@/tui";
@@ -229,40 +225,6 @@ export const MockKitRegistryService = Layer.succeed(
 );
 
 /**
- * Mock for SupermemoryClientService
- */
-export const MockSupermemoryClientService = Layer.succeed(
-  SupermemoryClientService,
-  SupermemoryClientService.of({
-    addText: () => Effect.void,
-    search: () => Effect.succeed([]),
-    addDocument: (content: string, options?: AddDocumentOptions) =>
-      Effect.succeed({
-        id: "mock-doc-id",
-        title: options?.title ?? null,
-        content,
-        createdAt: new Date().toISOString(),
-      }),
-    listDocuments: () => Effect.succeed([]),
-    getDocument: (id: string) =>
-      Effect.succeed({
-        id,
-        title: "Mock Doc",
-        content: "Mock content",
-        createdAt: new Date().toISOString(),
-      }),
-    getMemory: (id: string) =>
-      Effect.succeed({
-        id,
-        content: "Mock memory",
-        documentId: "mock-doc",
-      }),
-    deleteDocument: () => Effect.void,
-    searchMemories: () => Effect.succeed([]),
-  } as unknown as SupermemoryClientService)
-);
-
-/**
  * Mock layer for ThemeService with isolated state
  */
 export const MockThemeService = Layer.succeed(
@@ -282,8 +244,7 @@ export const MockThemeService = Layer.succeed(
 export const MockSlashDependencies = Layer.mergeAll(
   MockToolCallLogService,
   MockModeService,
-  MockKitRegistryService,
-  MockSupermemoryClientService
+  MockKitRegistryService
 );
 
 /**

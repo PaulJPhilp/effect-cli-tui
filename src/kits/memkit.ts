@@ -5,13 +5,9 @@ import {
 } from "@/tui-slash-commands";
 import { TUIError } from "@/types";
 import { redactSecrets } from "@core/redact";
-import {
-  SupermemoryClientService,
-  type Memory,
-  type SupermemoryError,
-} from "@supermemory/client";
 import { loadConfig } from "@supermemory/config";
 import { Console, Effect } from "effect";
+import { MemoriesService, SearchService } from "effect-supermemory";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import type { Kit } from "./types";
@@ -70,18 +66,13 @@ function truncate(text: string, maxLength: number): string {
  */
 function handleMemStatus(
   _context: import("../tui-slash-commands").SlashCommandContext
-): Effect.Effect<
-  import("../tui-slash-commands").SlashCommandResult,
-  TUIError,
-  SupermemoryClientService
-> {
+): any {
   return Effect.gen(function* () {
-    const client = yield* SupermemoryClientService;
     const config = yield* loadConfig();
 
-    // Test connectivity by attempting to list documents
+    // Test connectivity by attempting to list memories
     const connectivityTest = yield* Effect.either(
-      client.listDocuments({ limit: 1 })
+      MemoriesService.list({ limit: 1 })
     );
 
     const isConnected = connectivityTest._tag === "Right";
@@ -104,10 +95,12 @@ function handleMemStatus(
     // Get document count
     if (isConnected) {
       const docsResult = yield* Effect.either(
-        client.listDocuments({ limit: 1000 })
+        MemoriesService.list({ limit: 1000 })
       );
       if (docsResult._tag === "Right") {
-        const docCount = docsResult.right.length;
+        const docs = docsResult.right as any;
+        const docCount = (Array.isArray(docs) ? docs : docs?.items || [])
+          .length;
         yield* Console.log(`Documents: ${docCount}`);
       }
     } else {
@@ -124,35 +117,24 @@ function handleMemStatus(
       if (
         typeof unknownError === "object" &&
         unknownError !== null &&
-        "_tag" in unknownError
+        "_tag" in unknownError &&
+        [
+          "SupermemoryValidationError",
+          "SupermemoryAuthenticationError",
+          "SupermemoryRateLimitError",
+          "SupermemoryServerError",
+        ].includes(unknownError._tag as string)
       ) {
-        if (unknownError._tag === "MissingSupermemoryApiKey") {
-          return Effect.gen(function* () {
-            yield* Console.log("\n❌ MemKit Status: Not configured");
-            yield* Console.log("─".repeat(40));
-            yield* Console.log("Connectivity: ❌ Disconnected");
-            yield* Console.log("Active Profile: Not configured");
-            yield* Console.log("Documents: N/A");
-            yield* Console.log("─".repeat(40));
-            yield* Console.log("");
-            yield* Console.log(
-              "Configure Supermemory API key: /supermemory api-key <key>"
-            );
-            yield* Console.log("");
-            return { kind: "continue" } as const;
-          });
-        }
-        if (unknownError._tag === "SupermemoryError") {
-          return Effect.gen(function* () {
-            const smError = unknownError as SupermemoryError;
-            yield* Console.log("\n❌ MemKit Status: Error");
-            yield* Console.log("─".repeat(40));
-            yield* Console.log(`Connectivity: ❌ Error: ${smError.message}`);
-            yield* Console.log("─".repeat(40));
-            yield* Console.log("");
-            return { kind: "continue" } as const;
-          });
-        }
+        return Effect.gen(function* () {
+          // biome-ignore lint/suspicious/noExplicitAny: error type varies
+          const smError = unknownError as any;
+          yield* Console.log("\n❌ MemKit Status: Error");
+          yield* Console.log("─".repeat(40));
+          yield* Console.log(`Connectivity: ❌ Error: ${smError.message}`);
+          yield* Console.log("─".repeat(40));
+          yield* Console.log("");
+          return { kind: "continue" } as const;
+        });
       }
       return Effect.gen(function* () {
         yield* Console.log(
@@ -170,11 +152,7 @@ function handleMemStatus(
  */
 function handleMemAddText(
   context: import("../tui-slash-commands").SlashCommandContext
-): Effect.Effect<
-  import("../tui-slash-commands").SlashCommandResult,
-  TUIError,
-  SupermemoryClientService
-> {
+): any {
   return Effect.gen(function* () {
     const text = context.args.join(" ").trim();
     const title = context.flags.title as string | undefined;
@@ -189,18 +167,13 @@ function handleMemAddText(
       return { kind: "continue" } as const;
     }
 
-    const client = yield* SupermemoryClientService;
-    const tags = parseTags(tagsStr);
-
-    const doc = yield* client.addDocument(text, {
-      title: title ?? deriveTitle(text),
-      tags,
-      userId,
-    });
+    const doc = yield* MemoriesService.add({
+      content: text,
+    }) as any;
 
     yield* Console.log(`✓ Added document ${doc.id}`);
-    if (doc.title) {
-      yield* Console.log(`  Title: ${doc.title}`);
+    if ((doc as any).title) {
+      yield* Console.log(`  Title: ${(doc as any).title}`);
     }
 
     return { kind: "continue" } as const;
@@ -210,23 +183,20 @@ function handleMemAddText(
       if (
         typeof unknownError === "object" &&
         unknownError !== null &&
-        "_tag" in unknownError
+        "_tag" in unknownError &&
+        [
+          "SupermemoryValidationError",
+          "SupermemoryAuthenticationError",
+          "SupermemoryRateLimitError",
+          "SupermemoryServerError",
+        ].includes(unknownError._tag as string)
       ) {
-        if (unknownError._tag === "MissingSupermemoryApiKey") {
-          return Effect.gen(function* () {
-            yield* Console.log(
-              "Error: Supermemory API key not configured. Run '/supermemory api-key <key>' first."
-            );
-            return { kind: "continue" } as const;
-          });
-        }
-        if (unknownError._tag === "SupermemoryError") {
-          return Effect.gen(function* () {
-            const smError = unknownError as SupermemoryError;
-            yield* Console.log(`Error: ${smError.message}`);
-            return { kind: "continue" } as const;
-          });
-        }
+        return Effect.gen(function* () {
+          // biome-ignore lint/suspicious/noExplicitAny: error type varies
+          const smError = unknownError as any;
+          yield* Console.log(`Error: ${smError.message}`);
+          return { kind: "continue" } as const;
+        });
       }
       return Effect.gen(function* () {
         yield* Console.log(`Error: Failed to add document - ${String(error)}`);
@@ -241,11 +211,7 @@ function handleMemAddText(
  */
 function handleMemAddFile(
   context: import("../tui-slash-commands").SlashCommandContext
-): Effect.Effect<
-  import("../tui-slash-commands").SlashCommandResult,
-  TUIError,
-  SupermemoryClientService
-> {
+): any {
   return Effect.gen(function* () {
     const filePath = context.args[0];
     const title = context.flags.title as string | undefined;
@@ -273,20 +239,13 @@ function handleMemAddFile(
       Effect.mapError((error) => new TUIError("RenderError", String(error)))
     );
 
-    const client = yield* SupermemoryClientService;
-    const tags = parseTags(tagsStr);
-    const fileName = path.basename(resolvedPath);
-    const docTitle = title ?? fileName;
-
-    const doc = yield* client.addDocument(fileContent, {
-      title: docTitle,
-      tags,
-      userId,
-    });
+    const doc = yield* MemoriesService.add({
+      content: fileContent,
+    }) as any;
 
     yield* Console.log(`✓ Added document ${doc.id} from ${resolvedPath}`);
-    if (doc.title) {
-      yield* Console.log(`  Title: ${doc.title}`);
+    if ((doc as any).title) {
+      yield* Console.log(`  Title: ${(doc as any).title}`);
     }
 
     return { kind: "continue" } as const;
@@ -298,17 +257,17 @@ function handleMemAddFile(
         unknownError !== null &&
         "_tag" in unknownError
       ) {
-        if (unknownError._tag === "MissingSupermemoryApiKey") {
+        if (
+          [
+            "SupermemoryValidationError",
+            "SupermemoryAuthenticationError",
+            "SupermemoryRateLimitError",
+            "SupermemoryServerError",
+          ].includes(unknownError._tag as string)
+        ) {
           return Effect.gen(function* () {
-            yield* Console.log(
-              "Error: Supermemory API key not configured. Run '/supermemory api-key <key>' first."
-            );
-            return { kind: "continue" } as const;
-          });
-        }
-        if (unknownError._tag === "SupermemoryError") {
-          return Effect.gen(function* () {
-            const smError = unknownError as SupermemoryError;
+            // biome-ignore lint/suspicious/noExplicitAny: error type varies
+            const smError = unknownError as any;
             yield* Console.log(`Error: ${smError.message}`);
             return { kind: "continue" } as const;
           });
@@ -334,11 +293,7 @@ function handleMemAddFile(
  */
 function handleMemAddUrl(
   context: import("../tui-slash-commands").SlashCommandContext
-): Effect.Effect<
-  import("../tui-slash-commands").SlashCommandResult,
-  TUIError,
-  SupermemoryClientService
-> {
+): any {
   return Effect.gen(function* () {
     const url = context.args[0];
     const title = context.flags.title as string | undefined;
@@ -359,19 +314,14 @@ function handleMemAddUrl(
       return { kind: "continue" } as const;
     }
 
-    const client = yield* SupermemoryClientService;
-    const tags = parseTags(tagsStr);
-
     // Add URL as document content (Supermemory will handle extraction)
-    const doc = yield* client.addDocument(url, {
-      title: title ?? undefined,
-      tags,
-      userId,
-    });
+    const doc = yield* MemoriesService.add({
+      content: url,
+    }) as any;
 
     yield* Console.log(`✓ Added document ${doc.id} (content: ${url})`);
-    if (doc.title) {
-      yield* Console.log(`  Title: ${doc.title}`);
+    if ((doc as any).title) {
+      yield* Console.log(`  Title: ${(doc as any).title}`);
     }
 
     return { kind: "continue" } as const;
@@ -381,23 +331,20 @@ function handleMemAddUrl(
       if (
         typeof unknownError === "object" &&
         unknownError !== null &&
-        "_tag" in unknownError
+        "_tag" in unknownError &&
+        [
+          "SupermemoryValidationError",
+          "SupermemoryAuthenticationError",
+          "SupermemoryRateLimitError",
+          "SupermemoryServerError",
+        ].includes(unknownError._tag as string)
       ) {
-        if (unknownError._tag === "MissingSupermemoryApiKey") {
-          return Effect.gen(function* () {
-            yield* Console.log(
-              "Error: Supermemory API key not configured. Run '/supermemory api-key <key>' first."
-            );
-            return { kind: "continue" } as const;
-          });
-        }
-        if (unknownError._tag === "SupermemoryError") {
-          return Effect.gen(function* () {
-            const smError = unknownError as SupermemoryError;
-            yield* Console.log(`Error: ${smError.message}`);
-            return { kind: "continue" } as const;
-          });
-        }
+        return Effect.gen(function* () {
+          // biome-ignore lint/suspicious/noExplicitAny: error type varies
+          const smError = unknownError as any;
+          yield* Console.log(`Error: ${smError.message}`);
+          return { kind: "continue" } as const;
+        });
       }
       return Effect.gen(function* () {
         yield* Console.log(`Error: Failed to add URL - ${String(error)}`);
@@ -410,15 +357,17 @@ function handleMemAddUrl(
 /**
  * Display a single memory item
  */
-function displayMemoryItem(mem: Memory, index: number): Effect.Effect<void> {
+function displayMemoryItem(mem: any, index: number): Effect.Effect<void> {
   return Effect.gen(function* () {
-    const snippet = truncate(mem.content, 80);
-    const score = mem.score ? ` (score: ${(mem.score * 100).toFixed(1)}%)` : "";
+    const snippet = truncate(mem.content || "", 80);
+    const score = (mem as any).score
+      ? ` (score: ${(((mem as any).score as number) * 100).toFixed(1)}%)`
+      : "";
     yield* Console.log(`\n  ${index + 1}. ${snippet}${score}`);
     yield* Console.log(`     Memory ID: ${mem.id}`);
-    yield* Console.log(`     Document: ${mem.documentId}`);
-    if (mem.documentTitle) {
-      yield* Console.log(`     Title: ${mem.documentTitle}`);
+    yield* Console.log(`     Document: ${(mem as any).documentId || "N/A"}`);
+    if ((mem as any).documentTitle) {
+      yield* Console.log(`     Title: ${(mem as any).documentTitle}`);
     }
   });
 }
@@ -428,13 +377,13 @@ function displayMemoryItem(mem: Memory, index: number): Effect.Effect<void> {
  */
 function displaySearchResults(
   query: string,
-  memories: readonly Memory[]
+  memories: any[]
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
     yield* Console.log(`\n🔍 Search results for "${query}":`);
     yield* Console.log("─".repeat(60));
 
-    if (memories.length === 0) {
+    if (!memories || memories.length === 0) {
       yield* Console.log("  No memories found matching your query.");
     } else {
       for (let i = 0; i < memories.length; i++) {
@@ -466,17 +415,7 @@ function handleMissingApiKey(): Effect.Effect<
   });
 }
 
-/**
- * Handle Supermemory error
- */
-function handleSupermemoryError(
-  error: SupermemoryError
-): Effect.Effect<import("../tui-slash-commands").SlashCommandResult> {
-  return Effect.gen(function* () {
-    yield* Console.log(`Error: ${error.message}`);
-    return { kind: "continue" } as const;
-  });
-}
+// function handleSupermemoryError removed as using direct error tag checking
 
 /**
  * Handle generic search error
@@ -500,14 +439,20 @@ function handleSearchError(
   if (
     typeof unknownError === "object" &&
     unknownError !== null &&
-    "_tag" in unknownError
+    "_tag" in unknownError &&
+    [
+      "SupermemoryValidationError",
+      "SupermemoryAuthenticationError",
+      "SupermemoryRateLimitError",
+      "SupermemoryServerError",
+    ].includes(unknownError._tag as string)
   ) {
-    if (unknownError._tag === "MissingSupermemoryApiKey") {
-      return handleMissingApiKey();
-    }
-    if (unknownError._tag === "SupermemoryError") {
-      return handleSupermemoryError(unknownError as SupermemoryError);
-    }
+    // biome-ignore lint/suspicious/noExplicitAny: error type varies
+    const smError = unknownError as any;
+    return Effect.gen(function* () {
+      yield* Console.log(`Error: ${smError.message}`);
+      return { kind: "continue" } as const;
+    });
   }
   return handleGenericSearchError(error);
 }
@@ -517,37 +462,25 @@ function handleSearchError(
  */
 function handleMemSearch(
   context: import("../tui-slash-commands").SlashCommandContext
-): Effect.Effect<
-  import("../tui-slash-commands").SlashCommandResult,
-  TUIError,
-  SupermemoryClientService
-> {
+): any {
   return Effect.gen(function* () {
     const query = context.args.join(" ").trim();
     const limit = context.flags.limit
       ? Number.parseInt(String(context.flags.limit), 10)
       : undefined;
-    const tagsStr = context.flags.tags as string | undefined;
-    const docId = context.flags.docId as string | undefined;
 
     if (!query) {
       yield* Console.log("Error: Search query is required.");
-      yield* Console.log(
-        "Usage: /mem-search <query> [--limit=<n>] [--tags=<tags>] [--docId=<id>]"
-      );
+      yield* Console.log("Usage: /mem-search <query> [--limit=<n>]");
       return { kind: "continue" } as const;
     }
 
-    const client = yield* SupermemoryClientService;
-    const tags = parseTags(tagsStr);
-
-    const memories = yield* client.searchMemories(query, {
+    const memories = yield* SearchService.searchMemories(query, {
       topK: limit ?? 10,
-      tags,
-      docId,
     });
 
-    yield* displaySearchResults(query, memories);
+    const memoriesArray = Array.isArray(memories) ? memories : [];
+    yield* displaySearchResults(query, memoriesArray);
 
     return { kind: "continue" } as const;
   }).pipe(Effect.catchAll(handleSearchError));
@@ -558,11 +491,7 @@ function handleMemSearch(
  */
 function handleMemShowDoc(
   context: import("../tui-slash-commands").SlashCommandContext
-): Effect.Effect<
-  import("../tui-slash-commands").SlashCommandResult,
-  TUIError,
-  SupermemoryClientService
-> {
+): any {
   return Effect.gen(function* () {
     const docId = context.args[0];
 
@@ -572,35 +501,40 @@ function handleMemShowDoc(
       return { kind: "continue" } as const;
     }
 
-    const client = yield* SupermemoryClientService;
-    const doc = yield* client.getDocument(docId);
+    const doc = yield* MemoriesService.get(docId) as any;
 
     yield* Console.log(`\n📄 Document: ${doc.id}`);
     yield* Console.log("─".repeat(60));
-    yield* Console.log(`Title: ${doc.title ?? "Untitled"}`);
-    yield* Console.log(`Created: ${formatDate(doc.createdAt)}`);
-    yield* Console.log(`Updated: ${formatDate(doc.updatedAt)}`);
-    if (doc.tags && doc.tags.length > 0) {
-      yield* Console.log(`Tags: ${doc.tags.join(", ")}`);
+    yield* Console.log(`Title: ${(doc as any).title ?? "Untitled"}`);
+    yield* Console.log(`Created: ${formatDate((doc as any).createdAt)}`);
+    yield* Console.log(`Updated: ${formatDate((doc as any).updatedAt)}`);
+    if ((doc as any).tags && (doc as any).tags.length > 0) {
+      yield* Console.log(`Tags: ${((doc as any).tags as string[]).join(", ")}`);
     }
-    if (doc.userId) {
-      yield* Console.log(`User ID: ${doc.userId}`);
+    if ((doc as any).userId) {
+      yield* Console.log(`User ID: ${(doc as any).userId}`);
     }
     yield* Console.log("─".repeat(60));
     yield* Console.log("\nContent:");
     yield* Console.log("─".repeat(60));
-    yield* Console.log(doc.content);
+    yield* Console.log((doc as any).content || "");
     yield* Console.log("─".repeat(60));
     yield* Console.log("");
 
     // Try to get some sample memories from this document
     const sampleMemories = yield* Effect.either(
-      client.searchMemories("", { topK: 3, docId })
+      SearchService.searchMemories("", { topK: 3 })
     );
-    if (sampleMemories._tag === "Right" && sampleMemories.right.length > 0) {
+    if (
+      sampleMemories._tag === "Right" &&
+      Array.isArray(sampleMemories.right) &&
+      sampleMemories.right.length > 0
+    ) {
       yield* Console.log("Sample memories:");
       for (const mem of sampleMemories.right) {
-        yield* Console.log(`  - ${mem.id}: ${truncate(mem.content, 60)}`);
+        yield* Console.log(
+          `  - ${(mem as any).id}: ${truncate((mem as any).content || "", 60)}`
+        );
       }
       yield* Console.log("");
     }
@@ -612,23 +546,20 @@ function handleMemShowDoc(
       if (
         typeof unknownError === "object" &&
         unknownError !== null &&
-        "_tag" in unknownError
+        "_tag" in unknownError &&
+        [
+          "SupermemoryValidationError",
+          "SupermemoryAuthenticationError",
+          "SupermemoryRateLimitError",
+          "SupermemoryServerError",
+        ].includes(unknownError._tag as string)
       ) {
-        if (unknownError._tag === "MissingSupermemoryApiKey") {
-          return Effect.gen(function* () {
-            yield* Console.log(
-              "Error: Supermemory API key not configured. Run '/supermemory api-key <key>' first."
-            );
-            return { kind: "continue" } as const;
-          });
-        }
-        if (unknownError._tag === "SupermemoryError") {
-          return Effect.gen(function* () {
-            const smError = unknownError as SupermemoryError;
-            yield* Console.log(`Error: ${smError.message}`);
-            return { kind: "continue" } as const;
-          });
-        }
+        return Effect.gen(function* () {
+          // biome-ignore lint/suspicious/noExplicitAny: error type varies
+          const smError = unknownError as any;
+          yield* Console.log(`Error: ${smError.message}`);
+          return { kind: "continue" } as const;
+        });
       }
       return Effect.gen(function* () {
         yield* Console.log(`Error: Failed to get document - ${String(error)}`);
@@ -643,11 +574,7 @@ function handleMemShowDoc(
  */
 function handleMemShowMem(
   context: import("../tui-slash-commands").SlashCommandContext
-): Effect.Effect<
-  import("../tui-slash-commands").SlashCommandResult,
-  TUIError,
-  SupermemoryClientService
-> {
+): any {
   return Effect.gen(function* () {
     const memId = context.args[0];
 
@@ -657,25 +584,26 @@ function handleMemShowMem(
       return { kind: "continue" } as const;
     }
 
-    const client = yield* SupermemoryClientService;
-    const mem = yield* client.getMemory(memId);
+    const mem = yield* MemoriesService.get(memId) as any;
 
     yield* Console.log(`\n💭 Memory: ${mem.id}`);
     yield* Console.log("─".repeat(60));
-    yield* Console.log(`Document ID: ${mem.documentId}`);
-    if (mem.documentTitle) {
-      yield* Console.log(`Document Title: ${mem.documentTitle}`);
+    yield* Console.log(`Document ID: ${(mem as any).documentId || "N/A"}`);
+    if ((mem as any).documentTitle) {
+      yield* Console.log(`Document Title: ${(mem as any).documentTitle}`);
     }
-    if (mem.score !== undefined) {
-      yield* Console.log(`Score: ${(mem.score * 100).toFixed(1)}%`);
+    if ((mem as any).score !== undefined) {
+      yield* Console.log(
+        `Score: ${(((mem as any).score as number) * 100).toFixed(1)}%`
+      );
     }
-    if (mem.tags && mem.tags.length > 0) {
-      yield* Console.log(`Tags: ${mem.tags.join(", ")}`);
+    if ((mem as any).tags && (mem as any).tags.length > 0) {
+      yield* Console.log(`Tags: ${((mem as any).tags as string[]).join(", ")}`);
     }
     yield* Console.log("─".repeat(60));
     yield* Console.log("\nContent:");
     yield* Console.log("─".repeat(60));
-    yield* Console.log(mem.content);
+    yield* Console.log((mem as any).content || "");
     yield* Console.log("─".repeat(60));
     yield* Console.log("");
 
@@ -686,23 +614,20 @@ function handleMemShowMem(
       if (
         typeof unknownError === "object" &&
         unknownError !== null &&
-        "_tag" in unknownError
+        "_tag" in unknownError &&
+        [
+          "SupermemoryValidationError",
+          "SupermemoryAuthenticationError",
+          "SupermemoryRateLimitError",
+          "SupermemoryServerError",
+        ].includes(unknownError._tag as string)
       ) {
-        if (unknownError._tag === "MissingSupermemoryApiKey") {
-          return Effect.gen(function* () {
-            yield* Console.log(
-              "Error: Supermemory API key not configured. Run '/supermemory api-key <key>' first."
-            );
-            return { kind: "continue" } as const;
-          });
-        }
-        if (unknownError._tag === "SupermemoryError") {
-          return Effect.gen(function* () {
-            const smError = unknownError as SupermemoryError;
-            yield* Console.log(`Error: ${smError.message}`);
-            return { kind: "continue" } as const;
-          });
-        }
+        return Effect.gen(function* () {
+          // biome-ignore lint/suspicious/noExplicitAny: error type varies
+          const smError = unknownError as any;
+          yield* Console.log(`Error: ${smError.message}`);
+          return { kind: "continue" } as const;
+        });
       }
       return Effect.gen(function* () {
         yield* Console.log(`Error: Failed to get memory - ${String(error)}`);
@@ -717,11 +642,7 @@ function handleMemShowMem(
  */
 function handleMemRmDoc(
   context: import("../tui-slash-commands").SlashCommandContext
-): Effect.Effect<
-  import("../tui-slash-commands").SlashCommandResult,
-  TUIError,
-  SupermemoryClientService
-> {
+): any {
   return Effect.gen(function* () {
     const docId = context.args[0];
     const force = context.flags.force === true || context.flags.f === true;
@@ -746,8 +667,7 @@ function handleMemRmDoc(
       return { kind: "continue" } as const;
     }
 
-    const client = yield* SupermemoryClientService;
-    yield* client.deleteDocument(docId);
+    yield* MemoriesService.delete(docId);
 
     yield* Console.log(`✓ Deleted document ${docId}`);
 
@@ -758,23 +678,20 @@ function handleMemRmDoc(
       if (
         typeof unknownError === "object" &&
         unknownError !== null &&
-        "_tag" in unknownError
+        "_tag" in unknownError &&
+        [
+          "SupermemoryValidationError",
+          "SupermemoryAuthenticationError",
+          "SupermemoryRateLimitError",
+          "SupermemoryServerError",
+        ].includes(unknownError._tag as string)
       ) {
-        if (unknownError._tag === "MissingSupermemoryApiKey") {
-          return Effect.gen(function* () {
-            yield* Console.log(
-              "Error: Supermemory API key not configured. Run '/supermemory api-key <key>' first."
-            );
-            return { kind: "continue" } as const;
-          });
-        }
-        if (unknownError._tag === "SupermemoryError") {
-          return Effect.gen(function* () {
-            const smError = unknownError as SupermemoryError;
-            yield* Console.log(`Error: ${smError.message}`);
-            return { kind: "continue" } as const;
-          });
-        }
+        return Effect.gen(function* () {
+          // biome-ignore lint/suspicious/noExplicitAny: error type varies
+          const smError = unknownError as any;
+          yield* Console.log(`Error: ${smError.message}`);
+          return { kind: "continue" } as const;
+        });
       }
       return Effect.gen(function* () {
         yield* Console.log(
@@ -791,16 +708,11 @@ function handleMemRmDoc(
  */
 function handleMemStats(
   _context: import("../tui-slash-commands").SlashCommandContext
-): Effect.Effect<
-  import("../tui-slash-commands").SlashCommandResult,
-  TUIError,
-  SupermemoryClientService
-> {
+): any {
   return Effect.gen(function* () {
-    const client = yield* SupermemoryClientService;
-
-    // Get all documents
-    const allDocs = yield* client.listDocuments({ limit: 10_000 });
+    // Get all documents/memories
+    const result = yield* MemoriesService.list({ limit: 10_000 }) as any;
+    const allDocs = Array.isArray(result) ? result : result?.items || [];
 
     const now = new Date();
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -810,8 +722,8 @@ function handleMemStats(
     let docsLastWeek = 0;
 
     for (const doc of allDocs) {
-      if (doc.createdAt) {
-        const created = new Date(doc.createdAt);
+      if ((doc as any).createdAt) {
+        const created = new Date((doc as any).createdAt);
         if (created >= oneDayAgo) {
           docsLastDay += 1;
         }
@@ -823,7 +735,7 @@ function handleMemStats(
 
     yield* Console.log("\n📊 MemKit Statistics");
     yield* Console.log("─".repeat(40));
-    yield* Console.log(`Total Documents: ${allDocs.length}`);
+    yield* Console.log(`Total Documents: ${(allDocs as any[]).length || 0}`);
     yield* Console.log(`Documents (last 24h): ${docsLastDay}`);
     yield* Console.log(`Documents (last 7d): ${docsLastWeek}`);
     yield* Console.log("─".repeat(40));
@@ -831,36 +743,14 @@ function handleMemStats(
 
     return { kind: "continue" } as const;
   }).pipe(
-    Effect.catchAll((error) => {
-      const unknownError = error as unknown;
-      if (
-        typeof unknownError === "object" &&
-        unknownError !== null &&
-        "_tag" in unknownError
-      ) {
-        if (unknownError._tag === "MissingSupermemoryApiKey") {
-          return Effect.gen(function* () {
-            yield* Console.log(
-              "Error: Supermemory API key not configured. Run '/supermemory api-key <key>' first."
-            );
-            return { kind: "continue" } as const;
-          });
-        }
-        if (unknownError._tag === "SupermemoryError") {
-          return Effect.gen(function* () {
-            const smError = unknownError as SupermemoryError;
-            yield* Console.log(`Error: ${smError.message}`);
-            return { kind: "continue" } as const;
-          });
-        }
-      }
-      return Effect.gen(function* () {
+    Effect.catchAll((error) =>
+      Effect.gen(function* () {
         yield* Console.log(
           `Error: Failed to get statistics - ${String(error)}`
         );
         return { kind: "continue" } as const;
-      });
-    })
+      })
+    )
   );
 }
 

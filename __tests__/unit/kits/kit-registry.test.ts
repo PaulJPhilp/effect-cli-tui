@@ -5,13 +5,23 @@ import { createKit } from "@kits";
 import { KitRegistryService } from "@kits/registry";
 import type { Kit } from "@kits/types";
 import { Effect } from "effect";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createEffectCliSlashCommand,
   DEFAULT_SLASH_COMMANDS,
   getGlobalSlashCommandRegistry,
   setGlobalSlashCommandRegistry,
 } from "@/tui-slash-commands";
+
+vi.mock("node:os", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:os")>();
+  const nodePath = await import("node:path");
+  return {
+    ...actual,
+    homedir: () =>
+      nodePath.join(actual.tmpdir(), "effect-cli-tui-test-registry"),
+  };
+});
 
 const CONFIG_DIR_NAME = ".effect-cli-tui";
 const CONFIG_FILE_NAME = "kits.json";

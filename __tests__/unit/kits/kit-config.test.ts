@@ -6,13 +6,12 @@ import type { KitConfig } from "@kits/types";
 import { Effect } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const TEST_HOMEDIR = path.join(os.tmpdir(), "effect-cli-tui-test-config");
-
 vi.mock("node:os", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:os")>();
+  const nodePath = await import("node:path");
   return {
     ...actual,
-    homedir: () => TEST_HOMEDIR,
+    homedir: () => nodePath.join(actual.tmpdir(), "effect-cli-tui-test-config"),
   };
 });
 

@@ -8,11 +8,11 @@
 
 import { Console, Effect } from "effect";
 import { runWithTUI, TUIHandler } from "effect-cli-tui";
-import { SupermemoryClientService, withSupermemory } from "../src/supermemory";
+import { MemoriesService, SearchService } from "effect-supermemory";
+import { withSupermemory } from "../src/supermemory";
 
 const program = Effect.gen(function* () {
   const tui = yield* TUIHandler;
-  const supermemory = yield* SupermemoryClientService;
 
   yield* tui.display("🧠 Supermemory Integration Demo", "info");
   yield* tui.display("Try these slash commands:", "info");
@@ -36,18 +36,18 @@ const program = Effect.gen(function* () {
     switch (action) {
       case "Add a memory": {
         const memory = yield* tui.prompt("What do you want to remember?");
-        yield* supermemory.addText(memory);
+        yield* MemoriesService.add({ content: memory });
         yield* tui.display("✅ Memory added successfully!", "success");
         break;
       }
 
       case "Search memories": {
-        yield* handleSearch(tui, supermemory);
+        yield* handleSearch(tui);
         break;
       }
 
       case "Test direct API": {
-        yield* handleTestApi(tui, supermemory);
+        yield* handleTestApi(tui);
         break;
       }
 
@@ -63,10 +63,10 @@ const program = Effect.gen(function* () {
   }
 });
 
-const handleSearch = (tui: TUIHandler, supermemory: SupermemoryClient) =>
+const handleSearch = (tui: TUIHandler) =>
   Effect.gen(function* () {
     const query = yield* tui.prompt("Search for:");
-    const memories = yield* supermemory.search(query, { topK: 5 });
+    const memories = yield* SearchService.searchMemories(query, { topK: 5 });
 
     if (memories.length === 0) {
       yield* tui.display("No memories found matching your query.", "warning");
@@ -75,10 +75,10 @@ const handleSearch = (tui: TUIHandler, supermemory: SupermemoryClient) =>
       for (let i = 0; i < memories.length; i++) {
         const memory = memories[i];
         const score = memory.score ? (memory.score * 100).toFixed(1) : "N/A";
+        // memory.content might be undefined if not requested? Typically it is present.
+        const content = memory.content || "";
         const snippet =
-          memory.content.length > 80
-            ? `${memory.content.slice(0, 80)}...`
-            : memory.content;
+          content.length > 80 ? `${content.slice(0, 80)}...` : content;
 
         yield* tui.display(
           `  ${i + 1}. "${snippet}" (score: ${score})`,
@@ -88,11 +88,13 @@ const handleSearch = (tui: TUIHandler, supermemory: SupermemoryClient) =>
     }
   });
 
-const handleTestApi = (tui: TUIHandler, supermemory: SupermemoryClient) =>
+const handleTestApi = (tui: TUIHandler) =>
   Effect.gen(function* () {
     yield* tui.display("Testing direct Supermemory API...", "info");
-    yield* supermemory.addText("Test memory from effect-cli-tui example");
-    const testMemories = yield* supermemory.search("test memory", {
+    yield* MemoriesService.add({
+      content: "Test memory from effect-cli-tui example",
+    });
+    const testMemories = yield* SearchService.searchMemories("test memory", {
       topK: 3,
     });
     yield* tui.display(
