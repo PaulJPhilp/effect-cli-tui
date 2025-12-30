@@ -2,18 +2,27 @@ import { Console, Effect } from "effect";
 import { MemoriesService, SearchService } from "effect-supermemory";
 
 import type {
-  SlashCommandContext,
-  SlashCommandResult,
+    SlashCommandContext,
+    SlashCommandResult,
 } from "@/tui-slash-commands";
 import type { TUIError } from "@/types";
+
+interface SupermemoryError {
+  readonly message: string;
+}
+
+interface SupermemoryRateLimitError extends SupermemoryError {
+  readonly retryAfter?: string;
+}
+
 import {
-  API_KEY_MIN_VISIBLE_LENGTH,
-  API_KEY_VISIBLE_CHARS,
-  CONTENT_TRUNCATION_LENGTH,
-  DEFAULT_SEARCH_THRESHOLD,
-  DEFAULT_SEARCH_TOP_K,
-  SCORE_PERCENTAGE_MULTIPLIER,
-  SUPERMEMORY_API_KEY_PREFIX,
+    API_KEY_MIN_VISIBLE_LENGTH,
+    API_KEY_VISIBLE_CHARS,
+    CONTENT_TRUNCATION_LENGTH,
+    DEFAULT_SEARCH_THRESHOLD,
+    DEFAULT_SEARCH_TOP_K,
+    SCORE_PERCENTAGE_MULTIPLIER,
+    SUPERMEMORY_API_KEY_PREFIX,
 } from "../constants";
 import { type ConfigError, updateApiKey } from "./config";
 
@@ -82,27 +91,47 @@ export function handleAddCommand(
 
     return { kind: "continue" } as const;
   }).pipe(
-    Effect.catchTag("SupermemoryValidationError", (error: any) =>
+    Effect.catchTag("SupermemoryValidationError", (error: SupermemoryError) =>
       Effect.gen(function* () {
         yield* Console.log(`[Supermemory] Validation Error: ${error.message}`);
         return { kind: "continue" } as const;
       })
     ),
-    Effect.catchTag("SupermemoryAuthenticationError", (error: any) =>
+<<<<<<< Updated upstream
+    Effect.catchTag(
+      "SupermemoryAuthenticationError",
+      (error: SupermemoryError) =>
+        Effect.gen(function* () {
+          yield* Console.log(`[Supermemory] Auth Error: ${error.message}`);
+          return { kind: "continue" } as const;
+        })
+    ),
+    Effect.catchTag(
+      "SupermemoryRateLimitError",
+      (error: SupermemoryRateLimitError) =>
+        Effect.gen(function* () {
+          yield* Console.log(
+            `[Supermemory] Rate Limit Error: ${error.message} (Retry after ${error.retryAfter})`
+          );
+          return { kind: "continue" } as const;
+        })
+=======
+    Effect.catchTag("SupermemoryAuthenticationError", (error: SupermemoryError) =>
       Effect.gen(function* () {
         yield* Console.log(`[Supermemory] Auth Error: ${error.message}`);
         return { kind: "continue" } as const;
       })
     ),
-    Effect.catchTag("SupermemoryRateLimitError", (error: any) =>
+    Effect.catchTag("SupermemoryRateLimitError", (error: SupermemoryRateLimitError) =>
       Effect.gen(function* () {
         yield* Console.log(
           `[Supermemory] Rate Limit Error: ${error.message} (Retry after ${error.retryAfter})`
         );
         return { kind: "continue" } as const;
       })
+>>>>>>> Stashed changes
     ),
-    Effect.catchTag("SupermemoryServerError", (error: any) =>
+    Effect.catchTag("SupermemoryServerError", (error: SupermemoryError) =>
       Effect.gen(function* () {
         yield* Console.log(`[Supermemory] Server Error: ${error.message}`);
         return { kind: "continue" } as const;
@@ -162,25 +191,35 @@ export function handleSearchCommand(
 
     return { kind: "continue" } as const;
   }).pipe(
-    Effect.catchTag("SupermemoryValidationError", (error: any) =>
+    Effect.catchTag("SupermemoryValidationError", (error: SupermemoryError) =>
       Effect.gen(function* () {
         yield* Console.log(`[Supermemory] Validation Error: ${error.message}`);
         return { kind: "continue" } as const;
       })
     ),
-    Effect.catchTag("SupermemoryAuthenticationError", (error: any) =>
+<<<<<<< Updated upstream
+    Effect.catchTag(
+      "SupermemoryAuthenticationError",
+      (error: SupermemoryError) =>
+        Effect.gen(function* () {
+          yield* Console.log(`[Supermemory] Auth Error: ${error.message}`);
+          return { kind: "continue" } as const;
+        })
+=======
+    Effect.catchTag("SupermemoryAuthenticationError", (error: SupermemoryError) =>
       Effect.gen(function* () {
         yield* Console.log(`[Supermemory] Auth Error: ${error.message}`);
         return { kind: "continue" } as const;
       })
+>>>>>>> Stashed changes
     ),
-    Effect.catchTag("SupermemoryRateLimitError", (error: any) =>
+    Effect.catchTag("SupermemoryRateLimitError", (error: SupermemoryError) =>
       Effect.gen(function* () {
         yield* Console.log(`[Supermemory] Rate Limit Error: ${error.message}`);
         return { kind: "continue" } as const;
       })
     ),
-    Effect.catchTag("SupermemoryServerError", (error: any) =>
+    Effect.catchTag("SupermemoryServerError", (error: SupermemoryError) =>
       Effect.gen(function* () {
         yield* Console.log(`[Supermemory] Server Error: ${error.message}`);
         return { kind: "continue" } as const;

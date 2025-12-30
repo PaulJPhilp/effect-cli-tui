@@ -1,16 +1,42 @@
-/** biome-ignore-all assist/source/organizeImports: <> */
-import {
-  createEffectCliSlashCommand,
-  type SlashCommandDefinition,
-} from "@/tui-slash-commands";
-import { TUIError } from "@/types";
+<<<<<<< Updated upstream
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
 import { redactSecrets } from "@core/redact";
 import { loadConfig } from "@supermemory/config";
 import { Console, Effect } from "effect";
 import { MemoriesService, SearchService } from "effect-supermemory";
-import * as fs from "node:fs/promises";
-import * as path from "node:path";
+=======
+>>>>>>> Stashed changes
+import {
+    createEffectCliSlashCommand,
+    type SlashCommandDefinition,
+} from "@/tui-slash-commands";
+import { TUIError } from "@/types";
 import type { Kit } from "./types";
+
+interface SupermemoryError {
+  readonly message: string;
+  readonly retryAfter?: string;
+}
+
+interface SupermemoryDocument {
+  readonly id: string;
+  readonly content?: string;
+  readonly title?: string;
+  readonly createdAt?: string;
+  readonly updatedAt?: string;
+  readonly tags?: readonly string[];
+  readonly userId?: string;
+}
+
+interface SupermemoryMemory {
+  readonly id: string;
+  readonly content?: string;
+  readonly score?: number;
+  readonly documentId?: string;
+  readonly documentTitle?: string;
+  readonly tags?: readonly string[];
+}
 
 /**
  * Parse comma-separated tags string into array
@@ -66,7 +92,11 @@ function truncate(text: string, maxLength: number): string {
  */
 function handleMemStatus(
   _context: import("../tui-slash-commands").SlashCommandContext
-): any {
+): Effect.Effect<
+  import("../tui-slash-commands").SlashCommandResult,
+  never,
+  any
+> {
   return Effect.gen(function* () {
     const config = yield* loadConfig();
 
@@ -98,7 +128,9 @@ function handleMemStatus(
         MemoriesService.list({ limit: 1000 })
       );
       if (docsResult._tag === "Right") {
-        const docs = docsResult.right as any;
+        const docs = docsResult.right as unknown as
+          | SupermemoryDocument[]
+          | { items: SupermemoryDocument[] };
         const docCount = (Array.isArray(docs) ? docs : docs?.items || [])
           .length;
         yield* Console.log(`Documents: ${docCount}`);
@@ -126,8 +158,7 @@ function handleMemStatus(
         ].includes(unknownError._tag as string)
       ) {
         return Effect.gen(function* () {
-          // biome-ignore lint/suspicious/noExplicitAny: error type varies
-          const smError = unknownError as any;
+          const smError = unknownError as unknown as SupermemoryError;
           yield* Console.log("\n❌ MemKit Status: Error");
           yield* Console.log("─".repeat(40));
           yield* Console.log(`Connectivity: ❌ Error: ${smError.message}`);
@@ -152,7 +183,11 @@ function handleMemStatus(
  */
 function handleMemAddText(
   context: import("../tui-slash-commands").SlashCommandContext
-): any {
+): Effect.Effect<
+  import("../tui-slash-commands").SlashCommandResult,
+  never,
+  any
+> {
   return Effect.gen(function* () {
     const text = context.args.join(" ").trim();
     const title = context.flags.title as string | undefined;
@@ -167,13 +202,13 @@ function handleMemAddText(
       return { kind: "continue" } as const;
     }
 
-    const doc = yield* MemoriesService.add({
+    const doc = (yield* MemoriesService.add({
       content: text,
-    }) as any;
+    })) as SupermemoryDocument;
 
     yield* Console.log(`✓ Added document ${doc.id}`);
-    if ((doc as any).title) {
-      yield* Console.log(`  Title: ${(doc as any).title}`);
+    if (doc.title) {
+      yield* Console.log(`  Title: ${doc.title}`);
     }
 
     return { kind: "continue" } as const;
@@ -192,8 +227,7 @@ function handleMemAddText(
         ].includes(unknownError._tag as string)
       ) {
         return Effect.gen(function* () {
-          // biome-ignore lint/suspicious/noExplicitAny: error type varies
-          const smError = unknownError as any;
+          const smError = unknownError as unknown as SupermemoryError;
           yield* Console.log(`Error: ${smError.message}`);
           return { kind: "continue" } as const;
         });
@@ -211,7 +245,11 @@ function handleMemAddText(
  */
 function handleMemAddFile(
   context: import("../tui-slash-commands").SlashCommandContext
-): any {
+): Effect.Effect<
+  import("../tui-slash-commands").SlashCommandResult,
+  never,
+  any
+> {
   return Effect.gen(function* () {
     const filePath = context.args[0];
     const title = context.flags.title as string | undefined;
@@ -239,13 +277,13 @@ function handleMemAddFile(
       Effect.mapError((error) => new TUIError("RenderError", String(error)))
     );
 
-    const doc = yield* MemoriesService.add({
+    const doc = (yield* MemoriesService.add({
       content: fileContent,
-    }) as any;
+    })) as SupermemoryDocument;
 
     yield* Console.log(`✓ Added document ${doc.id} from ${resolvedPath}`);
-    if ((doc as any).title) {
-      yield* Console.log(`  Title: ${(doc as any).title}`);
+    if (doc.title) {
+      yield* Console.log(`  Title: ${doc.title}`);
     }
 
     return { kind: "continue" } as const;
@@ -266,8 +304,7 @@ function handleMemAddFile(
           ].includes(unknownError._tag as string)
         ) {
           return Effect.gen(function* () {
-            // biome-ignore lint/suspicious/noExplicitAny: error type varies
-            const smError = unknownError as any;
+            const smError = unknownError as unknown as SupermemoryError;
             yield* Console.log(`Error: ${smError.message}`);
             return { kind: "continue" } as const;
           });
@@ -293,7 +330,11 @@ function handleMemAddFile(
  */
 function handleMemAddUrl(
   context: import("../tui-slash-commands").SlashCommandContext
-): any {
+): Effect.Effect<
+  import("../tui-slash-commands").SlashCommandResult,
+  never,
+  any
+> {
   return Effect.gen(function* () {
     const url = context.args[0];
     const title = context.flags.title as string | undefined;
@@ -315,13 +356,13 @@ function handleMemAddUrl(
     }
 
     // Add URL as document content (Supermemory will handle extraction)
-    const doc = yield* MemoriesService.add({
+    const doc = (yield* MemoriesService.add({
       content: url,
-    }) as any;
+    })) as SupermemoryDocument;
 
     yield* Console.log(`✓ Added document ${doc.id} (content: ${url})`);
-    if ((doc as any).title) {
-      yield* Console.log(`  Title: ${(doc as any).title}`);
+    if (doc.title) {
+      yield* Console.log(`  Title: ${doc.title}`);
     }
 
     return { kind: "continue" } as const;
@@ -340,8 +381,7 @@ function handleMemAddUrl(
         ].includes(unknownError._tag as string)
       ) {
         return Effect.gen(function* () {
-          // biome-ignore lint/suspicious/noExplicitAny: error type varies
-          const smError = unknownError as any;
+          const smError = unknownError as unknown as SupermemoryError;
           yield* Console.log(`Error: ${smError.message}`);
           return { kind: "continue" } as const;
         });
@@ -357,17 +397,24 @@ function handleMemAddUrl(
 /**
  * Display a single memory item
  */
-function displayMemoryItem(mem: any, index: number): Effect.Effect<void> {
+function displayMemoryItem(
+  mem: SupermemoryMemory,
+  index: number
+): Effect.Effect<void> {
   return Effect.gen(function* () {
     const snippet = truncate(mem.content || "", 80);
-    const score = (mem as any).score
-      ? ` (score: ${(((mem as any).score as number) * 100).toFixed(1)}%)`
+<<<<<<< Updated upstream
+    const score = mem.score ? ` (score: ${(mem.score * 100).toFixed(1)}%)` : "";
+=======
+    const score = mem.score
+      ? ` (score: ${(mem.score * 100).toFixed(1)}%)`
       : "";
+>>>>>>> Stashed changes
     yield* Console.log(`\n  ${index + 1}. ${snippet}${score}`);
     yield* Console.log(`     Memory ID: ${mem.id}`);
-    yield* Console.log(`     Document: ${(mem as any).documentId || "N/A"}`);
-    if ((mem as any).documentTitle) {
-      yield* Console.log(`     Title: ${(mem as any).documentTitle}`);
+    yield* Console.log(`     Document: ${mem.documentId || "N/A"}`);
+    if (mem.documentTitle) {
+      yield* Console.log(`     Title: ${mem.documentTitle}`);
     }
   });
 }
@@ -377,7 +424,7 @@ function displayMemoryItem(mem: any, index: number): Effect.Effect<void> {
  */
 function displaySearchResults(
   query: string,
-  memories: any[]
+  memories: SupermemoryMemory[]
 ): Effect.Effect<void> {
   return Effect.gen(function* () {
     yield* Console.log(`\n🔍 Search results for "${query}":`);
@@ -447,8 +494,7 @@ function handleSearchError(
       "SupermemoryServerError",
     ].includes(unknownError._tag as string)
   ) {
-    // biome-ignore lint/suspicious/noExplicitAny: error type varies
-    const smError = unknownError as any;
+    const smError = unknownError as unknown as SupermemoryError;
     return Effect.gen(function* () {
       yield* Console.log(`Error: ${smError.message}`);
       return { kind: "continue" } as const;
@@ -462,7 +508,11 @@ function handleSearchError(
  */
 function handleMemSearch(
   context: import("../tui-slash-commands").SlashCommandContext
-): any {
+): Effect.Effect<
+  import("../tui-slash-commands").SlashCommandResult,
+  never,
+  any
+> {
   return Effect.gen(function* () {
     const query = context.args.join(" ").trim();
     const limit = context.flags.limit
@@ -491,7 +541,11 @@ function handleMemSearch(
  */
 function handleMemShowDoc(
   context: import("../tui-slash-commands").SlashCommandContext
-): any {
+): Effect.Effect<
+  import("../tui-slash-commands").SlashCommandResult,
+  never,
+  any
+> {
   return Effect.gen(function* () {
     const docId = context.args[0];
 
@@ -501,23 +555,23 @@ function handleMemShowDoc(
       return { kind: "continue" } as const;
     }
 
-    const doc = yield* MemoriesService.get(docId) as any;
+    const doc = (yield* MemoriesService.get(docId)) as SupermemoryDocument;
 
     yield* Console.log(`\n📄 Document: ${doc.id}`);
     yield* Console.log("─".repeat(60));
-    yield* Console.log(`Title: ${(doc as any).title ?? "Untitled"}`);
-    yield* Console.log(`Created: ${formatDate((doc as any).createdAt)}`);
-    yield* Console.log(`Updated: ${formatDate((doc as any).updatedAt)}`);
-    if ((doc as any).tags && (doc as any).tags.length > 0) {
-      yield* Console.log(`Tags: ${((doc as any).tags as string[]).join(", ")}`);
+    yield* Console.log(`Title: ${doc.title ?? "Untitled"}`);
+    yield* Console.log(`Created: ${formatDate(doc.createdAt)}`);
+    yield* Console.log(`Updated: ${formatDate(doc.updatedAt)}`);
+    if (doc.tags && doc.tags.length > 0) {
+      yield* Console.log(`Tags: ${doc.tags.join(", ")}`);
     }
-    if ((doc as any).userId) {
-      yield* Console.log(`User ID: ${(doc as any).userId}`);
+    if (doc.userId) {
+      yield* Console.log(`User ID: ${doc.userId}`);
     }
     yield* Console.log("─".repeat(60));
     yield* Console.log("\nContent:");
     yield* Console.log("─".repeat(60));
-    yield* Console.log((doc as any).content || "");
+    yield* Console.log(doc.content || "");
     yield* Console.log("─".repeat(60));
     yield* Console.log("");
 
@@ -531,10 +585,14 @@ function handleMemShowDoc(
       sampleMemories.right.length > 0
     ) {
       yield* Console.log("Sample memories:");
-      for (const mem of sampleMemories.right) {
+      for (const mem of sampleMemories.right as SupermemoryMemory[]) {
+<<<<<<< Updated upstream
+        yield* Console.log(`  - ${mem.id}: ${truncate(mem.content || "", 60)}`);
+=======
         yield* Console.log(
-          `  - ${(mem as any).id}: ${truncate((mem as any).content || "", 60)}`
+          `  - ${mem.id}: ${truncate(mem.content || "", 60)}`
         );
+>>>>>>> Stashed changes
       }
       yield* Console.log("");
     }
@@ -555,8 +613,7 @@ function handleMemShowDoc(
         ].includes(unknownError._tag as string)
       ) {
         return Effect.gen(function* () {
-          // biome-ignore lint/suspicious/noExplicitAny: error type varies
-          const smError = unknownError as any;
+          const smError = unknownError as unknown as SupermemoryError;
           yield* Console.log(`Error: ${smError.message}`);
           return { kind: "continue" } as const;
         });
@@ -574,7 +631,11 @@ function handleMemShowDoc(
  */
 function handleMemShowMem(
   context: import("../tui-slash-commands").SlashCommandContext
-): any {
+): Effect.Effect<
+  import("../tui-slash-commands").SlashCommandResult,
+  never,
+  any
+> {
   return Effect.gen(function* () {
     const memId = context.args[0];
 
@@ -584,26 +645,24 @@ function handleMemShowMem(
       return { kind: "continue" } as const;
     }
 
-    const mem = yield* MemoriesService.get(memId) as any;
+    const mem = (yield* MemoriesService.get(memId)) as SupermemoryMemory;
 
     yield* Console.log(`\n💭 Memory: ${mem.id}`);
     yield* Console.log("─".repeat(60));
-    yield* Console.log(`Document ID: ${(mem as any).documentId || "N/A"}`);
-    if ((mem as any).documentTitle) {
-      yield* Console.log(`Document Title: ${(mem as any).documentTitle}`);
+    yield* Console.log(`Document ID: ${mem.documentId || "N/A"}`);
+    if (mem.documentTitle) {
+      yield* Console.log(`Document Title: ${mem.documentTitle}`);
     }
-    if ((mem as any).score !== undefined) {
-      yield* Console.log(
-        `Score: ${(((mem as any).score as number) * 100).toFixed(1)}%`
-      );
+    if (mem.score !== undefined) {
+      yield* Console.log(`Score: ${(mem.score * 100).toFixed(1)}%`);
     }
-    if ((mem as any).tags && (mem as any).tags.length > 0) {
-      yield* Console.log(`Tags: ${((mem as any).tags as string[]).join(", ")}`);
+    if (mem.tags && mem.tags.length > 0) {
+      yield* Console.log(`Tags: ${mem.tags.join(", ")}`);
     }
     yield* Console.log("─".repeat(60));
     yield* Console.log("\nContent:");
     yield* Console.log("─".repeat(60));
-    yield* Console.log((mem as any).content || "");
+    yield* Console.log(mem.content || "");
     yield* Console.log("─".repeat(60));
     yield* Console.log("");
 
@@ -623,8 +682,7 @@ function handleMemShowMem(
         ].includes(unknownError._tag as string)
       ) {
         return Effect.gen(function* () {
-          // biome-ignore lint/suspicious/noExplicitAny: error type varies
-          const smError = unknownError as any;
+          const smError = unknownError as unknown as SupermemoryError;
           yield* Console.log(`Error: ${smError.message}`);
           return { kind: "continue" } as const;
         });
@@ -642,7 +700,11 @@ function handleMemShowMem(
  */
 function handleMemRmDoc(
   context: import("../tui-slash-commands").SlashCommandContext
-): any {
+): Effect.Effect<
+  import("../tui-slash-commands").SlashCommandResult,
+  never,
+  any
+> {
   return Effect.gen(function* () {
     const docId = context.args[0];
     const force = context.flags.force === true || context.flags.f === true;
@@ -687,8 +749,7 @@ function handleMemRmDoc(
         ].includes(unknownError._tag as string)
       ) {
         return Effect.gen(function* () {
-          // biome-ignore lint/suspicious/noExplicitAny: error type varies
-          const smError = unknownError as any;
+          const smError = unknownError as unknown as SupermemoryError;
           yield* Console.log(`Error: ${smError.message}`);
           return { kind: "continue" } as const;
         });
@@ -708,10 +769,16 @@ function handleMemRmDoc(
  */
 function handleMemStats(
   _context: import("../tui-slash-commands").SlashCommandContext
-): any {
+): Effect.Effect<
+  import("../tui-slash-commands").SlashCommandResult,
+  never,
+  any
+> {
   return Effect.gen(function* () {
     // Get all documents/memories
-    const result = yield* MemoriesService.list({ limit: 10_000 }) as any;
+    const result = (yield* MemoriesService.list({
+      limit: 10_000,
+    })) as unknown as SupermemoryDocument[] | { items: SupermemoryDocument[] };
     const allDocs = Array.isArray(result) ? result : result?.items || [];
 
     const now = new Date();
@@ -722,8 +789,8 @@ function handleMemStats(
     let docsLastWeek = 0;
 
     for (const doc of allDocs) {
-      if ((doc as any).createdAt) {
-        const created = new Date((doc as any).createdAt);
+      if (doc.createdAt) {
+        const created = new Date(doc.createdAt);
         if (created >= oneDayAgo) {
           docsLastDay += 1;
         }
@@ -735,7 +802,7 @@ function handleMemStats(
 
     yield* Console.log("\n📊 MemKit Statistics");
     yield* Console.log("─".repeat(40));
-    yield* Console.log(`Total Documents: ${(allDocs as any[]).length || 0}`);
+    yield* Console.log(`Total Documents: ${allDocs.length || 0}`);
     yield* Console.log(`Documents (last 24h): ${docsLastDay}`);
     yield* Console.log(`Documents (last 7d): ${docsLastWeek}`);
     yield* Console.log("─".repeat(40));
