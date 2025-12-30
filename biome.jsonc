@@ -3,7 +3,7 @@
   "extends": ["ultracite/core", "ultracite/react"],
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!!**/*.md"]
+    "includes": ["!!**/*.md"]
   },
   "linter": {
     "rules": {

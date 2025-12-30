@@ -70,10 +70,10 @@
   },
   "type": "module",
   "dependencies": {
-    "@ai-sdk/openai": "^2.0.80",
+    "@ai-sdk/openai": "^2.0.88",
     "@effect/platform-node": "^0.103.0",
     "@effect/schema": "^0.75.5",
-    "ai": "^5.0.108",
+    "ai": "^5.0.116",
     "chalk": "^5.6.2",
     "cli-spinners": "^3.3.0",
     "effect-cli": "^1.0.0",
@@ -94,20 +94,20 @@
     "effect": "^3.19.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.8",
+    "@biomejs/biome": "^2.3.10",
     "@types/ink-select-input": "^3.0.5",
-    "@types/node": "^20.19.26",
+    "@types/node": "^20.19.27",
     "@types/react": "^18.3.27",
-    "@vitest/coverage-v8": "^4.0.15",
-    "@vitest/ui": "^4.0.15",
-    "effect": "^3.19.10",
+    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/ui": "^4.0.16",
+    "effect": "^3.19.13",
     "ink-testing-library": "^4.0.0",
     "tsup": "^8.5.1",
     "typedoc": "^0.28.15",
     "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "^5.9.3",
-    "ultracite": "^6.3.10",
-    "vitest": "^4.0.15"
+    "ultracite": "^6.5.0",
+    "vitest": "^4.0.16"
   },
   "engines": {
     "node": ">=20"
